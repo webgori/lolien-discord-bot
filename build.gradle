@@ -1,0 +1,108 @@
+plugins {
+    id 'org.springframework.boot' version '2.1.4.RELEASE'
+    id 'java'
+    id 'war'
+    id 'checkstyle'
+    id "findbugs"
+}
+
+apply plugin: 'io.spring.dependency-management'
+
+group = 'kr.webgori'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '1.8'
+
+bootWar {
+    archiveName = 'ROOT.war'
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+    jcenter()
+    maven { url = "https://jitpack.io" }
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation("net.dv8tion:JDA:3.8.3_462")
+    compile group: 'com.google.guava', name: 'guava', version: '27.1-jre'
+    compile group: 'com.google.code.gson', name: 'gson', version: '2.8.3'
+    compileOnly 'org.projectlombok:lombok'
+    runtimeOnly 'mysql:mysql-connector-java'
+    annotationProcessor 'org.projectlombok:lombok'
+    providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    compile group: 'com.github.taycaldwell', name: 'riot-api-java', version: '4.2.0'
+    compile group: 'org.jsoup', name: 'jsoup', version: '1.11.3'
+
+    compile group: 'com.google.code.findbugs', name: 'annotations', version: '3.0.1'
+    findbugs 'com.google.code.findbugs:findbugs:3.0.1'
+    findbugs configurations.findbugsPlugins.dependencies
+    findbugsPlugins 'com.h3xstream.findsecbugs:findsecbugs-plugin:1.4.4'
+}
+
+tasks.withType(Test) {
+    systemProperty "file.encoding", "UTF-8"
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs 'src/main/java'
+        }
+    }
+}
+
+checkstyle {
+    toolVersion = '8.5'
+}
+
+/**
+ * ignoreFailures = false 설정만으로 checkstyle 위배 시 빌드가 실패해야 하지만
+ * 다음과 같은 버그가 있습니다.
+ * https://github.com/gradle/gradle/issues/881
+ *
+ * 이 구성은 버그가 해결될 때 까지 사용되는 임시방편입니다.
+ * */
+tasks.withType(Checkstyle).each { checkstyleTask ->
+    checkstyleTask.doLast {
+        reports.all { report ->
+            def outputFile = report.destination
+            if (outputFile.exists() && outputFile.text.contains("<error ")) {
+                throw new GradleException("There were checkstyle warnings! For more info check $outputFile")
+            }
+        }
+    }
+}
+
+task findbugs(type: FindBugs) {
+    classes = fileTree(project.rootDir.absolutePath).include("**/*.class")
+    source = fileTree(project.rootDir.absolutePath).include("**/*.java")
+    classpath = files()
+    pluginClasspath = project.configurations.findbugsPlugins
+
+    findbugs {
+        toolVersion = "3.0.0"
+        sourceSets = [sourceSets.main]
+        ignoreFailures = false
+        reportsDir = file("$project.buildDir/findbugsReports")
+        effort = "max"
+        reportLevel = "low"
+        /*includeFilter = file("$rootProject.projectDir/include.xml")
+        excludeFilter = file("$rootProject.projectDir/exclude.xml")*/
+    }
+
+    tasks.withType(FindBugs) {
+        reports {
+            xml.enabled = false
+            html.enabled = true
+        }
+    }
+}
