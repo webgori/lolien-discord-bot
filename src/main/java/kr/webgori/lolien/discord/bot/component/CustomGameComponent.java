@@ -11,11 +11,14 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import com.google.gson.Gson;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import kr.webgori.lolien.discord.bot.entity.Champ;
 import kr.webgori.lolien.discord.bot.entity.LoLienMatch;
@@ -28,6 +31,7 @@ import kr.webgori.lolien.discord.bot.repository.ChampRepository;
 import kr.webgori.lolien.discord.bot.repository.LoLienMatchRepository;
 import kr.webgori.lolien.discord.bot.repository.LoLienParticipantRepository;
 import kr.webgori.lolien.discord.bot.repository.LoLienSummonerRepository;
+import kr.webgori.lolien.discord.bot.spring.LinkedIntegerLongHashMapTypeToken;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.core.entities.TextChannel;
@@ -42,21 +46,26 @@ import net.rithms.riot.api.endpoints.match.dto.TeamBans;
 import net.rithms.riot.api.endpoints.match.dto.TeamStats;
 import net.rithms.riot.constant.Platform;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.HashOperations;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 
-import static kr.webgori.lolien.discord.bot.util.CommonUtil.sendErrorMessage;
-import static kr.webgori.lolien.discord.bot.util.CommonUtil.sendMessage;
+import static kr.webgori.lolien.discord.bot.util.CommonUtil.*;
 
 @Slf4j
 @SuppressFBWarnings(value = "CRLF_INJECTION_LOGS")
 @RequiredArgsConstructor
 @Component
 public class CustomGameComponent {
+  private static final String REDIS_MOST_CHAMPS_KEY = "lolien-discord-bot:most-champs";
+
   private final LoLienSummonerRepository loLienSummonerRepository;
   private final LoLienMatchRepository loLienMatchRepository;
   private final LoLienParticipantRepository loLienParticipantRepository;
   private final ChampRepository champRepository;
+  private final RedisTemplate<String, Object> redisTemplate;
+  private final Gson gson;
 
   @Value("${riot.api.key}")
   private String riotApiKey;
@@ -83,56 +92,6 @@ public class CustomGameComponent {
         String arg2 = commands.get(2);
 
         switch (arg2) {
-          case "등록": {
-            if (commands.size() < 5) {
-              sendAddResultSyntax(textChannel);
-              return;
-            }
-
-            String subCommand3 = commands.get(3);
-
-            String matchHistoryUrlPattern
-                    = "http://matchhistory.leagueoflegends.co.kr/ko/#match-details/KR/[0-9]+/[0-9]+.+";
-            Pattern pattern = Pattern
-                    .compile(matchHistoryUrlPattern);
-            Matcher matcher = pattern.matcher(subCommand3);
-
-            if (!matcher.find()) {
-              sendErrorMessage(textChannel, "대전기록 URL 형식이 올바르지 않습니다.", Color.RED);
-              return;
-            }
-
-            pattern = Pattern.compile("[0-9]+");
-            matcher = pattern.matcher(subCommand3);
-            long matchId = 0;
-
-            if (matcher.find()) {
-              matchId = Long.parseLong(matcher.group());
-            }
-
-            boolean existsByGameId = loLienMatchRepository.existsByGameId(matchId);
-
-            if (existsByGameId) {
-              sendErrorMessage(textChannel, "이미 등록된 내전 결과 입니다.", Color.RED);
-              return;
-            }
-
-            StringBuilder subCommand4 = new StringBuilder();
-
-            for (int i = 4; i < commands.size(); i++) {
-              subCommand4.append(String.join(",", commands.get(i)));
-            }
-
-            String[] entries = subCommand4.toString().split(",");
-
-            if (entries.length != 10) {
-              sendAddResultSyntax(textChannel);
-              return;
-            }
-
-            addResult(textChannel, matchId, entries);
-            break;
-          }
           case "조회":
             if (commands.size() != 3) {
               sendGetResultSyntax(textChannel);
@@ -160,7 +119,7 @@ public class CustomGameComponent {
                 minute = minute - hour * 60;
               }
 
-              List<LoLienParticipant> participants = loLienMatch.getParticipants();
+              Set<LoLienParticipant> participants = loLienMatch.getParticipants();
               LoLienParticipant loLienParticipant = Collections
                       .max(participants,
                               Comparator.comparing(s -> s.getStats()
@@ -308,7 +267,7 @@ public class CustomGameComponent {
           return;
         }
 
-        LinkedHashMap<Integer, Long> mostChampions = getMostChamp(summonerName, 5);
+        LinkedHashMap<Integer, Long> mostChampions = getMostChamp(summonerName, 3);
         List<String> mostChampionsList = Lists.newArrayList();
 
         for (Map.Entry<Integer, Long> mostChampion : mostChampions.entrySet()) {
@@ -336,7 +295,7 @@ public class CustomGameComponent {
         }
 
         if (mostChampionsList.size() > 0) {
-          String message = String.format("-- %s님의 모스트 TOP5 챔피언 --", summonerName);
+          String message = String.format("-- %s님의 모스트 TOP3 챔피언 --", summonerName);
           sendMessage(textChannel, message);
 
           for (int i = 0; i < mostChampionsList.size(); i++) {
@@ -379,8 +338,8 @@ public class CustomGameComponent {
       int queueId = match.getQueueId();
       int seasonId = match.getSeasonId();
 
-      List<LoLienParticipant> loLienParticipantList = Lists.newArrayList();
-      List<LoLienTeamStats> loLienTeamStatsList = Lists.newArrayList();
+      Set<LoLienParticipant> loLienParticipantSet = Sets.newHashSet();
+      Set<LoLienTeamStats> loLienTeamStatsSet = Sets.newHashSet();
 
       LoLienMatch loLienMatch = LoLienMatch
               .builder()
@@ -391,11 +350,11 @@ public class CustomGameComponent {
               .gameType(gameType)
               .gameVersion(gameVersion)
               .mapId(mapId)
-              .participants(loLienParticipantList)
+              .participants(loLienParticipantSet)
               .platformId(platformId)
               .queueId(queueId)
               .seasonId(seasonId)
-              .teams(loLienTeamStatsList)
+              .teams(loLienTeamStatsSet)
               .build();
 
       List<Participant> participants = match.getParticipants();
@@ -655,7 +614,7 @@ public class CustomGameComponent {
 
         loLienParticipantStats.setParticipant(loLienParticipant);
 
-        loLienParticipantList.add(loLienParticipant);
+        loLienParticipantSet.add(loLienParticipant);
       }
 
       List<TeamStats> teams = match.getTeams();
@@ -715,12 +674,21 @@ public class CustomGameComponent {
           loLienTeamBansList.add(loLienTeamBans);
         }
 
-        loLienTeamStatsList.add(loLienTeamStats);
+        loLienTeamStatsSet.add(loLienTeamStats);
       }
 
       loLienMatchRepository.save(loLienMatch);
 
       sendMessage(textChannel, "내전 결과가 성공적으로 등록 되었습니다.");
+
+      for (String summonerName : entries) {
+        HashOperations<String, Object, Object> opsForHash = redisTemplate.opsForHash();
+        boolean hasHashKey = opsForHash.hasKey(REDIS_MOST_CHAMPS_KEY, summonerName);
+        if (hasHashKey) {
+          opsForHash.delete(REDIS_MOST_CHAMPS_KEY, summonerName);
+        }
+        getMostChamp(summonerName, 3);
+      }
     } catch (RiotApiException e) {
       int errorCode = e.getErrorCode();
       if (errorCode == RiotApiException.FORBIDDEN) {
@@ -734,23 +702,36 @@ public class CustomGameComponent {
   }
 
   LinkedHashMap<Integer, Long> getMostChamp(String summonerName, int limit) {
-    List<LoLienParticipant> participants = loLienParticipantRepository
-            .findByLoLienSummonerSummonerName(summonerName);
+    HashOperations<String, Object, Object> opsForHash = redisTemplate.opsForHash();
+    boolean hasHashKey = opsForHash.hasKey(REDIS_MOST_CHAMPS_KEY, summonerName);
 
-    return participants
-            .stream()
-            .collect(Collectors
-                    .groupingBy(LoLienParticipant::getChampionId,
-                            Collectors.counting()))
-            .entrySet()
-            .stream()
-            .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
-            .limit(limit)
-            .collect(
-                    Collectors
-                            .toMap(Map.Entry::getKey,
-                                    Map.Entry::getValue, (oldValue, newValue) -> oldValue,
-                                    LinkedHashMap::new));
+    if (hasHashKey) {
+      String mostChampJson = (String) opsForHash.get(REDIS_MOST_CHAMPS_KEY, summonerName);
+      return gson.fromJson(mostChampJson, new LinkedIntegerLongHashMapTypeToken().getType());
+    } else {
+      List<LoLienParticipant> participants = loLienParticipantRepository
+              .findByLoLienSummonerSummonerName(summonerName);
+
+      LinkedHashMap<Integer, Long> mostChamps = participants
+              .stream()
+              .collect(Collectors
+                      .groupingBy(LoLienParticipant::getChampionId,
+                              Collectors.counting()))
+              .entrySet()
+              .stream()
+              .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+              .limit(limit)
+              .collect(
+                      Collectors
+                              .toMap(Map.Entry::getKey,
+                                      Map.Entry::getValue, (oldValue, newValue) -> oldValue,
+                                      LinkedHashMap::new));
+
+      String mostChampsJson = objectToJsonString(mostChamps);
+      opsForHash.put(REDIS_MOST_CHAMPS_KEY, summonerName, mostChampsJson);
+
+      return mostChamps;
+    }
   }
 
   private void sendSyntax(TextChannel textChannel) {
@@ -758,7 +739,7 @@ public class CustomGameComponent {
   }
 
   public void sendAddResultSyntax(TextChannel textChannel) {
-    sendErrorMessage(textChannel, "잘못된 명령어 입니다. !내전 결과 등록 대전기록-URL 참가자목록(순서대로)", Color.RED);
+    sendErrorMessage(textChannel, "잘못된 접근 입니다.", Color.RED);
   }
 
   private void sendGetResultSyntax(TextChannel textChannel) {

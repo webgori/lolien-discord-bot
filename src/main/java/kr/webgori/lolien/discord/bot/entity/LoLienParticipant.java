@@ -14,6 +14,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -21,6 +22,7 @@ import lombok.NoArgsConstructor;
 @Data
 @Entity
 @Table(name = "participant")
+@ToString(exclude = {"match"})
 public class LoLienParticipant {
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)

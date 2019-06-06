@@ -1,7 +1,6 @@
 package kr.webgori.lolien.discord.bot.component;
 
 import java.awt.Color;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -11,6 +10,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import at.stefangeyer.challonge.Challonge;
+import at.stefangeyer.challonge.exception.DataAccessException;
+import at.stefangeyer.challonge.model.Credentials;
+import at.stefangeyer.challonge.model.Tournament;
+import at.stefangeyer.challonge.model.enumeration.TournamentType;
+import at.stefangeyer.challonge.model.query.ParticipantQuery;
+import at.stefangeyer.challonge.model.query.TournamentQuery;
+import at.stefangeyer.challonge.rest.RestClient;
+import at.stefangeyer.challonge.rest.retrofit.RetrofitRestClient;
+import at.stefangeyer.challonge.serializer.Serializer;
+import at.stefangeyer.challonge.serializer.gson.GsonSerializer;
 import com.google.common.collect.Lists;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import kr.webgori.lolien.discord.bot.entity.Champ;
@@ -26,16 +36,15 @@ import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import net.rithms.riot.api.ApiConfig;
 import net.rithms.riot.api.RiotApi;
 import net.rithms.riot.api.RiotApiException;
-import net.rithms.riot.api.endpoints.league.dto.LeaguePosition;
+import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.constant.Platform;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 
-import static kr.webgori.lolien.discord.bot.util.CommonUtil.sendErrorMessage;
-import static kr.webgori.lolien.discord.bot.util.CommonUtil.sendMessage;
+import static kr.webgori.lolien.discord.bot.util.CommonUtil.*;
 
 @Slf4j
 @SuppressFBWarnings(value = "CRLF_INJECTION_LOGS")
@@ -47,6 +56,9 @@ public class TeamGenerateComponent {
   private static final String[] RANK_LIST = {"IV", "III", "II", "I"};
   private static final String CURRENT_SEASON = "S9";
   private static final String DEFAULT_TIER = "UNRANKED";
+  private static final int PERIOD_POINT = 5;
+  private static final int LOOP_LIMIT_COUNT = 5;
+  private static final int FAIL_LIMIT_COUNT = 5;
 
   private final LoLienSummonerRepository loLienSummonerRepository;
   private final LeagueRepository leagueRepository;
@@ -55,6 +67,12 @@ public class TeamGenerateComponent {
 
   @Value("${riot.api.key}")
   private String riotApiKey;
+
+  @Value("${challonge.username}")
+  private String challongeUserName;
+
+  @Value("${challonge.api.key}")
+  private String challongeApiKey;
 
   public void execute(MessageReceivedEvent event) {
     TextChannel textChannel = event.getTextChannel();
@@ -81,47 +99,68 @@ public class TeamGenerateComponent {
 
     String[] entries = entriesBuilder.toString().split(",");
 
-    if (entries.length != 10) {
+    if (entries.length % 5 != 0) {
       sendErrorMessage(textChannel, "참가자가 인원이 잘못되었습니다.", Color.RED);
       return;
     }
 
-    List<Object> teamList = generateTeam(textChannel, entries, loLienSummonerRepository);
-    String teamA = (String) teamList.get(0);
+    List<List<Object>> generateTeams = generateTeam(textChannel, entries, loLienSummonerRepository);
+    StringBuilder message = new StringBuilder();
 
-    for (int i = 0; i < 20; i++) {
-      int countOfEntry = StringUtils.countOccurrencesOf(teamA, ",") + 1;
-      int pointOfTeamA = (int) teamList.get(1);
-      int pointOfTeamB = (int) teamList.get(4);
-      int periodPoint = pointOfTeamB - pointOfTeamA;
+    for (List<Object> generateTeam : generateTeams) {
+      message.append((String) generateTeam.get(0));
+      message.append("\n");
+      message.append((String) generateTeam.get(1));
+      message.append("\n\n");
+    }
 
-      if (countOfEntry == 5 && periodPoint < 5) {
-        break;
+    int teamSize = generateTeams.size();
+
+    if (teamSize > 2) {
+      Credentials credentials = new Credentials(challongeUserName, challongeApiKey);
+
+      Serializer serializer = new GsonSerializer();
+      RestClient restClient = new RetrofitRestClient();
+
+      Challonge challonge = new Challonge(credentials, serializer, restClient);
+
+      String uniqueId = RandomStringUtils.randomAlphanumeric(10);
+      String tournamentCreatedDate = getTournamentCreatedDate();
+      String gameName = String.format("[%s] LoLien League", tournamentCreatedDate);
+
+      TournamentQuery query = TournamentQuery
+              .builder()
+              .name(gameName)
+              .gameName("League of Legends")
+              .url(uniqueId)
+              .tournamentType(TournamentType.SINGLE_ELIMINATION)
+              .build();
+
+      try {
+        Tournament tournament = challonge.createTournament(query);
+        List<ParticipantQuery> participantQueries = Lists.newArrayList();
+
+        for (int i = 1; i <= teamSize; i++) {
+          String name = String.format("%s팀", i);
+
+          ParticipantQuery participantQuery = ParticipantQuery
+                  .builder()
+                  .name(name)
+                  .build();
+
+          participantQueries.add(participantQuery);
+        }
+
+        challonge.bulkAddParticipants(tournament, participantQueries);
+        String fullChallongeUrl = String.format("대진표: %s", tournament.getFullChallongeUrl());
+
+        message.append(fullChallongeUrl);
+      } catch (DataAccessException e) {
+        logger.error("{}", e);
       }
-
-      teamList = generateTeam(textChannel, entries, loLienSummonerRepository);
-      teamA = (String) teamList.get(0);
     }
 
-    int countOfEntry = StringUtils.countOccurrencesOf(teamA, ",") + 1;
-    int pointOfTeamA = (int) teamList.get(1);
-    int pointOfTeamB = (int) teamList.get(4);
-    int periodPoint = pointOfTeamB - pointOfTeamA;
-
-    if (countOfEntry == 5 && periodPoint < 5) {
-      String teamMessageBuilder = String.valueOf(teamList.get(0)) +
-              "\n" +
-              teamList.get(3) +
-              "\n----------------------------------------------------------------------------------------------------------------------------------------------------------------------------" +
-              "\n1팀" +
-              teamList.get(2) +
-              "\n----------------------------------------------------------------------------------------------------------------------------------------------------------------------------" +
-              "\n2팀" +
-              teamList.get(5);
-      sendMessage(textChannel, teamMessageBuilder);
-    } else {
-      sendErrorMessage(textChannel, "팀 구성이 실패하였습니다.", Color.RED);
-    }
+    sendMessage(textChannel, message.toString());
   }
 
   private int getPointByLevel(int level) {
@@ -136,7 +175,7 @@ public class TeamGenerateComponent {
     }
   }
 
-  private List<Object> generateTeam(TextChannel textChannel, String[] entries,
+  private List<List<Object>> generateTeam(TextChannel textChannel, String[] entries,
                                     LoLienSummonerRepository loLienSummonerRepository) {
     int totalPoint = 0;
     Map<String, Integer> entriesPointMap = new LinkedHashMap<>();
@@ -214,117 +253,147 @@ public class TeamGenerateComponent {
       entriesPointMap.put(summonerName, point);
     }
 
-    int halfPoint = totalPoint / 2;
+    int teamSize = (entries.length / 5);
+    int averageTeamPoint = totalPoint / teamSize;
     List<String> entryList = Arrays
             .stream(entries)
             .collect(Collectors.toList());
 
     Collections.shuffle(entryList);
 
-    List<Integer> pointListOfTeamA = Lists.newArrayList();
-    List<String> summonerListOfTeamA = Lists.newArrayList();
-    int pointOfTeamA = 0;
+    List<Integer> pointListOfTeam = Lists.newArrayList();
+    List<List<String>> summonerListOfTeams = Lists.newArrayList();
+    List<String> summonerListOfTeam = Lists.newArrayList();
 
-    for (String entrySummoner : entryList) {
-      if (pointListOfTeamA.size() < 5) {
-        Integer summonerPoint = entriesPointMap.get(entrySummoner);
+    int teamPoint = 0;
+    int loopCount = 0;
+    int failLoopCount = 0;
 
-        if (pointOfTeamA + summonerPoint >= halfPoint) {
+    while (true) {
+      for (int i = 0; i < entryList.size(); i++) {
+        String entrySummoner = entryList.get(i);
+        int summonerPoint = entriesPointMap.get(entrySummoner);
+
+        if (teamPoint + summonerPoint >= averageTeamPoint + PERIOD_POINT) {
+          entryList.remove(entrySummoner);
+          entryList.add(entrySummoner);
+          i--;
+          loopCount++;
+
+          if (loopCount >= (LOOP_LIMIT_COUNT * teamSize)) {
+            break;
+          }
+
           continue;
         }
 
-        pointListOfTeamA.add(summonerPoint);
-        summonerListOfTeamA.add(entrySummoner);
+        loopCount = 0;
+        pointListOfTeam.add(summonerPoint);
+        summonerListOfTeam.add(entrySummoner);
 
-        pointOfTeamA = pointListOfTeamA
+        teamPoint = pointListOfTeam
                 .stream()
                 .mapToInt(Integer::intValue)
                 .sum();
-      }
-    }
 
-    entryList.removeAll(summonerListOfTeamA);
+        if (pointListOfTeam.size() == 5 && summonerListOfTeam.size() == 5) {
+          teamPoint = 0;
+          summonerListOfTeams.add(summonerListOfTeam);
 
-    StringBuilder teamABuilder = new StringBuilder();
-    teamABuilder.append("1팀: ");
-    teamABuilder = setTeamSummoner(summonerListOfTeamA, teamABuilder);
-
-    List<Object> team = Lists.newArrayList();
-    String teamA = teamABuilder.substring(0, teamABuilder.length() - 2);
-    team.add(teamA);
-    team.add(pointOfTeamA);
-
-    String teamASummonerMostBuilder = setTeamSummonerMostTop3(summonerListOfTeamA);
-    team.add(teamASummonerMostBuilder);
-
-    StringBuilder teamBBuilder = new StringBuilder();
-    teamBBuilder.append("2팀: ");
-    teamBBuilder = setTeamSummoner(entryList, teamBBuilder);
-
-    String teamB = teamBBuilder.substring(0, teamBBuilder.length() - 2);
-    team.add(teamB);
-    team.add(totalPoint - pointOfTeamA);
-
-    String teamBSummonerMostBuilder = setTeamSummonerMostTop3(entryList);
-    team.add(teamBSummonerMostBuilder);
-
-    return team;
-  }
-
-  private StringBuilder setTeamSummoner(List<String> entryList, StringBuilder teamBuilder) {
-    Map<String, Integer> tiers = getTiers();
-
-    for (String summoner : entryList) {
-      LoLienSummoner loLienSummoner = loLienSummonerRepository.findBySummonerName(summoner);
-      List<League> leagues = loLienSummoner.getLeagues();
-
-      leagues.sort(Comparator.comparing(League::getSeason, Comparator.reverseOrder()));
-      String tier;
-
-      if (leagues.size() == 1) {
-        League league = leagues.get(0);
-        tier = league.getTier();
-      } else {
-        League currentSeasonLeague = leagues.get(0);
-        String currentTier = currentSeasonLeague.getTier();
-
-        League prevSeasonLeague = leagues.get(1);
-        String prevTier = prevSeasonLeague.getTier();
-
-        if (currentTier.equals(DEFAULT_TIER)) {
-          tier = prevTier;
-        } else {
-          int currentTierPoint = tiers.get(currentTier);
-          int prevTierPoint = tiers.get(prevTier);
-
-          tier = currentTier;
-
-          if (prevTierPoint > currentTierPoint) {
-            tier = prevTier;
-          }
+          pointListOfTeam = Lists.newArrayList();
+          summonerListOfTeam = Lists.newArrayList();
         }
       }
 
-      int tierPoint;
-
-      if (tier.equals(DEFAULT_TIER)) {
-        int summonerLevel = loLienSummoner.getSummonerLevel();
-        tierPoint = getPointByLevel(summonerLevel);
+      if (failLoopCount  >= FAIL_LIMIT_COUNT) {
+        sendErrorMessage(textChannel, "팀 구성이 실패하였습니다.", Color.RED);
+        throw new IllegalArgumentException("Loop Limit Exception");
+      } else if (summonerListOfTeams.size() == teamSize) {
+        break;
       } else {
-        tierPoint = tiers.get(tier);
+        failLoopCount++;
+        Collections.shuffle(entryList);
+        pointListOfTeam = Lists.newArrayList();
+        summonerListOfTeams = Lists.newArrayList();
+        summonerListOfTeam = Lists.newArrayList();
+        teamPoint = 0;
+        loopCount = 0;
       }
-
-      teamBuilder
-              .append(summoner)
-              .append("(")
-              .append(tier)
-              .append(" / ")
-              .append(tierPoint)
-              .append(")")
-              .append(", ");
     }
 
-    return teamBuilder;
+    List<List<Object>> generatedTeams = Lists.newArrayList();
+    List<List<String>> generatedSummonerListOfTeams = setTeamSummoner(summonerListOfTeams);
+
+    for (int i = 1; i <= generatedSummonerListOfTeams.size(); i++) {
+      List<Object> generatedTeam = Lists.newArrayList();
+
+      List<String> generatedSummonerListOfTeam = generatedSummonerListOfTeams.get(i - 1);
+      String join = String.format("%s팀: %s", i, String.join(", ", generatedSummonerListOfTeam));
+      generatedTeam.add(join);
+
+      String teamBSummonerMostBuilder = setTeamSummonerMostTop3(summonerListOfTeams.get(i - 1));
+      generatedTeam.add(teamBSummonerMostBuilder);
+
+      generatedTeams.add(generatedTeam);
+    }
+
+    return generatedTeams;
+  }
+
+  private List<List<String>> setTeamSummoner(List<List<String>> summonerListOfTeams) {
+    Map<String, Integer> tiers = getTiers();
+    List<String> summonersInfoInTeam = Lists.newArrayList();
+    List<List<String>> summonersInfoInTeams = Lists.newArrayList();
+
+    for (List<String> summonerListOfTeam : summonerListOfTeams) {
+      for (String summoner : summonerListOfTeam) {
+        LoLienSummoner loLienSummoner = loLienSummonerRepository.findBySummonerName(summoner);
+        List<League> leagues = loLienSummoner.getLeagues();
+
+        leagues.sort(Comparator.comparing(League::getSeason, Comparator.reverseOrder()));
+        String tier;
+
+        if (leagues.size() == 1) {
+          League league = leagues.get(0);
+          tier = league.getTier();
+        } else {
+          League currentSeasonLeague = leagues.get(0);
+          String currentTier = currentSeasonLeague.getTier();
+
+          League prevSeasonLeague = leagues.get(1);
+          String prevTier = prevSeasonLeague.getTier();
+
+          if (currentTier.equals(DEFAULT_TIER)) {
+            tier = prevTier;
+          } else {
+            int currentTierPoint = tiers.get(currentTier);
+            int prevTierPoint = tiers.get(prevTier);
+
+            tier = currentTier;
+
+            if (prevTierPoint > currentTierPoint) {
+              tier = prevTier;
+            }
+          }
+        }
+
+        int tierPoint;
+
+        if (tier.equals(DEFAULT_TIER)) {
+          int summonerLevel = loLienSummoner.getSummonerLevel();
+          tierPoint = getPointByLevel(summonerLevel);
+        } else {
+          tierPoint = tiers.get(tier);
+        }
+
+        String summonerInfo = String.format("%s (%s / %s)", summoner, tier, tierPoint);
+        summonersInfoInTeam.add(summonerInfo);
+      }
+      summonersInfoInTeams.add(summonersInfoInTeam);
+      summonersInfoInTeam = Lists.newArrayList();
+    }
+
+    return summonersInfoInTeams;
   }
 
   private String setTeamSummonerMostTop3(List<String> entryList) {
@@ -373,15 +442,16 @@ public class TeamGenerateComponent {
     try {
       Summoner summoner = riotApi.getSummonerByName(Platform.KR, summonerName);
       String summonerId = summoner.getId();
-      Set<LeaguePosition> leaguePositions = riotApi
-              .getLeaguePositionsBySummonerId(Platform.KR, summonerId);
-      List<LeaguePosition> leaguePositionList = new ArrayList<>(leaguePositions);
+      Set<LeagueEntry> leagueEntrySet = riotApi
+              .getLeagueEntriesBySummonerId(Platform.KR, summonerId);
+
+      List<LeagueEntry> leagueEntries = Lists.newArrayList(leagueEntrySet);
 
       String tier = DEFAULT_TIER;
 
-      for (LeaguePosition leaguePosition : leaguePositionList) {
-        if (leaguePosition.getQueueType().equals("RANKED_SOLO_5x5")) {
-          tier = leaguePosition.getTier() + "-" + leaguePosition.getRank();
+      for (LeagueEntry leagueEntry : leagueEntries) {
+        if (leagueEntry.getQueueType().equals("RANKED_SOLO_5x5")) {
+          tier = leagueEntry.getTier() + "-" + leagueEntry.getRank();
         }
       }
 

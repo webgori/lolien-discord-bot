@@ -1,6 +1,6 @@
 package kr.webgori.lolien.discord.bot.entity;
 
-import java.util.List;
+import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -13,7 +13,9 @@ import javax.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -21,6 +23,8 @@ import lombok.NoArgsConstructor;
 @Data
 @Entity
 @Table(name = "`match`")
+@ToString(exclude = {"participants", "teams"})
+@EqualsAndHashCode(exclude = {"teams", "participants"})
 public class LoLienMatch {
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
@@ -42,7 +46,7 @@ public class LoLienMatch {
   private Integer mapId;
 
   @OneToMany(mappedBy = "match", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-  private List<LoLienParticipant> participants;
+  private Set<LoLienParticipant> participants;
 
   @Column(name = "platform_id")
   private String platformId;
@@ -52,5 +56,5 @@ public class LoLienMatch {
   private Integer seasonId;
 
   @OneToMany(mappedBy = "match", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-  private List<LoLienTeamStats> teams;
+  private Set<LoLienTeamStats> teams;
 }
