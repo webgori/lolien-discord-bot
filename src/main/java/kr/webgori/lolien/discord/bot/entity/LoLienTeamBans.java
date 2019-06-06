@@ -11,6 +11,7 @@ import javax.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @AllArgsConstructor
@@ -19,6 +20,7 @@ import lombok.NoArgsConstructor;
 @Data
 @Entity
 @Table(name = "team_bans")
+@EqualsAndHashCode(exclude = {"teamStats"})
 public class LoLienTeamBans {
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)

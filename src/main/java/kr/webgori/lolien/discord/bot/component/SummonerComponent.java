@@ -5,8 +5,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import kr.webgori.lolien.discord.bot.entity.League;
 import kr.webgori.lolien.discord.bot.entity.LoLienSummoner;
@@ -19,7 +21,7 @@ import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import net.rithms.riot.api.ApiConfig;
 import net.rithms.riot.api.RiotApi;
 import net.rithms.riot.api.RiotApiException;
-import net.rithms.riot.api.endpoints.league.dto.LeaguePosition;
+import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.constant.Platform;
 import org.apache.logging.log4j.util.Strings;
@@ -47,6 +49,14 @@ public class SummonerComponent {
   @Value("${riot.api.key}")
   private String riotApiKey;
 
+  public static String getDefaultTier() {
+    return DEFAULT_TIER;
+  }
+
+  public static String getCurrentSeason() {
+    return CURRENT_SEASON;
+  }
+
   public void execute(MessageReceivedEvent event) {
     TextChannel textChannel = event.getTextChannel();
     String receivedMessage = event.getMessage().getContentDisplay();
@@ -73,15 +83,15 @@ public class SummonerComponent {
     String summonerName = summonerNameBuilder.toString();
 
     try {
-      ApiConfig config = new ApiConfig().setKey(riotApiKey);
-      RiotApi riotApi = new RiotApi(config);
-
       boolean hasSummonerName = loLienSummonerRepository.existsBySummonerName(summonerName);
 
       if (hasSummonerName) {
         sendErrorMessage(textChannel, "이미 등록되어 있는 소환사 이름 입니다.", Color.RED);
         return;
       }
+
+      ApiConfig config = new ApiConfig().setKey(riotApiKey);
+      RiotApi riotApi = new RiotApi(config);
 
       Summoner summoner = riotApi.getSummonerByName(Platform.KR, summonerName);
       String summonerId = summoner.getId();
@@ -99,15 +109,16 @@ public class SummonerComponent {
         return;
       }
 
-      Set<LeaguePosition> leaguePositions = riotApi
-              .getLeaguePositionsBySummonerId(Platform.KR, summonerId);
-      List<LeaguePosition> leaguePositionList = new ArrayList<>(leaguePositions);
+      Set<LeagueEntry> leagueEntrySet = riotApi
+              .getLeagueEntriesBySummonerId(Platform.KR, summonerId);
+
+      List<LeagueEntry> leagueEntries = Lists.newArrayList(leagueEntrySet);
 
       String tier = DEFAULT_TIER;
 
-      for (LeaguePosition leaguePosition : leaguePositionList) {
-        if (leaguePosition.getQueueType().equals("RANKED_SOLO_5x5")) {
-          tier = leaguePosition.getTier() + "-" + leaguePosition.getRank();
+      for (LeagueEntry leagueEntry : leagueEntries) {
+        if (leagueEntry.getQueueType().equals("RANKED_SOLO_5x5")) {
+          tier = leagueEntry.getTier() + "-" + leagueEntry.getRank();
         }
       }
 
@@ -115,60 +126,22 @@ public class SummonerComponent {
 
       saveClienSummoner(summoner, tier, summonerId, summonerName, summonerLevel);
 
-      String opGgUrl = String.format("https://www.op.gg/summoner/userName=%s", summonerName);
+      Map<String, String> tiersFromOpGG = getTiersFromOpGG(summonerName);
 
-      try {
-        Document document = Jsoup.connect(opGgUrl).timeout(600000).get();
-        Elements pastRankList = document.getElementsByClass("PastRankList");
+      for (Map.Entry<String, String> entry : tiersFromOpGG.entrySet()) {
+        String key = entry.getKey();
+        String value = entry.getValue();
+        LoLienSummoner loLienSummoner = loLienSummonerRepository
+                .findBySummonerName(summonerName);
 
-        for (Element element : pastRankList) {
-          Elements tierElements = element.getElementsByTag("li");
-          for (Element tierElement : tierElements) {
-            Elements seasonElements = tierElement.getElementsByTag("b");
+        League league = League
+                .builder()
+                .loLienSummoner(loLienSummoner)
+                .season(key)
+                .tier(value)
+                .build();
 
-            String prevSeason = Strings.EMPTY;
-
-            for (Element seasonElement : seasonElements) {
-              prevSeason = seasonElement.text();
-            }
-
-            boolean title = tierElement.hasAttr("title");
-
-            if (!title) {
-              continue;
-            }
-
-            String prevTierLeaguePoints = tierElement.attr("title");
-            List<String> prevTierSplitList = Lists.newArrayList(prevTierLeaguePoints.split(" "));
-
-            if (prevTierSplitList.size() > 2) {
-              prevTierSplitList.remove(2);
-            }
-
-            prevTierSplitList.set(0, prevTierSplitList.get(0).toUpperCase(Locale.KOREAN));
-
-            if (prevTierSplitList.get(1).equals("5")) {
-              prevTierSplitList.set(1, "4");
-            }
-
-            prevTierSplitList.set(1, numberToRomanNumeral(prevTierSplitList.get(1)));
-            String prevTier = String.join("-", prevTierSplitList);
-
-            LoLienSummoner loLienSummoner = loLienSummonerRepository
-                    .findBySummonerName(summonerName);
-
-            League league = League
-                    .builder()
-                    .loLienSummoner(loLienSummoner)
-                    .season(prevSeason)
-                    .tier(prevTier)
-                    .build();
-
-            leagueRepository.save(league);
-          }
-        }
-      } catch (IOException e) {
-        logger.error("{}", e);
+        leagueRepository.save(league);
       }
     } catch (RiotApiException e) {
       int errorCode = e.getErrorCode();
@@ -213,6 +186,58 @@ public class SummonerComponent {
     league.setLoLienSummoner(loLienSummoner);
 
     loLienSummonerRepository.save(loLienSummoner);
+  }
+
+  public Map<String, String> getTiersFromOpGG(String summonerName) {
+    Map<String, String> tiersMap = Maps.newHashMap();
+
+    String opGgUrl = String.format("https://www.op.gg/summoner/userName=%s", summonerName);
+
+    try {
+      Document document = Jsoup.connect(opGgUrl).timeout(600000).get();
+      Elements pastRankList = document.getElementsByClass("PastRankList");
+
+      for (Element element : pastRankList) {
+        Elements tierElements = element.getElementsByTag("li");
+        for (Element tierElement : tierElements) {
+          Elements seasonElements = tierElement.getElementsByTag("b");
+
+          String prevSeason = Strings.EMPTY;
+
+          for (Element seasonElement : seasonElements) {
+            prevSeason = seasonElement.text();
+          }
+
+          boolean title = tierElement.hasAttr("title");
+
+          if (!title) {
+            continue;
+          }
+
+          String prevTierLeaguePoints = tierElement.attr("title");
+          List<String> prevTierSplitList = Lists.newArrayList(prevTierLeaguePoints.split(" "));
+
+          if (prevTierSplitList.size() > 2) {
+            prevTierSplitList.remove(2);
+          }
+
+          prevTierSplitList.set(0, prevTierSplitList.get(0).toUpperCase(Locale.KOREAN));
+
+          if (prevTierSplitList.get(1).equals("5")) {
+            prevTierSplitList.set(1, "4");
+          }
+
+          prevTierSplitList.set(1, numberToRomanNumeral(prevTierSplitList.get(1)));
+          String prevTier = String.join("-", prevTierSplitList);
+
+          tiersMap.put(prevSeason, prevTier);
+        }
+      }
+    } catch (IOException e) {
+      logger.error("{}", e);
+    }
+
+    return tiersMap;
   }
 
   private void sendSyntax(TextChannel textChannel) {

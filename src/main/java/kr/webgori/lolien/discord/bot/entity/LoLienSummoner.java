@@ -1,6 +1,7 @@
 package kr.webgori.lolien.discord.bot.entity;
 
 import java.util.List;
+import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -13,6 +14,7 @@ import javax.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
@@ -23,6 +25,7 @@ import lombok.ToString;
 @Entity
 @Table(name = "summoner")
 @ToString(exclude = {"leagues", "participants"})
+@EqualsAndHashCode(exclude = {"participants"})
 public class LoLienSummoner {
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
@@ -43,5 +46,5 @@ public class LoLienSummoner {
   private List<League> leagues;
 
   @OneToMany(mappedBy = "loLienSummoner", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-  private List<LoLienParticipant> participants;
+  private Set<LoLienParticipant> participants;
 }

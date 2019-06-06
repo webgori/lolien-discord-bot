@@ -10,7 +10,9 @@ import javax.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -18,6 +20,8 @@ import lombok.NoArgsConstructor;
 @Data
 @Entity
 @Table(name = "participant_stats")
+@ToString(exclude = {"participant"})
+@EqualsAndHashCode(exclude = {"participant"})
 public class LoLienParticipantStats {
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
