@@ -3,10 +3,7 @@ package kr.webgori.lolien.discord.bot.hooks;
 import java.util.List;
 import com.google.common.collect.Lists;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import kr.webgori.lolien.discord.bot.component.CustomGameComponent;
-import kr.webgori.lolien.discord.bot.component.HelpComponent;
-import kr.webgori.lolien.discord.bot.component.SummonerComponent;
-import kr.webgori.lolien.discord.bot.component.TeamGenerateComponent;
+import kr.webgori.lolien.discord.bot.component.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.core.entities.ChannelType;
@@ -21,6 +18,7 @@ public class CustomListenerAdapter extends ListenerAdapter {
   private final SummonerComponent summonerComponent;
   private final TeamGenerateComponent teamGenerateComponent;
   private final CustomGameComponent customGameComponent;
+  private final MemoComponent memoComponent;
 
   @Override
   public void onMessageReceived(MessageReceivedEvent event)
@@ -51,6 +49,9 @@ public class CustomListenerAdapter extends ListenerAdapter {
             break;
           case "!내전":
             customGameComponent.execute(event);
+            break;
+          case "!메모":
+            memoComponent.execute(event);
             break;
           default:
             break;
