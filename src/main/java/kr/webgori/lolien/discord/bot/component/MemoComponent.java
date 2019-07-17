@@ -1,25 +1,23 @@
 package kr.webgori.lolien.discord.bot.component;
 
+import static java.time.format.DateTimeFormatter.ofPattern;
+import static kr.webgori.lolien.discord.bot.util.CommonUtil.sendErrorMessage;
+import static kr.webgori.lolien.discord.bot.util.CommonUtil.sendMessage;
+
 import com.google.common.collect.Lists;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.awt.Color;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 import kr.webgori.lolien.discord.bot.entity.Memo;
 import kr.webgori.lolien.discord.bot.repository.MemoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
-import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.awt.*;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-
-import static java.time.format.DateTimeFormatter.ofPattern;
-import static kr.webgori.lolien.discord.bot.util.CommonUtil.sendErrorMessage;
-import static kr.webgori.lolien.discord.bot.util.CommonUtil.sendMessage;
 
 @Slf4j
 @SuppressFBWarnings(value = "CRLF_INJECTION_LOGS")
@@ -28,6 +26,10 @@ import static kr.webgori.lolien.discord.bot.util.CommonUtil.sendMessage;
 public class MemoComponent {
   private final MemoRepository memoRepository;
 
+  /**
+   * execute.
+   * @param event event
+   */
   @Transactional
   public void execute(MessageReceivedEvent event) {
     TextChannel textChannel = event.getTextChannel();
@@ -75,10 +77,10 @@ public class MemoComponent {
           message = "메모가 추가되었습니다. (기존 메모에 덧붙임)";
         } else {
           memo = Memo.builder()
-                  .writer(writer)
-                  .word(word)
-                  .description(description)
-                  .build();
+              .writer(writer)
+              .word(word)
+              .description(description)
+              .build();
 
           message = "메모가 추가되었습니다.";
         }
@@ -120,7 +122,7 @@ public class MemoComponent {
           String lastModifiedDate = lastModifiedLocalDateTime.format(formatter);
 
           String message = String
-                  .format("%s: %s (%s, %s)", word, description, lastModifiedDate, writer);
+              .format("%s: %s (%s, %s)", word, description, lastModifiedDate, writer);
 
           sendMessage(textChannel, message);
         } else {
