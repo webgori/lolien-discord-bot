@@ -5,6 +5,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.List;
 import kr.webgori.lolien.discord.bot.component.CustomGameComponent;
 import kr.webgori.lolien.discord.bot.component.HelpComponent;
+import kr.webgori.lolien.discord.bot.component.MemoComponent;
 import kr.webgori.lolien.discord.bot.component.SummonerComponent;
 import kr.webgori.lolien.discord.bot.component.TeamGenerateComponent;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ public class CustomListenerAdapter extends ListenerAdapter {
   private final SummonerComponent summonerComponent;
   private final TeamGenerateComponent teamGenerateComponent;
   private final CustomGameComponent customGameComponent;
+  private final MemoComponent memoComponent;
 
   @Override
   public void onMessageReceived(MessageReceivedEvent event) {
@@ -50,6 +52,9 @@ public class CustomListenerAdapter extends ListenerAdapter {
             break;
           case "!내전":
             customGameComponent.execute(event);
+            break;
+          case "!메모":
+            memoComponent.execute(event);
             break;
           default:
             break;
