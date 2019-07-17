@@ -1,22 +1,25 @@
 package kr.webgori.lolien.discord.bot.component;
 
-import java.util.List;
+import static kr.webgori.lolien.discord.bot.util.CommonUtil.sendMessage;
+
 import com.google.common.collect.Lists;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import org.springframework.stereotype.Component;
 
-
-import static kr.webgori.lolien.discord.bot.util.CommonUtil.sendMessage;
-
 @Slf4j
 @SuppressFBWarnings(value = "CRLF_INJECTION_LOGS")
 @RequiredArgsConstructor
 @Component
 public class HelpComponent {
+  /**
+   * execute.
+   * @param event event
+   */
   public void execute(MessageReceivedEvent event) {
     TextChannel textChannel = event.getTextChannel();
 
@@ -30,8 +33,8 @@ public class HelpComponent {
     String customGameCommand5 = "└!내전 참여횟수 소환사명1, 소환사명2, 소환사명3 ...: 해당 소환사명의 내전 참여 횟수를 보여줍니다.";
 
     List<String> commands = Lists.newArrayList(commandDesc, summonerCommand, teamGenerateCommand,
-            customGameCommand1, customGameCommand2, customGameCommand3, customGameCommand4,
-            customGameCommand5);
+        customGameCommand1, customGameCommand2, customGameCommand3, customGameCommand4,
+        customGameCommand5);
 
     for (String command : commands) {
       sendMessage(textChannel, command);

@@ -7,5 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface LoLienParticipantRepository extends JpaRepository<LoLienParticipant, Integer> {
   List<LoLienParticipant> findByLoLienSummonerSummonerName(String summonerName);
 
-  List<LoLienParticipant> findByLoLienSummonerSummonerNameAndChampionId(String summonerName, int championId);
+  List<LoLienParticipant> findByLoLienSummonerSummonerNameAndChampionId(
+      String summonerName, int championId);
 }

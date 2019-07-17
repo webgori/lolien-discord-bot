@@ -1,15 +1,9 @@
 package kr.webgori.lolien.discord.bot.component;
 
-import java.awt.Color;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
+import static kr.webgori.lolien.discord.bot.util.CommonUtil.getTournamentCreatedDate;
+import static kr.webgori.lolien.discord.bot.util.CommonUtil.sendErrorMessage;
+import static kr.webgori.lolien.discord.bot.util.CommonUtil.sendMessage;
+
 import at.stefangeyer.challonge.Challonge;
 import at.stefangeyer.challonge.exception.DataAccessException;
 import at.stefangeyer.challonge.model.Credentials;
@@ -23,6 +17,16 @@ import at.stefangeyer.challonge.serializer.Serializer;
 import at.stefangeyer.challonge.serializer.gson.GsonSerializer;
 import com.google.common.collect.Lists;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.awt.Color;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import kr.webgori.lolien.discord.bot.entity.Champ;
 import kr.webgori.lolien.discord.bot.entity.League;
 import kr.webgori.lolien.discord.bot.entity.LoLienSummoner;
@@ -43,16 +47,13 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-
-import static kr.webgori.lolien.discord.bot.util.CommonUtil.*;
-
 @Slf4j
 @SuppressFBWarnings(value = "CRLF_INJECTION_LOGS")
 @RequiredArgsConstructor
 @Component
 public class TeamGenerateComponent {
-  private static final String[] TIER_LIST = {"IRON","BRONZE", "SILVER", "GOLD", "PLATINUM",
-          "DIAMOND", "MASTER", "GRANDMASTER", "CHALLENGE"};
+  private static final String[] TIER_LIST = {"IRON", "BRONZE", "SILVER", "GOLD", "PLATINUM",
+      "DIAMOND", "MASTER", "GRANDMASTER", "CHALLENGE"};
   private static final String[] RANK_LIST = {"IV", "III", "II", "I"};
   private static final String CURRENT_SEASON = "S9";
   private static final String DEFAULT_TIER = "UNRANKED";
@@ -74,6 +75,10 @@ public class TeamGenerateComponent {
   @Value("${challonge.api.key}")
   private String challongeApiKey;
 
+  /**
+   * execute.
+   * @param event event
+   */
   public void execute(MessageReceivedEvent event) {
     TextChannel textChannel = event.getTextChannel();
     String receivedMessage = event.getMessage().getContentDisplay();
@@ -129,12 +134,12 @@ public class TeamGenerateComponent {
       String gameName = String.format("[%s] LoLien League", tournamentCreatedDate);
 
       TournamentQuery query = TournamentQuery
-              .builder()
-              .name(gameName)
-              .gameName("League of Legends")
-              .url(uniqueId)
-              .tournamentType(TournamentType.SINGLE_ELIMINATION)
-              .build();
+          .builder()
+          .name(gameName)
+          .gameName("League of Legends")
+          .url(uniqueId)
+          .tournamentType(TournamentType.SINGLE_ELIMINATION)
+          .build();
 
       try {
         Tournament tournament = challonge.createTournament(query);
@@ -144,9 +149,9 @@ public class TeamGenerateComponent {
           String name = String.format("%s팀", i);
 
           ParticipantQuery participantQuery = ParticipantQuery
-                  .builder()
-                  .name(name)
-                  .build();
+              .builder()
+              .name(name)
+              .build();
 
           participantQueries.add(participantQuery);
         }
@@ -176,7 +181,7 @@ public class TeamGenerateComponent {
   }
 
   private List<List<Object>> generateTeam(TextChannel textChannel, String[] entries,
-                                    LoLienSummonerRepository loLienSummonerRepository) {
+                                          LoLienSummonerRepository loLienSummonerRepository) {
     int totalPoint = 0;
     Map<String, Integer> entriesPointMap = new LinkedHashMap<>();
 
@@ -184,7 +189,9 @@ public class TeamGenerateComponent {
       boolean hasSummonerName = loLienSummonerRepository.existsBySummonerName(summonerName);
 
       if (!hasSummonerName) {
-        String errorMessage = String.format("\"!소환사 등록 %s\" 명령어로 소환사 등록을 먼저 해주시기 바랍니다.", summonerName);
+        String errorMessage = String
+            .format("\"!소환사 등록 %s\" 명령어로 소환사 등록을 먼저 해주시기 바랍니다.",
+                summonerName);
         sendErrorMessage(textChannel, errorMessage, Color.BLUE);
         throw new IllegalArgumentException("register summoner first");
       }
@@ -192,19 +199,19 @@ public class TeamGenerateComponent {
       LoLienSummoner loLienSummoner = loLienSummonerRepository.findBySummonerName(summonerName);
 
       boolean presentCurrentSeason = loLienSummoner
-              .getLeagues()
-              .stream()
-              .anyMatch(l -> l.getSeason().equals(CURRENT_SEASON));
+          .getLeagues()
+          .stream()
+          .anyMatch(l -> l.getSeason().equals(CURRENT_SEASON));
 
       if (!presentCurrentSeason) {
         String tier = getCurrentSeasonTier(summonerName);
 
         League league = League
-                .builder()
-                .loLienSummoner(loLienSummoner)
-                .season(CURRENT_SEASON)
-                .tier(tier)
-                .build();
+            .builder()
+            .loLienSummoner(loLienSummoner)
+            .season(CURRENT_SEASON)
+            .tier(tier)
+            .build();
 
         leagueRepository.save(league);
       }
@@ -256,8 +263,8 @@ public class TeamGenerateComponent {
     int teamSize = (entries.length / 5);
     int averageTeamPoint = totalPoint / teamSize;
     List<String> entryList = Arrays
-            .stream(entries)
-            .collect(Collectors.toList());
+        .stream(entries)
+        .collect(Collectors.toList());
 
     Collections.shuffle(entryList);
 
@@ -292,9 +299,9 @@ public class TeamGenerateComponent {
         summonerListOfTeam.add(entrySummoner);
 
         teamPoint = pointListOfTeam
-                .stream()
-                .mapToInt(Integer::intValue)
-                .sum();
+            .stream()
+            .mapToInt(Integer::intValue)
+            .sum();
 
         if (pointListOfTeam.size() == 5 && summonerListOfTeam.size() == 5) {
           teamPoint = 0;
@@ -305,7 +312,7 @@ public class TeamGenerateComponent {
         }
       }
 
-      if (failLoopCount  >= FAIL_LIMIT_COUNT) {
+      if (failLoopCount >= FAIL_LIMIT_COUNT) {
         sendErrorMessage(textChannel, "팀 구성이 실패하였습니다.", Color.RED);
         throw new IllegalArgumentException("Loop Limit Exception");
       } else if (summonerListOfTeams.size() == teamSize) {
@@ -413,8 +420,8 @@ public class TeamGenerateComponent {
       String mostChamps = String.join(", ", mostChampionsList);
       String mostSummonerChamps = String.format("%s (%s)", summoner, mostChamps);
       stringBuilder
-              .append("\n")
-              .append(mostSummonerChamps);
+          .append("\n")
+          .append(mostSummonerChamps);
     }
 
     return stringBuilder.toString();
@@ -443,7 +450,7 @@ public class TeamGenerateComponent {
       Summoner summoner = riotApi.getSummonerByName(Platform.KR, summonerName);
       String summonerId = summoner.getId();
       Set<LeagueEntry> leagueEntrySet = riotApi
-              .getLeagueEntriesBySummonerId(Platform.KR, summonerId);
+          .getLeagueEntriesBySummonerId(Platform.KR, summonerId);
 
       List<LeagueEntry> leagueEntries = Lists.newArrayList(leagueEntrySet);
 

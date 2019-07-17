@@ -25,11 +25,17 @@ public class JdaConfig {
   @Value("${jda.discord.token}")
   private String token;
 
+  /**
+   * jda.
+   * @return JDA jda
+   * @throws LoginException loginException
+   */
   @Bean
   public JDA jda() throws LoginException {
     return new JDABuilder(token)
-            .addEventListener(new CustomEventListener())
-            .addEventListener(new CustomListenerAdapter(helpComponent, summonerComponent, teamGenerateComponent, customGameComponent))
-            .build();
+        .addEventListener(new CustomEventListener())
+        .addEventListener(new CustomListenerAdapter(helpComponent, summonerComponent,
+            teamGenerateComponent, customGameComponent))
+        .build();
   }
 }

@@ -1,4 +1,4 @@
-package kr.webgori.loliendiscordbot;
+package kr.webgori.lolien.discord.bot;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -11,6 +11,6 @@ public class LolienDiscordBotApplicationTests {
 
   @Test
   public void contextLoads() {
-  }
 
+  }
 }

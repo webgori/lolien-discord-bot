@@ -1,5 +1,14 @@
 package kr.webgori.lolien.discord.bot.component;
 
+import static kr.webgori.lolien.discord.bot.util.CommonUtil.objectToJsonString;
+import static kr.webgori.lolien.discord.bot.util.CommonUtil.sendErrorMessage;
+import static kr.webgori.lolien.discord.bot.util.CommonUtil.sendMessage;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import com.google.gson.Gson;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.awt.Color;
 import java.text.DecimalFormat;
 import java.time.Duration;
@@ -15,11 +24,6 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import com.google.gson.Gson;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import kr.webgori.lolien.discord.bot.entity.Champ;
 import kr.webgori.lolien.discord.bot.entity.LoLienMatch;
 import kr.webgori.lolien.discord.bot.entity.LoLienParticipant;
@@ -50,9 +54,6 @@ import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
-
-import static kr.webgori.lolien.discord.bot.util.CommonUtil.*;
-
 @Slf4j
 @SuppressFBWarnings(value = "CRLF_INJECTION_LOGS")
 @RequiredArgsConstructor
@@ -70,6 +71,10 @@ public class CustomGameComponent {
   @Value("${riot.api.key}")
   private String riotApiKey;
 
+  /**
+   * execute.
+   * @param event event
+   */
   public void execute(MessageReceivedEvent event) {
     TextChannel textChannel = event.getTextChannel();
     String receivedMessage = event.getMessage().getContentDisplay();
@@ -99,7 +104,7 @@ public class CustomGameComponent {
             }
 
             List<LoLienMatch> matches = loLienMatchRepository
-                    .findTop5AllByOrderByGameCreationDesc();
+                .findTop5AllByOrderByGameCreationDesc();
 
             List<String> latestCustomGames = Lists.newArrayList();
 
@@ -107,7 +112,7 @@ public class CustomGameComponent {
               Long gameCreation = loLienMatch.getGameCreation();
               ZoneId zone = ZoneId.systemDefault();
               DateTimeFormatter df = DateTimeFormatter
-                      .ofPattern("yyyy-MM-dd HH:mm:ss").withZone(zone);
+                  .ofPattern("yyyy-MM-dd HH:mm:ss").withZone(zone);
               String gameCreationDateTime = df.format(Instant.ofEpochMilli(gameCreation));
 
               Long gameDuration = loLienMatch.getGameDuration();
@@ -121,9 +126,9 @@ public class CustomGameComponent {
 
               Set<LoLienParticipant> participants = loLienMatch.getParticipants();
               LoLienParticipant loLienParticipant = Collections
-                      .max(participants,
-                              Comparator.comparing(s -> s.getStats()
-                                      .getTotalDamageDealtToChampions()));
+                  .max(participants,
+                      Comparator.comparing(s -> s.getStats()
+                          .getTotalDamageDealtToChampions()));
 
               LoLienSummoner loLienSummoner = loLienParticipant.getLoLienSummoner();
               String summonerName = loLienSummoner.getSummonerName();
@@ -137,14 +142,14 @@ public class CustomGameComponent {
 
               if (hour == 0) {
                 message = String
-                        .format("날짜: %s, 진행 시간: %s분, 최고딜량: %s (%s)",
-                                gameCreationDateTime, minute, summonerName,
-                                totalDamageToChampions);
+                    .format("날짜: %s, 진행 시간: %s분, 최고딜량: %s (%s)",
+                        gameCreationDateTime, minute, summonerName,
+                        totalDamageToChampions);
               } else {
                 message = String
-                        .format("날짜: %s, 진행 시간: %s시간 %s분, 최고딜량: %s (%s)",
-                                gameCreationDateTime, hour, minute, summonerName,
-                                totalDamageToChampions);
+                    .format("날짜: %s, 진행 시간: %s시간 %s분, 최고딜량: %s (%s)",
+                        gameCreationDateTime, hour, minute, summonerName,
+                        totalDamageToChampions);
               }
 
               latestCustomGames.add(message);
@@ -160,7 +165,7 @@ public class CustomGameComponent {
           case "삭제": {
             String arg3 = commands.get(3);
             String matchHistoryUrlPattern
-                    = "http://matchhistory.leagueoflegends.co.kr/ko/#match-details/KR/[0-9]+/[0-9]+.+";
+                = "http://matchhistory.leagueoflegends.co.kr/ko/#match-details/KR/[0-9]+/[0-9]+.+";
             Pattern pattern = Pattern.compile(matchHistoryUrlPattern);
             Matcher matcher = pattern.matcher(arg3);
 
@@ -186,7 +191,8 @@ public class CustomGameComponent {
 
             loLienMatchRepository.deleteByGameId(matchId);
             break;
-          } default:
+          }
+          default:
         }
         break;
       case "참여횟수":
@@ -204,11 +210,11 @@ public class CustomGameComponent {
           }
 
           top5OfCustomGamePlayCountMaps = top5OfCustomGamePlayCountMaps.entrySet().stream()
-                  .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
-                  .limit(5)
-                  .collect(Collectors
-                          .toMap(Map.Entry::getKey, Map.Entry::getValue,
-                                  (oldValue, newValue) -> oldValue, LinkedHashMap::new));
+              .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+              .limit(5)
+              .collect(Collectors
+                  .toMap(Map.Entry::getKey, Map.Entry::getValue,
+                      (oldValue, newValue) -> oldValue, LinkedHashMap::new));
 
           if (top5OfCustomGamePlayCountMaps.size() > 0) {
             String message = "-- 현재 내전 참여횟수 TOP5 --";
@@ -236,7 +242,7 @@ public class CustomGameComponent {
 
           for (String summonerName : summonerNameList) {
             boolean existsSummonerName = loLienSummonerRepository
-                    .existsBySummonerName(summonerName);
+                .existsBySummonerName(summonerName);
 
             if (!existsSummonerName) {
               String errorMessage = String.format("%s 소환사가 존재하지 않습니다.", summonerName);
@@ -245,7 +251,7 @@ public class CustomGameComponent {
             }
 
             int customGamePlayCount = loLienParticipantRepository
-                    .findByLoLienSummonerSummonerName(summonerName).size();
+                .findByLoLienSummonerSummonerName(summonerName).size();
             String message = String.format("%s (%s회)", summonerName, customGamePlayCount);
             sendMessage(textChannel, message);
           }
@@ -277,19 +283,20 @@ public class CustomGameComponent {
 
           Long count = mostChampion.getValue();
           List<LoLienParticipant> champs = loLienParticipantRepository
-                  .findByLoLienSummonerSummonerNameAndChampionId(summonerName, champId);
+              .findByLoLienSummonerSummonerNameAndChampionId(summonerName, champId);
 
           long wins = champs
-                  .stream()
-                  .map(p -> p.getStats().getWin())
-                  .filter(w -> w)
-                  .count();
+              .stream()
+              .map(p -> p.getStats().getWin())
+              .filter(w -> w)
+              .count();
 
           long lose = count - wins;
 
           int winRate = (int) ((double) wins / count * 100);
 
-          String message = String.format("%s (%s회, %s승 %s패, 승률 %s)", championName, count, wins, lose, winRate);
+          String message = String
+              .format("%s (%s회, %s승 %s패, 승률 %s)", championName, count, wins, lose, winRate);
 
           mostChampionsList.add(message);
         }
@@ -310,12 +317,19 @@ public class CustomGameComponent {
     }
   }
 
+  /**
+   * addResult.
+   * @param textChannel textChannel
+   * @param matchId matchId
+   * @param entries entries
+   */
   public void addResult(TextChannel textChannel, long matchId, String[] entries) {
     for (String summonerName : entries) {
       boolean hasSummonerName = loLienSummonerRepository.existsBySummonerName(summonerName);
 
       if (!hasSummonerName) {
-        String errorMessage = String.format("\"!소환사 등록 %s\" 명령어로 소환사 등록을 먼저 해주시기 바랍니다.", summonerName);
+        String errorMessage = String
+            .format("\"!소환사 등록 %s\" 명령어로 소환사 등록을 먼저 해주시기 바랍니다.", summonerName);
         sendErrorMessage(textChannel, errorMessage, Color.BLUE);
         throw new IllegalArgumentException("register summoner first");
       }
@@ -342,20 +356,20 @@ public class CustomGameComponent {
       Set<LoLienTeamStats> loLienTeamStatsSet = Sets.newHashSet();
 
       LoLienMatch loLienMatch = LoLienMatch
-              .builder()
-              .gameCreation(gameCreation)
-              .gameDuration(gameDuration)
-              .gameId(gameId)
-              .gameMode(gameMode)
-              .gameType(gameType)
-              .gameVersion(gameVersion)
-              .mapId(mapId)
-              .participants(loLienParticipantSet)
-              .platformId(platformId)
-              .queueId(queueId)
-              .seasonId(seasonId)
-              .teams(loLienTeamStatsSet)
-              .build();
+          .builder()
+          .gameCreation(gameCreation)
+          .gameDuration(gameDuration)
+          .gameId(gameId)
+          .gameMode(gameMode)
+          .gameType(gameType)
+          .gameVersion(gameVersion)
+          .mapId(mapId)
+          .participants(loLienParticipantSet)
+          .platformId(platformId)
+          .queueId(queueId)
+          .seasonId(seasonId)
+          .teams(loLienTeamStatsSet)
+          .build();
 
       List<Participant> participants = match.getParticipants();
 
@@ -482,135 +496,135 @@ public class CustomGameComponent {
         int statPerk2 = stats.getStatPerk2();
 
         LoLienParticipantStats loLienParticipantStats = LoLienParticipantStats
-                .builder()
-                .altarsCaptured(altarsCaptured)
-                .altarsNeutralized(altarsNeutralized)
-                .assists(assists)
-                .champLevel(champLevel)
-                .combatPlayerScore(combatPlayerScore)
-                .damageDealtToObjectives(damageDealtToObjectives)
-                .damageDealtToTurrets(damageDealtToTurrets)
-                .damageSelfMitigated(damageSelfMitigated)
-                .deaths(deaths)
-                .doubleKills(doubleKills)
-                .firstBloodAssist(firstBloodAssist)
-                .firstBloodKill(firstBloodKill)
-                .firstInhibitorAssist(firstInhibitorAssist)
-                .firstInhibitorKill(firstInhibitorKill)
-                .firstTowerAssist(firstTowerAssist)
-                .firstTowerKill(firstTowerKill)
-                .goldEarned(goldEarned)
-                .goldSpent(goldSpent)
-                .inhibitorKills(inhibitorKills)
-                .item0(item0)
-                .item1(item1)
-                .item2(item2)
-                .item3(item3)
-                .item4(item4)
-                .item5(item5)
-                .item6(item6)
-                .killingSprees(killingSprees)
-                .kills(kills)
-                .largestCriticalStrike(largestCriticalStrike)
-                .largestKillingSpree(largestKillingSpree)
-                .largestMultiKill(largestMultiKill)
-                .longestTimeSpentLiving(longestTimeSpentLiving)
-                .magicDamageDealt(magicDamageDealt)
-                .magicDamageDealtToChampions(magicDamageDealtToChampions)
-                .magicalDamageTaken(magicalDamageTaken)
-                .neutralMinionsKilled(neutralMinionsKilled)
-                .neutralMinionsKilledEnemyJungle(neutralMinionsKilledEnemyJungle)
-                .neutralMinionsKilledTeamJungle(neutralMinionsKilledTeamJungle)
-                .nodeCapture(nodeCapture)
-                .nodeCaptureAssist(nodeCaptureAssist)
-                .nodeNeutralize(nodeNeutralize)
-                .nodeNeutralizeAssist(nodeNeutralizeAssist)
-                .objectivePlayerScore(objectivePlayerScore)
-                .participantId(participantId1)
-                .pentaKills(pentaKills)
-                .physicalDamageDealt(physicalDamageDealt)
-                .physicalDamageDealtToChampions(physicalDamageDealtToChampions)
-                .physicalDamageTaken(physicalDamageTaken)
-                .quadraKills(quadraKills)
-                .sightWardsBoughtInGame(sightWardsBoughtInGame)
-                .teamObjective(teamObjective)
-                .timeCCingOthers(timeCCingOthers)
-                .totalDamageDealt(totalDamageDealt)
-                .totalDamageDealtToChampions(totalDamageDealtToChampions)
-                .totalDamageTaken(totalDamageTaken)
-                .totalHeal(totalHeal)
-                .totalMinionsKilled(totalMinionsKilled)
-                .totalPlayerScore(totalPlayerScore)
-                .totalScoreRank(totalScoreRank)
-                .totalTimeCrowdControlDealt(totalTimeCrowdControlDealt)
-                .totalUnitsHealed(totalUnitsHealed)
-                .tripleKills(tripleKills)
-                .trueDamageDealt(trueDamageDealt)
-                .trueDamageDealtToChampions(trueDamageDealtToChampions)
-                .trueDamageTaken(trueDamageTaken)
-                .turretKills(turretKills)
-                .unrealKills(unrealKills)
-                .visionScore(visionScore)
-                .visionWardsBoughtInGame(visionWardsBoughtInGame)
-                .wardsKilled(wardsKilled)
-                .wardsPlaced(wardsPlaced)
-                .win(win)
-                .perk0(perk0)
-                .perk1(perk1)
-                .perk2(perk2)
-                .perk3(perk3)
-                .perk4(perk4)
-                .perk5(perk5)
-                .perk0Var1(perk0Var1)
-                .perk0Var2(perk0Var2)
-                .perk0Var3(perk0Var3)
-                .perk1Var1(perk1Var1)
-                .perk1Var2(perk1Var2)
-                .perk1Var3(perk1Var3)
-                .perk2Var1(perk2Var1)
-                .perk2Var2(perk2Var2)
-                .perk2Var3(perk2Var3)
-                .perk3Var1(perk3Var1)
-                .perk3Var2(perk3Var2)
-                .perk3Var3(perk3Var3)
-                .perk4Var1(perk4Var1)
-                .perk4Var2(perk4Var2)
-                .perk4Var3(perk4Var3)
-                .perk5Var1(perk5Var1)
-                .perk5Var2(perk5Var2)
-                .perk5Var3(perk5Var3)
-                .playerScore0(playerScore0)
-                .playerScore1(playerScore1)
-                .playerScore2(playerScore2)
-                .playerScore3(playerScore3)
-                .playerScore4(playerScore4)
-                .playerScore5(playerScore5)
-                .playerScore6(playerScore6)
-                .playerScore7(playerScore7)
-                .playerScore8(playerScore8)
-                .playerScore9(playerScore9)
-                .perkPrimaryStyle(perkPrimaryStyle)
-                .perkSubStyle(perkSubStyle)
-                .statPerk0(statPerk0)
-                .statPerk1(statPerk1)
-                .statPerk2(statPerk2)
-                .build();
+            .builder()
+            .altarsCaptured(altarsCaptured)
+            .altarsNeutralized(altarsNeutralized)
+            .assists(assists)
+            .champLevel(champLevel)
+            .combatPlayerScore(combatPlayerScore)
+            .damageDealtToObjectives(damageDealtToObjectives)
+            .damageDealtToTurrets(damageDealtToTurrets)
+            .damageSelfMitigated(damageSelfMitigated)
+            .deaths(deaths)
+            .doubleKills(doubleKills)
+            .firstBloodAssist(firstBloodAssist)
+            .firstBloodKill(firstBloodKill)
+            .firstInhibitorAssist(firstInhibitorAssist)
+            .firstInhibitorKill(firstInhibitorKill)
+            .firstTowerAssist(firstTowerAssist)
+            .firstTowerKill(firstTowerKill)
+            .goldEarned(goldEarned)
+            .goldSpent(goldSpent)
+            .inhibitorKills(inhibitorKills)
+            .item0(item0)
+            .item1(item1)
+            .item2(item2)
+            .item3(item3)
+            .item4(item4)
+            .item5(item5)
+            .item6(item6)
+            .killingSprees(killingSprees)
+            .kills(kills)
+            .largestCriticalStrike(largestCriticalStrike)
+            .largestKillingSpree(largestKillingSpree)
+            .largestMultiKill(largestMultiKill)
+            .longestTimeSpentLiving(longestTimeSpentLiving)
+            .magicDamageDealt(magicDamageDealt)
+            .magicDamageDealtToChampions(magicDamageDealtToChampions)
+            .magicalDamageTaken(magicalDamageTaken)
+            .neutralMinionsKilled(neutralMinionsKilled)
+            .neutralMinionsKilledEnemyJungle(neutralMinionsKilledEnemyJungle)
+            .neutralMinionsKilledTeamJungle(neutralMinionsKilledTeamJungle)
+            .nodeCapture(nodeCapture)
+            .nodeCaptureAssist(nodeCaptureAssist)
+            .nodeNeutralize(nodeNeutralize)
+            .nodeNeutralizeAssist(nodeNeutralizeAssist)
+            .objectivePlayerScore(objectivePlayerScore)
+            .participantId(participantId1)
+            .pentaKills(pentaKills)
+            .physicalDamageDealt(physicalDamageDealt)
+            .physicalDamageDealtToChampions(physicalDamageDealtToChampions)
+            .physicalDamageTaken(physicalDamageTaken)
+            .quadraKills(quadraKills)
+            .sightWardsBoughtInGame(sightWardsBoughtInGame)
+            .teamObjective(teamObjective)
+            .timeCCingOthers(timeCCingOthers)
+            .totalDamageDealt(totalDamageDealt)
+            .totalDamageDealtToChampions(totalDamageDealtToChampions)
+            .totalDamageTaken(totalDamageTaken)
+            .totalHeal(totalHeal)
+            .totalMinionsKilled(totalMinionsKilled)
+            .totalPlayerScore(totalPlayerScore)
+            .totalScoreRank(totalScoreRank)
+            .totalTimeCrowdControlDealt(totalTimeCrowdControlDealt)
+            .totalUnitsHealed(totalUnitsHealed)
+            .tripleKills(tripleKills)
+            .trueDamageDealt(trueDamageDealt)
+            .trueDamageDealtToChampions(trueDamageDealtToChampions)
+            .trueDamageTaken(trueDamageTaken)
+            .turretKills(turretKills)
+            .unrealKills(unrealKills)
+            .visionScore(visionScore)
+            .visionWardsBoughtInGame(visionWardsBoughtInGame)
+            .wardsKilled(wardsKilled)
+            .wardsPlaced(wardsPlaced)
+            .win(win)
+            .perk0(perk0)
+            .perk1(perk1)
+            .perk2(perk2)
+            .perk3(perk3)
+            .perk4(perk4)
+            .perk5(perk5)
+            .perk0Var1(perk0Var1)
+            .perk0Var2(perk0Var2)
+            .perk0Var3(perk0Var3)
+            .perk1Var1(perk1Var1)
+            .perk1Var2(perk1Var2)
+            .perk1Var3(perk1Var3)
+            .perk2Var1(perk2Var1)
+            .perk2Var2(perk2Var2)
+            .perk2Var3(perk2Var3)
+            .perk3Var1(perk3Var1)
+            .perk3Var2(perk3Var2)
+            .perk3Var3(perk3Var3)
+            .perk4Var1(perk4Var1)
+            .perk4Var2(perk4Var2)
+            .perk4Var3(perk4Var3)
+            .perk5Var1(perk5Var1)
+            .perk5Var2(perk5Var2)
+            .perk5Var3(perk5Var3)
+            .playerScore0(playerScore0)
+            .playerScore1(playerScore1)
+            .playerScore2(playerScore2)
+            .playerScore3(playerScore3)
+            .playerScore4(playerScore4)
+            .playerScore5(playerScore5)
+            .playerScore6(playerScore6)
+            .playerScore7(playerScore7)
+            .playerScore8(playerScore8)
+            .playerScore9(playerScore9)
+            .perkPrimaryStyle(perkPrimaryStyle)
+            .perkSubStyle(perkSubStyle)
+            .statPerk0(statPerk0)
+            .statPerk1(statPerk1)
+            .statPerk2(statPerk2)
+            .build();
 
         String summonerName = entries[i];
         LoLienSummoner bySummonerName = loLienSummonerRepository
-                .findBySummonerName(summonerName);
+            .findBySummonerName(summonerName);
 
         LoLienParticipant loLienParticipant = LoLienParticipant
-                .builder()
-                .match(loLienMatch)
-                .championId(championId)
-                .participantId(participantId)
-                .spell1Id(spell1Id)
-                .spell2Id(spell2Id)
-                .stats(loLienParticipantStats)
-                .teamId(teamId)
-                .loLienSummoner(bySummonerName)
-                .build();
+            .builder()
+            .match(loLienMatch)
+            .championId(championId)
+            .participantId(participantId)
+            .spell1Id(spell1Id)
+            .spell2Id(spell2Id)
+            .stats(loLienParticipantStats)
+            .teamId(teamId)
+            .loLienSummoner(bySummonerName)
+            .build();
 
         loLienParticipantStats.setParticipant(loLienParticipant);
 
@@ -638,25 +652,25 @@ public class CustomGameComponent {
         String win = teamStats.getWin();
 
         LoLienTeamStats loLienTeamStats = LoLienTeamStats
-                .builder()
-                .match(loLienMatch)
-                .bans(loLienTeamBansList)
-                .baronKills(baronKills)
-                .dominionVictoryScore(dominionVictoryScore)
-                .dragonKills(dragonKills)
-                .firstBaron(firstBaron)
-                .firstBlood(firstBlood)
-                .firstDragon(firstDragon)
-                .firstInhibitor(firstInhibitor)
-                .firstRiftHerald(firstRiftHerald)
-                .firstTower(firstTower)
-                .inhibitorKills(inhibitorKills)
-                .riftHeraldKills(riftHeraldKills)
-                .teamId(teamId)
-                .towerKills(towerKills)
-                .vilemawKills(vilemawKills)
-                .win(win)
-                .build();
+            .builder()
+            .match(loLienMatch)
+            .bans(loLienTeamBansList)
+            .baronKills(baronKills)
+            .dominionVictoryScore(dominionVictoryScore)
+            .dragonKills(dragonKills)
+            .firstBaron(firstBaron)
+            .firstBlood(firstBlood)
+            .firstDragon(firstDragon)
+            .firstInhibitor(firstInhibitor)
+            .firstRiftHerald(firstRiftHerald)
+            .firstTower(firstTower)
+            .inhibitorKills(inhibitorKills)
+            .riftHeraldKills(riftHeraldKills)
+            .teamId(teamId)
+            .towerKills(towerKills)
+            .vilemawKills(vilemawKills)
+            .win(win)
+            .build();
 
         List<TeamBans> bans = teamStats.getBans();
 
@@ -665,11 +679,11 @@ public class CustomGameComponent {
           int pickTurn = teamBans.getPickTurn();
 
           LoLienTeamBans loLienTeamBans = LoLienTeamBans
-                  .builder()
-                  .teamStats(loLienTeamStats)
-                  .championId(championId)
-                  .pickTurn(pickTurn)
-                  .build();
+              .builder()
+              .teamStats(loLienTeamStats)
+              .championId(championId)
+              .pickTurn(pickTurn)
+              .build();
 
           loLienTeamBansList.add(loLienTeamBans);
         }
@@ -692,7 +706,9 @@ public class CustomGameComponent {
     } catch (RiotApiException e) {
       int errorCode = e.getErrorCode();
       if (errorCode == RiotApiException.FORBIDDEN) {
-        sendErrorMessage(textChannel, "Riot API Key가 만료되어 기능이 정상적으로 작동하지 않습니다. 개발자에게 알려주세요.", Color.RED);
+        sendErrorMessage(textChannel,
+            "Riot API Key가 만료되어 기능이 정상적으로 작동하지 않습니다."
+                + "개발자에게 알려주세요.", Color.RED);
         throw new IllegalArgumentException("api-key-expired");
       } else {
         logger.error("{}", e);
@@ -710,22 +726,22 @@ public class CustomGameComponent {
       return gson.fromJson(mostChampJson, new LinkedIntegerLongHashMapTypeToken().getType());
     } else {
       List<LoLienParticipant> participants = loLienParticipantRepository
-              .findByLoLienSummonerSummonerName(summonerName);
+          .findByLoLienSummonerSummonerName(summonerName);
 
       LinkedHashMap<Integer, Long> mostChamps = participants
-              .stream()
-              .collect(Collectors
-                      .groupingBy(LoLienParticipant::getChampionId,
-                              Collectors.counting()))
-              .entrySet()
-              .stream()
-              .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
-              .limit(limit)
-              .collect(
-                      Collectors
-                              .toMap(Map.Entry::getKey,
-                                      Map.Entry::getValue, (oldValue, newValue) -> oldValue,
-                                      LinkedHashMap::new));
+          .stream()
+          .collect(Collectors
+              .groupingBy(LoLienParticipant::getChampionId,
+                  Collectors.counting()))
+          .entrySet()
+          .stream()
+          .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+          .limit(limit)
+          .collect(
+              Collectors
+                  .toMap(Map.Entry::getKey,
+                      Map.Entry::getValue, (oldValue, newValue) -> oldValue,
+                      LinkedHashMap::new));
 
       String mostChampsJson = objectToJsonString(mostChamps);
       opsForHash.put(REDIS_MOST_CHAMPS_KEY, summonerName, mostChampsJson);

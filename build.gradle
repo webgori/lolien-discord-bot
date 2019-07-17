@@ -1,9 +1,12 @@
+import com.github.spotbugs.SpotBugsTask
+
 plugins {
     id 'org.springframework.boot' version '2.0.9.RELEASE'
     id 'java'
     id 'war'
     id 'checkstyle'
-    id "findbugs"
+    id "io.freefair.lombok" version "3.8.0"
+    id  'com.github.spotbugs' version '2.0.0'
 }
 
 apply plugin: 'io.spring.dependency-management'
@@ -11,6 +14,15 @@ apply plugin: 'io.spring.dependency-management'
 group = 'kr.webgori'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '1.8'
+
+spotbugs {
+    toolVersion = '3.1.12'
+}
+
+tasks.withType(SpotBugsTask) {
+    reports.xml.enabled = false
+    reports.html.enabled = true
+}
 
 bootWar {
     archiveFileName = 'ROOT.war'
@@ -32,6 +44,13 @@ ext {
     set('springCloudDependencyVersion', "Finchley.SR4")
 }
 
+sourceSets {
+    // we define `main` sourceSet here, so SpotBugs Gradle Plugin generates `spotbugsMain` task
+    main {
+        java.srcDirs = ['src/main/java']
+    }
+}
+
 dependencies {
     implementation('org.springframework.boot:spring-boot-starter-data-jpa')
     implementation('org.springframework.boot:spring-boot-starter-data-redis')
@@ -46,19 +65,12 @@ dependencies {
     implementation("net.dv8tion:JDA:3.8.3_462")
     implementation group: 'com.google.guava', name: 'guava', version: '27.1-jre'
     implementation group: 'com.google.code.gson', name: 'gson', version: '2.8.3'
-    compileOnly 'org.projectlombok:lombok'
     implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.9'
     runtimeOnly 'mysql:mysql-connector-java'
-    annotationProcessor 'org.projectlombok:lombok'
     providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     implementation group: 'com.github.taycaldwell', name: 'riot-api-java', version: '4.3.0'
     implementation group: 'org.jsoup', name: 'jsoup', version: '1.11.3'
-
-    implementation group: 'com.google.code.findbugs', name: 'annotations', version: '3.0.1'
-    findbugs 'com.google.code.findbugs:findbugs:3.0.1'
-    findbugs configurations.findbugsPlugins.dependencies
-    findbugsPlugins 'com.h3xstream.findsecbugs:findsecbugs-plugin:1.4.4'
 }
 
 dependencyManagement {
@@ -97,31 +109,6 @@ tasks.withType(Checkstyle).each { checkstyleTask ->
             if (outputFile.exists() && outputFile.text.contains("<error ")) {
                 throw new GradleException("There were checkstyle warnings! For more info check $outputFile")
             }
-        }
-    }
-}
-
-task findbugs(type: FindBugs) {
-    classes = fileTree(project.rootDir.absolutePath).include("**/*.class")
-    source = fileTree(project.rootDir.absolutePath).include("**/*.java")
-    classpath = files()
-    pluginClasspath = project.configurations.findbugsPlugins
-
-    findbugs {
-        toolVersion = "3.0.0"
-        sourceSets = [sourceSets.main]
-        ignoreFailures = false
-        reportsDir = file("$project.buildDir/findbugsReports")
-        effort = "max"
-        reportLevel = "low"
-        /*includeFilter = file("$rootProject.projectDir/include.xml")
-        excludeFilter = file("$rootProject.projectDir/exclude.xml")*/
-    }
-
-    tasks.withType(FindBugs) {
-        reports {
-            xml.enabled = false
-            html.enabled = true
         }
     }
 }

@@ -1,5 +1,12 @@
 package kr.webgori.lolien.discord.bot.component;
 
+import static kr.webgori.lolien.discord.bot.util.CommonUtil.numberToRomanNumeral;
+import static kr.webgori.lolien.discord.bot.util.CommonUtil.sendErrorMessage;
+import static kr.webgori.lolien.discord.bot.util.CommonUtil.sendMessage;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.awt.Color;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -7,9 +14,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import kr.webgori.lolien.discord.bot.entity.League;
 import kr.webgori.lolien.discord.bot.entity.LoLienSummoner;
 import kr.webgori.lolien.discord.bot.repository.LeagueRepository;
@@ -31,9 +35,6 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
-
-import static kr.webgori.lolien.discord.bot.util.CommonUtil.*;
 
 @Slf4j
 @SuppressFBWarnings(value = "CRLF_INJECTION_LOGS")
@@ -57,6 +58,10 @@ public class SummonerComponent {
     return CURRENT_SEASON;
   }
 
+  /**
+   * execute.
+   * @param event event
+   */
   public void execute(MessageReceivedEvent event) {
     TextChannel textChannel = event.getTextChannel();
     String receivedMessage = event.getMessage().getContentDisplay();
@@ -110,7 +115,7 @@ public class SummonerComponent {
       }
 
       Set<LeagueEntry> leagueEntrySet = riotApi
-              .getLeagueEntriesBySummonerId(Platform.KR, summonerId);
+          .getLeagueEntriesBySummonerId(Platform.KR, summonerId);
 
       List<LeagueEntry> leagueEntries = Lists.newArrayList(leagueEntrySet);
 
@@ -126,27 +131,29 @@ public class SummonerComponent {
 
       saveClienSummoner(summoner, tier, summonerId, summonerName, summonerLevel);
 
-      Map<String, String> tiersFromOpGG = getTiersFromOpGG(summonerName);
+      Map<String, String> tiersFromOpGg = getTiersFromOpGg(summonerName);
 
-      for (Map.Entry<String, String> entry : tiersFromOpGG.entrySet()) {
+      for (Map.Entry<String, String> entry : tiersFromOpGg.entrySet()) {
         String key = entry.getKey();
         String value = entry.getValue();
         LoLienSummoner loLienSummoner = loLienSummonerRepository
-                .findBySummonerName(summonerName);
+            .findBySummonerName(summonerName);
 
         League league = League
-                .builder()
-                .loLienSummoner(loLienSummoner)
-                .season(key)
-                .tier(value)
-                .build();
+            .builder()
+            .loLienSummoner(loLienSummoner)
+            .season(key)
+            .tier(value)
+            .build();
 
         leagueRepository.save(league);
       }
     } catch (RiotApiException e) {
       int errorCode = e.getErrorCode();
       if (errorCode == RiotApiException.FORBIDDEN) {
-        sendErrorMessage(textChannel, "Riot API Key가 만료되어 기능이 정상적으로 작동하지 않습니다. 개발자에게 알려주세요.", Color.RED);
+        sendErrorMessage(textChannel,
+            "Riot API Key가 만료되어 기능이 정상적으로 작동하지 않습니다."
+                + "개발자에게 알려주세요.", Color.RED);
         throw new IllegalArgumentException("api-key-expired");
       } else if (errorCode == RiotApiException.DATA_NOT_FOUND) {
         String errorMessage = String.format("%s 소환사가 존재하지 않습니다.", summonerName);
@@ -162,33 +169,46 @@ public class SummonerComponent {
     sendMessage(textChannel, sendMessage);
   }
 
+  /**
+   * saveClienSummoner.
+   * @param summoner summoner
+   * @param tier tier
+   * @param summonerId summonerId
+   * @param summonerName summonerName
+   * @param summonerLevel summonerLevel
+   */
   private void saveClienSummoner(Summoner summoner, String tier, String summonerId,
                                  String summonerName, int summonerLevel) {
     League league = League
-            .builder()
-            .season(CURRENT_SEASON)
-            .tier(tier)
-            .build();
+        .builder()
+        .season(CURRENT_SEASON)
+        .tier(tier)
+        .build();
 
     String accountId = summoner.getAccountId();
     List<League> leagues = new ArrayList<>();
     leagues.add(league);
 
     LoLienSummoner loLienSummoner = LoLienSummoner
-            .builder()
-            .id(summonerId)
-            .accountId(accountId)
-            .summonerName(summonerName)
-            .summonerLevel(summonerLevel)
-            .leagues(leagues)
-            .build();
+        .builder()
+        .id(summonerId)
+        .accountId(accountId)
+        .summonerName(summonerName)
+        .summonerLevel(summonerLevel)
+        .leagues(leagues)
+        .build();
 
     league.setLoLienSummoner(loLienSummoner);
 
     loLienSummonerRepository.save(loLienSummoner);
   }
 
-  public Map<String, String> getTiersFromOpGG(String summonerName) {
+  /**
+   * getTiersFromOpGg.
+   * @param summonerName summonerName
+   * @return Map map
+   */
+  public Map<String, String> getTiersFromOpGg(String summonerName) {
     Map<String, String> tiersMap = Maps.newHashMap();
 
     String opGgUrl = String.format("https://www.op.gg/summoner/userName=%s", summonerName);

@@ -1,8 +1,8 @@
 package kr.webgori.lolien.discord.bot.hooks;
 
-import java.util.List;
 import com.google.common.collect.Lists;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.List;
 import kr.webgori.lolien.discord.bot.component.CustomGameComponent;
 import kr.webgori.lolien.discord.bot.component.HelpComponent;
 import kr.webgori.lolien.discord.bot.component.SummonerComponent;
@@ -23,11 +23,10 @@ public class CustomListenerAdapter extends ListenerAdapter {
   private final CustomGameComponent customGameComponent;
 
   @Override
-  public void onMessageReceived(MessageReceivedEvent event)
-  {
+  public void onMessageReceived(MessageReceivedEvent event) {
     if (event.isFromType(ChannelType.PRIVATE)) {
       logger.info("[PM] {}: {}\n", event.getAuthor().getName(),
-              event.getMessage().getContentDisplay());
+          event.getMessage().getContentDisplay());
     } else {
       String botId = event.getJDA().getSelfUser().getId();
       String memberId = event.getMember().getUser().getId();
@@ -57,8 +56,8 @@ public class CustomListenerAdapter extends ListenerAdapter {
         }
 
         logger.info("[{}][{}] {}: {}\n", event.getGuild().getName(),
-                event.getTextChannel().getName(), event.getMember().getEffectiveName(),
-                event.getMessage().getContentDisplay());
+            event.getTextChannel().getName(), event.getMember().getEffectiveName(),
+            event.getMessage().getContentDisplay());
       }
     }
   }

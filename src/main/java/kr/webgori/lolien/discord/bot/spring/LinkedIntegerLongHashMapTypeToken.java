@@ -1,7 +1,7 @@
 package kr.webgori.lolien.discord.bot.spring;
 
-import java.util.LinkedHashMap;
 import com.google.gson.reflect.TypeToken;
+import java.util.LinkedHashMap;
 
 public class LinkedIntegerLongHashMapTypeToken extends TypeToken<LinkedHashMap<Integer, Long>> {
 

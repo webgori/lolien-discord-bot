@@ -1,14 +1,14 @@
 package kr.webgori.lolien.discord.bot.util;
 
-import java.awt.Color;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.concurrent.TimeUnit;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.awt.Color;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.concurrent.TimeUnit;
 import kr.webgori.lolien.discord.bot.spring.CustomLocalDateTimeDeserializer;
 import kr.webgori.lolien.discord.bot.spring.CustomLocalDateTimeSerializer;
 import lombok.extern.slf4j.Slf4j;
@@ -27,15 +27,26 @@ public class CommonUtil {
     textChannel.sendMessage(message).queueAfter(delay, TimeUnit.SECONDS);
   }
 
+  /**
+   * sendErrorMessage.
+   * @param textChannel textChannel
+   * @param message message
+   * @param color color
+   */
   public static void sendErrorMessage(TextChannel textChannel, String message, Color color) {
     MessageEmbed messageEmbed = new EmbedBuilder()
-            .setColor(color)
-            .setFooter(message, null)
-            .build();
+        .setColor(color)
+        .setFooter(message, null)
+        .build();
 
     textChannel.sendMessage(messageEmbed).queue();
   }
 
+  /**
+   * numberToRomanNumeral.
+   * @param number number
+   * @return String
+   */
   public static String numberToRomanNumeral(String number) {
     switch (number) {
       case "1":
@@ -53,6 +64,7 @@ public class CommonUtil {
 
   /**
    * 객체를 Json 문자열로 반환.
+   *
    * @param o 객체
    * @return Json
    */
@@ -77,6 +89,10 @@ public class CommonUtil {
     return json;
   }
 
+  /**
+   * getTournamentCreatedDate.
+   * @return String
+   */
   public static String getTournamentCreatedDate() {
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     LocalDateTime dateTime = LocalDateTime.now();

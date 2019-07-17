@@ -1,12 +1,12 @@
 package kr.webgori.lolien.discord.bot.quartz;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import kr.webgori.lolien.discord.bot.component.SummonerComponent;
 import kr.webgori.lolien.discord.bot.entity.League;
 import kr.webgori.lolien.discord.bot.entity.LoLienSummoner;
@@ -49,8 +49,8 @@ public class UpdateTierJob implements Job {
     long summonersCount = loLienSummonerRepository.count();
 
     Set<Object> members = Optional
-            .ofNullable(setOperations.members(REDIS_UPDATE_TIERS_KEY))
-            .orElseGet(Sets::newHashSet);
+        .ofNullable(setOperations.members(REDIS_UPDATE_TIERS_KEY))
+        .orElseGet(Sets::newHashSet);
 
     int size = members.size();
     if (summonersCount <= size) {
@@ -63,9 +63,9 @@ public class UpdateTierJob implements Job {
       summoners = loLienSummonerRepository.findTop5By();
     } else {
       Set<Integer> memberIdxSet = members
-              .stream()
-              .map(idx -> Integer.parseInt((String) idx))
-              .collect(Collectors.toSet());
+          .stream()
+          .map(idx -> Integer.parseInt((String) idx))
+          .collect(Collectors.toSet());
       summoners = loLienSummonerRepository.findTop5ByIdxNotIn(memberIdxSet);
     }
 
@@ -89,7 +89,7 @@ public class UpdateTierJob implements Job {
         }
 
         String summonerName = loLienSummoner.getSummonerName();
-        String summonerNameApi = summoner.getName().replaceAll("\\s+","");
+        String summonerNameApi = summoner.getName().replaceAll("\\s+", "");
 
         if (!summonerName.equals(summonerNameApi)) {
           loLienSummoner.setSummonerName(summonerNameApi);
@@ -100,7 +100,7 @@ public class UpdateTierJob implements Job {
         String summonerId = loLienSummoner.getId();
 
         Set<LeagueEntry> leagueEntrySet = riotApi
-                .getLeagueEntriesBySummonerId(Platform.KR, summonerId);
+            .getLeagueEntriesBySummonerId(Platform.KR, summonerId);
 
         List<LeagueEntry> leagueEntries = Lists.newArrayList(leagueEntrySet);
         List<League> leagues = loLienSummoner.getLeagues();
