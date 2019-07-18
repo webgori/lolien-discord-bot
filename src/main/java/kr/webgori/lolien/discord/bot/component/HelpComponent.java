@@ -37,7 +37,7 @@ public class HelpComponent {
 
     List<String> commands = Lists.newArrayList(commandDesc, summonerCommand, teamGenerateCommand,
         customGameCommand1, customGameCommand2, customGameCommand3, customGameCommand4,
-        customGameCommand5);
+        customGameCommand5, customGameCommand6, customGameCommand7, customGameCommand8);
 
     for (String command : commands) {
       sendMessage(textChannel, command);
