@@ -3,6 +3,6 @@ spring:
     name: lolien-discord-bot
   cloud:
     config:
-      uri: http://localhost:8888
+      uri: http://webgori.kr:8888
   profiles:
     active: local
