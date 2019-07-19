@@ -1,8 +1,5 @@
 spring:
   application:
     name: lolien-discord-bot
-  cloud:
-    config:
-      uri: http://webgori.kr:8888
   profiles:
     active: local
