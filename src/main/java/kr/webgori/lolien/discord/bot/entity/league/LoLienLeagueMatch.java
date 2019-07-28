@@ -10,7 +10,7 @@ import java.util.Set;
 @Builder
 @Data
 @Entity
-@Table(name = "`match`")
+@Table(name = "lolien_league_match")
 @ToString(exclude = {"participants", "teams"})
 @EqualsAndHashCode(exclude = {"teams", "participants"})
 public class LoLienLeagueMatch {
@@ -20,16 +20,22 @@ public class LoLienLeagueMatch {
 
   @Column(name = "game_creation")
   private Long gameCreation;
+
   @Column(name = "game_duration")
   private Long gameDuration;
+
   @Column(name = "game_id")
   private Long gameId;
+
   @Column(name = "game_mode")
   private String gameMode;
+
   @Column(name = "game_type")
   private String gameType;
+
   @Column(name = "game_version")
   private String gameVersion;
+
   @Column(name = "map_id")
   private Integer mapId;
 
@@ -38,11 +44,17 @@ public class LoLienLeagueMatch {
 
   @Column(name = "platform_id")
   private String platformId;
+
   @Column(name = "queue_id")
   private Integer queueId;
+
   @Column(name = "season_id")
   private Integer seasonId;
 
   @OneToMany(mappedBy = "match", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   private Set<LoLienLeagueTeamStats> teams;
+
+  @ManyToOne
+  @JoinColumn(name = "lolien_league_idx", nullable = false)
+  private LoLienLeague lolienLeague;
 }

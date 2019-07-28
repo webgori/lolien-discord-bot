@@ -9,7 +9,7 @@ import javax.persistence.*;
 @Builder
 @Data
 @Entity
-@Table(name = "team_bans")
+@Table(name = "lolien_league_team_bans")
 @EqualsAndHashCode(exclude = {"teamStats"})
 public class LoLienLeagueTeamBans {
   @Id

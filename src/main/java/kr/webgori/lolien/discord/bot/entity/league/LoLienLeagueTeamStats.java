@@ -10,7 +10,7 @@ import java.util.List;
 @Builder
 @Data
 @Entity
-@Table(name = "team_stats")
+@Table(name = "lolien_league_team_stats")
 @ToString(exclude = {"match", "bans"})
 public class LoLienLeagueTeamStats {
   @Id

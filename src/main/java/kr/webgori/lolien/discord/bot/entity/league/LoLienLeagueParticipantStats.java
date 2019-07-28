@@ -9,7 +9,7 @@ import javax.persistence.*;
 @Builder
 @Data
 @Entity
-@Table(name = "participant_stats")
+@Table(name = "lolien_league_participant_stats")
 @ToString(exclude = {"participant"})
 @EqualsAndHashCode(exclude = {"participant"})
 public class LoLienLeagueParticipantStats {

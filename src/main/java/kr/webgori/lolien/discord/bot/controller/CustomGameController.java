@@ -1,6 +1,5 @@
 package kr.webgori.lolien.discord.bot.controller;
 
-import kr.webgori.lolien.discord.bot.request.CustomGameAddLeagueResultRequest;
 import kr.webgori.lolien.discord.bot.request.CustomGameAddResultRequest;
 import kr.webgori.lolien.discord.bot.service.CustomGameService;
 import lombok.RequiredArgsConstructor;
@@ -18,10 +17,5 @@ public class CustomGameController {
   @PostMapping
   public void addResult(@RequestBody CustomGameAddResultRequest customGameAddResultRequest) {
     customGameService.addResult(customGameAddResultRequest);
-  }
-
-  @PostMapping("league")
-  public void addLeagueResult(@RequestBody CustomGameAddLeagueResultRequest customGameAddLeagueResultRequest) {
-    customGameService.addLeagueResult(customGameAddLeagueResultRequest);
   }
 }

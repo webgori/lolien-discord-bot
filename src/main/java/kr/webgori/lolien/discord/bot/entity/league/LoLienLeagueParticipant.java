@@ -10,7 +10,7 @@ import javax.persistence.*;
 @Builder
 @Data
 @Entity
-@Table(name = "participant")
+@Table(name = "lolien_league_participant")
 @ToString(exclude = {"match"})
 public class LoLienLeagueParticipant {
   @Id
