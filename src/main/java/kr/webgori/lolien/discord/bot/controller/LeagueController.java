@@ -24,7 +24,7 @@ public class LeagueController {
     leagueService.addLeague(leagueAddRequest);
   }
 
-  @PostMapping("league")
+  @PostMapping("result")
   public void addLeagueResult(@RequestBody LeagueAddResultRequest leagueAddResultRequest) {
     leagueService.addLeagueResult(leagueAddResultRequest);
   }

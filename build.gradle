@@ -67,7 +67,6 @@ dependencies {
     implementation group: 'com.google.code.gson', name: 'gson', version: '2.8.3'
     implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.9'
     runtimeOnly 'mysql:mysql-connector-java'
-    providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     implementation group: 'com.github.taycaldwell', name: 'riot-api-java', version: '4.3.0'
     implementation group: 'org.jsoup', name: 'jsoup', version: '1.11.3'
