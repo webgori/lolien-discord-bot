@@ -45,13 +45,17 @@ public class LeagueComponent {
   public void addResult(int leagueIdx, long matchId, String[] entries) {
     LoLienLeague loLienLeague = loLienLeagueRepository
             .findById(leagueIdx)
-            .orElseThrow(() -> new LeagueNotFoundException("invalid league idx"));
+            .orElseThrow(() -> new LeagueNotFoundException("존재하지 않는 리그 입니다."));
 
     for (String summonerName : entries) {
       boolean hasSummonerName = loLienSummonerRepository.existsBySummonerName(summonerName);
 
       if (!hasSummonerName) {
-        throw new IllegalArgumentException("register summoner first");
+        String errorMessage = String.format(
+            "Discord에서 \"!소환사 등록 %s\" 명령어로 소환사 등록을 먼저 해주시기 바랍니다.",
+                summonerName);
+
+        throw new IllegalArgumentException(errorMessage);
       }
     }
 
