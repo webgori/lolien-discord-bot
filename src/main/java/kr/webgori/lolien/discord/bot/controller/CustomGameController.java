@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class CustomGameController {
   private final CustomGameService customGameService;
 
-  @PostMapping
+  @PostMapping("result")
   public void addResult(@RequestBody CustomGameAddResultRequest customGameAddResultRequest) {
     customGameService.addResult(customGameAddResultRequest);
   }

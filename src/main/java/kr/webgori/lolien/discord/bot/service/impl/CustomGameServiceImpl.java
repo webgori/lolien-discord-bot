@@ -7,22 +7,14 @@ import kr.webgori.lolien.discord.bot.request.CustomGameAddResultRequest;
 import kr.webgori.lolien.discord.bot.service.CustomGameService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.entities.TextChannel;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.awt.*;
-import java.util.List;
-
-import static kr.webgori.lolien.discord.bot.util.CommonUtil.sendErrorMessage;
 
 @Slf4j
 @SuppressFBWarnings(value = "CRLF_INJECTION_LOGS")
 @RequiredArgsConstructor
 @Service
 public class CustomGameServiceImpl implements CustomGameService {
-  private final JDA jda;
   private final LoLienMatchRepository loLienMatchRepository;
   private final CustomGameComponent customGameComponent;
 
@@ -34,21 +26,16 @@ public class CustomGameServiceImpl implements CustomGameService {
 
     boolean existsByGameId = loLienMatchRepository.existsByGameId(matchId);
 
-    List<TextChannel> textChannels = jda.getTextChannelsByName("내전-결과-data", false);
-    TextChannel textChannel = textChannels.get(0);
-
     if (existsByGameId) {
-      sendErrorMessage(textChannel, "이미 등록된 내전 결과 입니다.", Color.RED);
-      return;
+      throw new IllegalArgumentException("이미 등록된 리그 결과 입니다.");
     }
 
     String[] entries = entriesString.split(",");
 
     if (entries.length != 10) {
-      customGameComponent.sendAddResultSyntax(textChannel);
-      return;
+      throw new IllegalArgumentException("게임 참여 인원이 잘못 되었습니다.");
     }
 
-    customGameComponent.addResult(textChannel, matchId, entries);
+    customGameComponent.addResult(matchId, entries);
   }
 }

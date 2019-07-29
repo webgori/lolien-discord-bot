@@ -1,11 +1,36 @@
 package kr.webgori.lolien.discord.bot.component;
 
+import static kr.webgori.lolien.discord.bot.util.CommonUtil.objectToJsonString;
+import static kr.webgori.lolien.discord.bot.util.CommonUtil.sendErrorMessage;
+import static kr.webgori.lolien.discord.bot.util.CommonUtil.sendMessage;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import kr.webgori.lolien.discord.bot.entity.*;
+import java.awt.Color;
+import java.text.DecimalFormat;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import kr.webgori.lolien.discord.bot.entity.Champ;
+import kr.webgori.lolien.discord.bot.entity.LoLienMatch;
+import kr.webgori.lolien.discord.bot.entity.LoLienParticipant;
+import kr.webgori.lolien.discord.bot.entity.LoLienParticipantStats;
+import kr.webgori.lolien.discord.bot.entity.LoLienSummoner;
+import kr.webgori.lolien.discord.bot.entity.LoLienTeamBans;
+import kr.webgori.lolien.discord.bot.entity.LoLienTeamStats;
 import kr.webgori.lolien.discord.bot.repository.ChampRepository;
 import kr.webgori.lolien.discord.bot.repository.LoLienMatchRepository;
 import kr.webgori.lolien.discord.bot.repository.LoLienParticipantRepository;
@@ -18,26 +43,16 @@ import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import net.rithms.riot.api.ApiConfig;
 import net.rithms.riot.api.RiotApi;
 import net.rithms.riot.api.RiotApiException;
-import net.rithms.riot.api.endpoints.match.dto.*;
+import net.rithms.riot.api.endpoints.match.dto.Match;
+import net.rithms.riot.api.endpoints.match.dto.Participant;
+import net.rithms.riot.api.endpoints.match.dto.ParticipantStats;
+import net.rithms.riot.api.endpoints.match.dto.TeamBans;
+import net.rithms.riot.api.endpoints.match.dto.TeamStats;
 import net.rithms.riot.constant.Platform;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
-
-import java.awt.*;
-import java.text.DecimalFormat;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
-import static kr.webgori.lolien.discord.bot.util.CommonUtil.*;
 
 @Slf4j
 @SuppressFBWarnings(value = "CRLF_INJECTION_LOGS")
@@ -58,6 +73,7 @@ public class CustomGameComponent {
 
   /**
    * execute.
+   *
    * @param event event
    */
   public void execute(MessageReceivedEvent event) {
@@ -304,19 +320,20 @@ public class CustomGameComponent {
 
   /**
    * addResult.
-   * @param textChannel textChannel
+   *
    * @param matchId matchId
    * @param entries entries
    */
-  public void addResult(TextChannel textChannel, long matchId, String[] entries) {
+  public void addResult(long matchId, String[] entries) {
     for (String summonerName : entries) {
       boolean hasSummonerName = loLienSummonerRepository.existsBySummonerName(summonerName);
 
       if (!hasSummonerName) {
-        String errorMessage = String
-            .format("\"!소환사 등록 %s\" 명령어로 소환사 등록을 먼저 해주시기 바랍니다.", summonerName);
-        sendErrorMessage(textChannel, errorMessage, Color.BLUE);
-        throw new IllegalArgumentException("register summoner first");
+        String errorMessage = String.format(
+            "Discord에서 \"!소환사 등록 %s\" 명령어로 소환사 등록을 먼저 해주시기 바랍니다.",
+            summonerName);
+
+        throw new IllegalArgumentException(errorMessage);
       }
     }
 
@@ -678,8 +695,6 @@ public class CustomGameComponent {
 
       loLienMatchRepository.save(loLienMatch);
 
-      sendMessage(textChannel, "내전 결과가 성공적으로 등록 되었습니다.");
-
       for (String summonerName : entries) {
         HashOperations<String, Object, Object> opsForHash = redisTemplate.opsForHash();
         boolean hasHashKey = opsForHash.hasKey(REDIS_MOST_CHAMPS_KEY, summonerName);
@@ -691,10 +706,9 @@ public class CustomGameComponent {
     } catch (RiotApiException e) {
       int errorCode = e.getErrorCode();
       if (errorCode == RiotApiException.FORBIDDEN) {
-        sendErrorMessage(textChannel,
-            "Riot API Key가 만료되어 기능이 정상적으로 작동하지 않습니다."
-                + "개발자에게 알려주세요.", Color.RED);
-        throw new IllegalArgumentException("api-key-expired");
+        String message =
+            "Riot API Key가 만료되어 기능이 정상적으로 작동하지 않습니다. 개발자에게 알려주세요.";
+        throw new IllegalArgumentException(message);
       } else {
         logger.error("{}", e.getMessage());
         throw new IllegalArgumentException("riotApiException");

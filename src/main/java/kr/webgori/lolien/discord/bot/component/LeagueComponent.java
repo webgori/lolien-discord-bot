@@ -429,7 +429,9 @@ public class LeagueComponent {
     } catch (RiotApiException e) {
       int errorCode = e.getErrorCode();
       if (errorCode == RiotApiException.FORBIDDEN) {
-        throw new IllegalArgumentException("api-key-expired");
+        String message =
+            "Riot API Key가 만료되어 기능이 정상적으로 작동하지 않습니다. 개발자에게 알려주세요.";
+        throw new IllegalArgumentException(message);
       } else {
         logger.error("{}", e.getMessage());
         throw new IllegalArgumentException("riotApiException");
