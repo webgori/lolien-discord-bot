@@ -34,7 +34,7 @@ public class LoLienMatch {
   private Long gameCreation;
   @Column(name = "game_duration")
   private Long gameDuration;
-  @Column(name = "game_id")
+  @Column(name = "game_id", unique = true)
   private Long gameId;
   @Column(name = "game_mode")
   private String gameMode;
