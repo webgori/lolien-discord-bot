@@ -3,3 +3,6 @@ spring:
     name: lolien-discord-bot
   profiles:
     active: local
+  cloud:
+    config:
+      uri: http://webgori.kr:8888
