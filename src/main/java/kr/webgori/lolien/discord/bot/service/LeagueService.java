@@ -5,9 +5,9 @@ import kr.webgori.lolien.discord.bot.request.LeagueAddResultRequest;
 import kr.webgori.lolien.discord.bot.response.LeagueGetLeaguesResponse;
 
 public interface LeagueService {
-    LeagueGetLeaguesResponse getLeagues();
+  LeagueGetLeaguesResponse getLeagues();
 
-    void addLeague(LeagueAddRequest leagueAddRequest);
+  void addLeague(LeagueAddRequest leagueAddRequest);
 
-    void addLeagueResult(LeagueAddResultRequest leagueAddResultRequest);
+  void addLeagueResult(LeagueAddResultRequest leagueAddResultRequest);
 }

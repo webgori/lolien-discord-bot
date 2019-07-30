@@ -4,8 +4,15 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.List;
+import java.util.Set;
 import kr.webgori.lolien.discord.bot.entity.LoLienSummoner;
-import kr.webgori.lolien.discord.bot.entity.league.*;
+import kr.webgori.lolien.discord.bot.entity.league.LoLienLeague;
+import kr.webgori.lolien.discord.bot.entity.league.LoLienLeagueMatch;
+import kr.webgori.lolien.discord.bot.entity.league.LoLienLeagueParticipant;
+import kr.webgori.lolien.discord.bot.entity.league.LoLienLeagueParticipantStats;
+import kr.webgori.lolien.discord.bot.entity.league.LoLienLeagueTeamBans;
+import kr.webgori.lolien.discord.bot.entity.league.LoLienLeagueTeamStats;
 import kr.webgori.lolien.discord.bot.exception.LeagueNotFoundException;
 import kr.webgori.lolien.discord.bot.repository.LoLienSummonerRepository;
 import kr.webgori.lolien.discord.bot.repository.league.LoLienLeagueMatchRepository;
@@ -15,13 +22,14 @@ import lombok.extern.slf4j.Slf4j;
 import net.rithms.riot.api.ApiConfig;
 import net.rithms.riot.api.RiotApi;
 import net.rithms.riot.api.RiotApiException;
-import net.rithms.riot.api.endpoints.match.dto.*;
+import net.rithms.riot.api.endpoints.match.dto.Match;
+import net.rithms.riot.api.endpoints.match.dto.Participant;
+import net.rithms.riot.api.endpoints.match.dto.ParticipantStats;
+import net.rithms.riot.api.endpoints.match.dto.TeamBans;
+import net.rithms.riot.api.endpoints.match.dto.TeamStats;
 import net.rithms.riot.constant.Platform;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.Set;
 
 @Slf4j
 @SuppressFBWarnings(value = "CRLF_INJECTION_LOGS")
@@ -38,14 +46,15 @@ public class LeagueComponent {
 
   /**
    * addResult.
+   *
    * @param leagueIdx leagueIdx
-   * @param matchId matchId
-   * @param entries entries
+   * @param matchId   matchId
+   * @param entries   entries
    */
   public void addResult(int leagueIdx, long matchId, String[] entries) {
     LoLienLeague loLienLeague = loLienLeagueRepository
-            .findById(leagueIdx)
-            .orElseThrow(() -> new LeagueNotFoundException("존재하지 않는 리그 입니다."));
+        .findById(leagueIdx)
+        .orElseThrow(() -> new LeagueNotFoundException("존재하지 않는 리그 입니다."));
 
     for (String summonerName : entries) {
       boolean hasSummonerName = loLienSummonerRepository.existsBySummonerName(summonerName);
@@ -53,7 +62,7 @@ public class LeagueComponent {
       if (!hasSummonerName) {
         String errorMessage = String.format(
             "Discord에서 \"!소환사 등록 %s\" 명령어로 소환사 등록을 먼저 해주시기 바랍니다.",
-                summonerName);
+            summonerName);
 
         throw new IllegalArgumentException(errorMessage);
       }
@@ -80,21 +89,21 @@ public class LeagueComponent {
       Set<LoLienLeagueTeamStats> loLienLeagueTeamStatsSet = Sets.newHashSet();
 
       LoLienLeagueMatch loLienLeagueMatch = LoLienLeagueMatch
-              .builder()
-              .lolienLeague(loLienLeague)
-              .gameCreation(gameCreation)
-              .gameDuration(gameDuration)
-              .gameId(gameId)
-              .gameMode(gameMode)
-              .gameType(gameType)
-              .gameVersion(gameVersion)
-              .mapId(mapId)
-              .participants(loLienLeagueParticipantSet)
-              .platformId(platformId)
-              .queueId(queueId)
-              .seasonId(seasonId)
-              .teams(loLienLeagueTeamStatsSet)
-              .build();
+          .builder()
+          .lolienLeague(loLienLeague)
+          .gameCreation(gameCreation)
+          .gameDuration(gameDuration)
+          .gameId(gameId)
+          .gameMode(gameMode)
+          .gameType(gameType)
+          .gameVersion(gameVersion)
+          .mapId(mapId)
+          .participants(loLienLeagueParticipantSet)
+          .platformId(platformId)
+          .queueId(queueId)
+          .seasonId(seasonId)
+          .teams(loLienLeagueTeamStatsSet)
+          .build();
 
       List<Participant> participants = match.getParticipants();
 
@@ -221,135 +230,135 @@ public class LeagueComponent {
         int statPerk2 = stats.getStatPerk2();
 
         LoLienLeagueParticipantStats loLienLeagueParticipantStats = LoLienLeagueParticipantStats
-                .builder()
-                .altarsCaptured(altarsCaptured)
-                .altarsNeutralized(altarsNeutralized)
-                .assists(assists)
-                .champLevel(champLevel)
-                .combatPlayerScore(combatPlayerScore)
-                .damageDealtToObjectives(damageDealtToObjectives)
-                .damageDealtToTurrets(damageDealtToTurrets)
-                .damageSelfMitigated(damageSelfMitigated)
-                .deaths(deaths)
-                .doubleKills(doubleKills)
-                .firstBloodAssist(firstBloodAssist)
-                .firstBloodKill(firstBloodKill)
-                .firstInhibitorAssist(firstInhibitorAssist)
-                .firstInhibitorKill(firstInhibitorKill)
-                .firstTowerAssist(firstTowerAssist)
-                .firstTowerKill(firstTowerKill)
-                .goldEarned(goldEarned)
-                .goldSpent(goldSpent)
-                .inhibitorKills(inhibitorKills)
-                .item0(item0)
-                .item1(item1)
-                .item2(item2)
-                .item3(item3)
-                .item4(item4)
-                .item5(item5)
-                .item6(item6)
-                .killingSprees(killingSprees)
-                .kills(kills)
-                .largestCriticalStrike(largestCriticalStrike)
-                .largestKillingSpree(largestKillingSpree)
-                .largestMultiKill(largestMultiKill)
-                .longestTimeSpentLiving(longestTimeSpentLiving)
-                .magicDamageDealt(magicDamageDealt)
-                .magicDamageDealtToChampions(magicDamageDealtToChampions)
-                .magicalDamageTaken(magicalDamageTaken)
-                .neutralMinionsKilled(neutralMinionsKilled)
-                .neutralMinionsKilledEnemyJungle(neutralMinionsKilledEnemyJungle)
-                .neutralMinionsKilledTeamJungle(neutralMinionsKilledTeamJungle)
-                .nodeCapture(nodeCapture)
-                .nodeCaptureAssist(nodeCaptureAssist)
-                .nodeNeutralize(nodeNeutralize)
-                .nodeNeutralizeAssist(nodeNeutralizeAssist)
-                .objectivePlayerScore(objectivePlayerScore)
-                .participantId(participantId1)
-                .pentaKills(pentaKills)
-                .physicalDamageDealt(physicalDamageDealt)
-                .physicalDamageDealtToChampions(physicalDamageDealtToChampions)
-                .physicalDamageTaken(physicalDamageTaken)
-                .quadraKills(quadraKills)
-                .sightWardsBoughtInGame(sightWardsBoughtInGame)
-                .teamObjective(teamObjective)
-                .timeCCingOthers(timeCCingOthers)
-                .totalDamageDealt(totalDamageDealt)
-                .totalDamageDealtToChampions(totalDamageDealtToChampions)
-                .totalDamageTaken(totalDamageTaken)
-                .totalHeal(totalHeal)
-                .totalMinionsKilled(totalMinionsKilled)
-                .totalPlayerScore(totalPlayerScore)
-                .totalScoreRank(totalScoreRank)
-                .totalTimeCrowdControlDealt(totalTimeCrowdControlDealt)
-                .totalUnitsHealed(totalUnitsHealed)
-                .tripleKills(tripleKills)
-                .trueDamageDealt(trueDamageDealt)
-                .trueDamageDealtToChampions(trueDamageDealtToChampions)
-                .trueDamageTaken(trueDamageTaken)
-                .turretKills(turretKills)
-                .unrealKills(unrealKills)
-                .visionScore(visionScore)
-                .visionWardsBoughtInGame(visionWardsBoughtInGame)
-                .wardsKilled(wardsKilled)
-                .wardsPlaced(wardsPlaced)
-                .win(win)
-                .perk0(perk0)
-                .perk1(perk1)
-                .perk2(perk2)
-                .perk3(perk3)
-                .perk4(perk4)
-                .perk5(perk5)
-                .perk0Var1(perk0Var1)
-                .perk0Var2(perk0Var2)
-                .perk0Var3(perk0Var3)
-                .perk1Var1(perk1Var1)
-                .perk1Var2(perk1Var2)
-                .perk1Var3(perk1Var3)
-                .perk2Var1(perk2Var1)
-                .perk2Var2(perk2Var2)
-                .perk2Var3(perk2Var3)
-                .perk3Var1(perk3Var1)
-                .perk3Var2(perk3Var2)
-                .perk3Var3(perk3Var3)
-                .perk4Var1(perk4Var1)
-                .perk4Var2(perk4Var2)
-                .perk4Var3(perk4Var3)
-                .perk5Var1(perk5Var1)
-                .perk5Var2(perk5Var2)
-                .perk5Var3(perk5Var3)
-                .playerScore0(playerScore0)
-                .playerScore1(playerScore1)
-                .playerScore2(playerScore2)
-                .playerScore3(playerScore3)
-                .playerScore4(playerScore4)
-                .playerScore5(playerScore5)
-                .playerScore6(playerScore6)
-                .playerScore7(playerScore7)
-                .playerScore8(playerScore8)
-                .playerScore9(playerScore9)
-                .perkPrimaryStyle(perkPrimaryStyle)
-                .perkSubStyle(perkSubStyle)
-                .statPerk0(statPerk0)
-                .statPerk1(statPerk1)
-                .statPerk2(statPerk2)
-                .build();
+            .builder()
+            .altarsCaptured(altarsCaptured)
+            .altarsNeutralized(altarsNeutralized)
+            .assists(assists)
+            .champLevel(champLevel)
+            .combatPlayerScore(combatPlayerScore)
+            .damageDealtToObjectives(damageDealtToObjectives)
+            .damageDealtToTurrets(damageDealtToTurrets)
+            .damageSelfMitigated(damageSelfMitigated)
+            .deaths(deaths)
+            .doubleKills(doubleKills)
+            .firstBloodAssist(firstBloodAssist)
+            .firstBloodKill(firstBloodKill)
+            .firstInhibitorAssist(firstInhibitorAssist)
+            .firstInhibitorKill(firstInhibitorKill)
+            .firstTowerAssist(firstTowerAssist)
+            .firstTowerKill(firstTowerKill)
+            .goldEarned(goldEarned)
+            .goldSpent(goldSpent)
+            .inhibitorKills(inhibitorKills)
+            .item0(item0)
+            .item1(item1)
+            .item2(item2)
+            .item3(item3)
+            .item4(item4)
+            .item5(item5)
+            .item6(item6)
+            .killingSprees(killingSprees)
+            .kills(kills)
+            .largestCriticalStrike(largestCriticalStrike)
+            .largestKillingSpree(largestKillingSpree)
+            .largestMultiKill(largestMultiKill)
+            .longestTimeSpentLiving(longestTimeSpentLiving)
+            .magicDamageDealt(magicDamageDealt)
+            .magicDamageDealtToChampions(magicDamageDealtToChampions)
+            .magicalDamageTaken(magicalDamageTaken)
+            .neutralMinionsKilled(neutralMinionsKilled)
+            .neutralMinionsKilledEnemyJungle(neutralMinionsKilledEnemyJungle)
+            .neutralMinionsKilledTeamJungle(neutralMinionsKilledTeamJungle)
+            .nodeCapture(nodeCapture)
+            .nodeCaptureAssist(nodeCaptureAssist)
+            .nodeNeutralize(nodeNeutralize)
+            .nodeNeutralizeAssist(nodeNeutralizeAssist)
+            .objectivePlayerScore(objectivePlayerScore)
+            .participantId(participantId1)
+            .pentaKills(pentaKills)
+            .physicalDamageDealt(physicalDamageDealt)
+            .physicalDamageDealtToChampions(physicalDamageDealtToChampions)
+            .physicalDamageTaken(physicalDamageTaken)
+            .quadraKills(quadraKills)
+            .sightWardsBoughtInGame(sightWardsBoughtInGame)
+            .teamObjective(teamObjective)
+            .timeCCingOthers(timeCCingOthers)
+            .totalDamageDealt(totalDamageDealt)
+            .totalDamageDealtToChampions(totalDamageDealtToChampions)
+            .totalDamageTaken(totalDamageTaken)
+            .totalHeal(totalHeal)
+            .totalMinionsKilled(totalMinionsKilled)
+            .totalPlayerScore(totalPlayerScore)
+            .totalScoreRank(totalScoreRank)
+            .totalTimeCrowdControlDealt(totalTimeCrowdControlDealt)
+            .totalUnitsHealed(totalUnitsHealed)
+            .tripleKills(tripleKills)
+            .trueDamageDealt(trueDamageDealt)
+            .trueDamageDealtToChampions(trueDamageDealtToChampions)
+            .trueDamageTaken(trueDamageTaken)
+            .turretKills(turretKills)
+            .unrealKills(unrealKills)
+            .visionScore(visionScore)
+            .visionWardsBoughtInGame(visionWardsBoughtInGame)
+            .wardsKilled(wardsKilled)
+            .wardsPlaced(wardsPlaced)
+            .win(win)
+            .perk0(perk0)
+            .perk1(perk1)
+            .perk2(perk2)
+            .perk3(perk3)
+            .perk4(perk4)
+            .perk5(perk5)
+            .perk0Var1(perk0Var1)
+            .perk0Var2(perk0Var2)
+            .perk0Var3(perk0Var3)
+            .perk1Var1(perk1Var1)
+            .perk1Var2(perk1Var2)
+            .perk1Var3(perk1Var3)
+            .perk2Var1(perk2Var1)
+            .perk2Var2(perk2Var2)
+            .perk2Var3(perk2Var3)
+            .perk3Var1(perk3Var1)
+            .perk3Var2(perk3Var2)
+            .perk3Var3(perk3Var3)
+            .perk4Var1(perk4Var1)
+            .perk4Var2(perk4Var2)
+            .perk4Var3(perk4Var3)
+            .perk5Var1(perk5Var1)
+            .perk5Var2(perk5Var2)
+            .perk5Var3(perk5Var3)
+            .playerScore0(playerScore0)
+            .playerScore1(playerScore1)
+            .playerScore2(playerScore2)
+            .playerScore3(playerScore3)
+            .playerScore4(playerScore4)
+            .playerScore5(playerScore5)
+            .playerScore6(playerScore6)
+            .playerScore7(playerScore7)
+            .playerScore8(playerScore8)
+            .playerScore9(playerScore9)
+            .perkPrimaryStyle(perkPrimaryStyle)
+            .perkSubStyle(perkSubStyle)
+            .statPerk0(statPerk0)
+            .statPerk1(statPerk1)
+            .statPerk2(statPerk2)
+            .build();
 
         String summonerName = entries[i];
         LoLienSummoner bySummonerName = loLienSummonerRepository
-                .findBySummonerName(summonerName);
+            .findBySummonerName(summonerName);
 
         LoLienLeagueParticipant loLienLeagueParticipant = LoLienLeagueParticipant
-                .builder()
-                .match(loLienLeagueMatch)
-                .championId(championId)
-                .participantId(participantId)
-                .spell1Id(spell1Id)
-                .spell2Id(spell2Id)
-                .stats(loLienLeagueParticipantStats)
-                .teamId(teamId)
-                .loLienSummoner(bySummonerName)
-                .build();
+            .builder()
+            .match(loLienLeagueMatch)
+            .championId(championId)
+            .participantId(participantId)
+            .spell1Id(spell1Id)
+            .spell2Id(spell2Id)
+            .stats(loLienLeagueParticipantStats)
+            .teamId(teamId)
+            .loLienSummoner(bySummonerName)
+            .build();
 
         loLienLeagueParticipantStats.setParticipant(loLienLeagueParticipant);
 
@@ -377,25 +386,25 @@ public class LeagueComponent {
         String win = teamStats.getWin();
 
         LoLienLeagueTeamStats loLienLeagueTeamStats = LoLienLeagueTeamStats
-                .builder()
-                .match(loLienLeagueMatch)
-                .bans(loLienLeagueTeamBansList)
-                .baronKills(baronKills)
-                .dominionVictoryScore(dominionVictoryScore)
-                .dragonKills(dragonKills)
-                .firstBaron(firstBaron)
-                .firstBlood(firstBlood)
-                .firstDragon(firstDragon)
-                .firstInhibitor(firstInhibitor)
-                .firstRiftHerald(firstRiftHerald)
-                .firstTower(firstTower)
-                .inhibitorKills(inhibitorKills)
-                .riftHeraldKills(riftHeraldKills)
-                .teamId(teamId)
-                .towerKills(towerKills)
-                .vilemawKills(vilemawKills)
-                .win(win)
-                .build();
+            .builder()
+            .match(loLienLeagueMatch)
+            .bans(loLienLeagueTeamBansList)
+            .baronKills(baronKills)
+            .dominionVictoryScore(dominionVictoryScore)
+            .dragonKills(dragonKills)
+            .firstBaron(firstBaron)
+            .firstBlood(firstBlood)
+            .firstDragon(firstDragon)
+            .firstInhibitor(firstInhibitor)
+            .firstRiftHerald(firstRiftHerald)
+            .firstTower(firstTower)
+            .inhibitorKills(inhibitorKills)
+            .riftHeraldKills(riftHeraldKills)
+            .teamId(teamId)
+            .towerKills(towerKills)
+            .vilemawKills(vilemawKills)
+            .win(win)
+            .build();
 
         List<TeamBans> bans = teamStats.getBans();
 
@@ -404,11 +413,11 @@ public class LeagueComponent {
           int pickTurn = teamBans.getPickTurn();
 
           LoLienLeagueTeamBans loLienLeagueTeamBans = LoLienLeagueTeamBans
-                  .builder()
-                  .teamStats(loLienLeagueTeamStats)
-                  .championId(championId)
-                  .pickTurn(pickTurn)
-                  .build();
+              .builder()
+              .teamStats(loLienLeagueTeamStats)
+              .championId(championId)
+              .pickTurn(pickTurn)
+              .build();
 
           loLienLeagueTeamBansList.add(loLienLeagueTeamBans);
         }

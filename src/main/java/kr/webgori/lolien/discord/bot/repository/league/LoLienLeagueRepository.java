@@ -4,5 +4,5 @@ import kr.webgori.lolien.discord.bot.entity.league.LoLienLeague;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface LoLienLeagueRepository extends JpaRepository<LoLienLeague, Integer> {
-    boolean existsByIdx(long leagueIdx);
+  boolean existsByIdx(long leagueIdx);
 }
