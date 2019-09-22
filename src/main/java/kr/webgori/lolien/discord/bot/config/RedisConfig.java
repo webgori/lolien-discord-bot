@@ -1,6 +1,7 @@
 package kr.webgori.lolien.discord.bot.config;
 
 import java.util.Optional;
+import kr.webgori.lolien.discord.bot.component.ConfigComponent;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,30 +14,24 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @Configuration
 public class RedisConfig {
-  @Value("${spring.redis.host}")
-  private String host;
-
   @Value("${spring.redis.port}")
   private int port;
 
   @Value("${spring.redis.database}")
   private int database;
 
-  @Value("${spring.redis.password}")
-  private String password;
-
   /**
    * JedisConnectionFactory.
    * @return JedisConnectionFactory
    */
   @Bean
-  public RedisConnectionFactory redisConnectionFactory() {
+  private RedisConnectionFactory redisConnectionFactory() {
     RedisStandaloneConfiguration serverConfig = new RedisStandaloneConfiguration("server", 6379);
-    serverConfig.setHostName(host);
+    serverConfig.setHostName(ConfigComponent.REDIS_HOST);
     serverConfig.setPort(port);
     serverConfig.setDatabase(database);
 
-    Optional.ofNullable(password).ifPresent(p -> {
+    Optional.ofNullable(ConfigComponent.REDIS_PASSWORD).ifPresent(p -> {
       RedisPassword redisPassword = RedisPassword.of(p);
       serverConfig.setPassword(redisPassword);
     });

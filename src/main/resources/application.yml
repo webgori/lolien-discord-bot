@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: lolien-discord-bot
+  profiles:
+    active: local
+  data:
+    redis:
+      repositories:
+        enabled: false
+  jpa:
+    hibernate:
+      use-new-id-generator-mappings: false
+    open-in-view: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL57Dialect
+
+config:
+  file:
+    path: /usr/local/tomcat/conf/config-%s.json

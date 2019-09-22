@@ -66,15 +66,6 @@ public class TeamGenerateComponent {
   private final CustomGameComponent customGameComponent;
   private final ChampRepository champRepository;
 
-  @Value("${riot.api.key}")
-  private String riotApiKey;
-
-  @Value("${challonge.username}")
-  private String challongeUserName;
-
-  @Value("${challonge.api.key}")
-  private String challongeApiKey;
-
   /**
    * execute.
    * @param event event
@@ -122,7 +113,9 @@ public class TeamGenerateComponent {
     int teamSize = generateTeams.size();
 
     if (teamSize > 2) {
-      Credentials credentials = new Credentials(challongeUserName, challongeApiKey);
+      Credentials credentials = new Credentials(
+          ConfigComponent.CHALLONGE_USERNAME,
+          ConfigComponent.CHALLONGE_API_KEY);
 
       Serializer serializer = new GsonSerializer();
       RestClient restClient = new RetrofitRestClient();
@@ -443,7 +436,7 @@ public class TeamGenerateComponent {
   }
 
   private String getCurrentSeasonTier(String summonerName) {
-    ApiConfig config = new ApiConfig().setKey(riotApiKey);
+    ApiConfig config = new ApiConfig().setKey(ConfigComponent.RIOT_API_KEY);
     RiotApi riotApi = new RiotApi(config);
 
     try {
