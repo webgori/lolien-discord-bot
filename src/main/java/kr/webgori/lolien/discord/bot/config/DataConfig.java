@@ -15,6 +15,10 @@ import org.springframework.context.annotation.Configuration;
 public class DataConfig {
   private final ConfigComponent configComponent;
 
+  /**
+   * dataSource.
+   * @return dataSource
+   */
   @Bean
   public DataSource dataSource() {
     return DataSourceBuilder

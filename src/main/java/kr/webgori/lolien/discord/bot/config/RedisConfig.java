@@ -25,7 +25,7 @@ public class RedisConfig {
    * @return JedisConnectionFactory
    */
   @Bean
-  private RedisConnectionFactory redisConnectionFactory() {
+  public RedisConnectionFactory redisConnectionFactory() {
     RedisStandaloneConfiguration serverConfig = new RedisStandaloneConfiguration("server", 6379);
     serverConfig.setHostName(ConfigComponent.REDIS_HOST);
     serverConfig.setPort(port);
