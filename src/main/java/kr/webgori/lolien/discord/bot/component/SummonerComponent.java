@@ -33,7 +33,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -46,9 +45,6 @@ public class SummonerComponent {
 
   private final LoLienSummonerRepository loLienSummonerRepository;
   private final LeagueRepository leagueRepository;
-
-  @Value("${riot.api.key}")
-  private String riotApiKey;
 
   public static String getDefaultTier() {
     return DEFAULT_TIER;
@@ -95,7 +91,7 @@ public class SummonerComponent {
         return;
       }
 
-      ApiConfig config = new ApiConfig().setKey(riotApiKey);
+      ApiConfig config = new ApiConfig().setKey(ConfigComponent.RIOT_API_KEY);
       RiotApi riotApi = new RiotApi(config);
 
       Summoner summoner = riotApi.getSummonerByName(Platform.KR, summonerName);
@@ -160,7 +156,7 @@ public class SummonerComponent {
         sendErrorMessage(textChannel, errorMessage, Color.RED);
         throw new IllegalArgumentException("invalid summoner name");
       } else {
-        logger.error("{}", e);
+        logger.error("", e);
         throw new IllegalArgumentException("riotApiException");
       }
     }
@@ -208,7 +204,7 @@ public class SummonerComponent {
    * @param summonerName summonerName
    * @return Map map
    */
-  public Map<String, String> getTiersFromOpGg(String summonerName) {
+  private Map<String, String> getTiersFromOpGg(String summonerName) {
     Map<String, String> tiersMap = Maps.newHashMap();
 
     String opGgUrl = String.format("https://www.op.gg/summoner/userName=%s", summonerName);
@@ -254,7 +250,7 @@ public class SummonerComponent {
         }
       }
     } catch (IOException e) {
-      logger.error("{}", e);
+      logger.error("", e);
     }
 
     return tiersMap;

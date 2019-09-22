@@ -7,12 +7,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import kr.webgori.lolien.discord.bot.component.ConfigComponent;
 import kr.webgori.lolien.discord.bot.component.SummonerComponent;
 import kr.webgori.lolien.discord.bot.entity.League;
 import kr.webgori.lolien.discord.bot.entity.LoLienSummoner;
 import kr.webgori.lolien.discord.bot.repository.LeagueRepository;
 import kr.webgori.lolien.discord.bot.repository.LoLienSummonerRepository;
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.rithms.riot.api.ApiConfig;
 import net.rithms.riot.api.RiotApi;
@@ -22,24 +23,26 @@ import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.constant.Platform;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SetOperations;
 import org.springframework.stereotype.Component;
 
-@RequiredArgsConstructor
+@NoArgsConstructor
 @Slf4j
 @SuppressFBWarnings(value = "CRLF_INJECTION_LOGS")
 @Component
-public class UpdateTierJob implements Job {
+class UpdateTierJob implements Job {
   private static final String REDIS_UPDATE_TIERS_KEY = "lolien-discord-bot:update-tiers";
 
-  private final RedisTemplate<String, Object> redisTemplate;
-  private final LoLienSummonerRepository loLienSummonerRepository;
-  private final LeagueRepository leagueRepository;
+  @Autowired
+  private RedisTemplate<String, Object> redisTemplate;
 
-  @Value("${riot.api.key}")
-  private String riotApiKey;
+  @Autowired
+  private LoLienSummonerRepository loLienSummonerRepository;
+
+  @Autowired
+  private LeagueRepository leagueRepository;
 
   @Override
   public void execute(JobExecutionContext context) {
@@ -69,7 +72,7 @@ public class UpdateTierJob implements Job {
       summoners = loLienSummonerRepository.findTop5ByIdxNotIn(memberIdxSet);
     }
 
-    ApiConfig config = new ApiConfig().setKey(riotApiKey);
+    ApiConfig config = new ApiConfig().setKey(ConfigComponent.RIOT_API_KEY);
     RiotApi riotApi = new RiotApi(config);
 
     for (LoLienSummoner loLienSummoner : summoners) {
@@ -122,7 +125,7 @@ public class UpdateTierJob implements Job {
           }
         }
       } catch (RiotApiException e) {
-        logger.error("{}", e);
+        logger.error("", e);
       }
     }
   }

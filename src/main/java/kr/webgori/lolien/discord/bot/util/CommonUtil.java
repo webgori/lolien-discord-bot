@@ -85,7 +85,7 @@ public class CommonUtil {
     try {
       json = objectMapper.writeValueAsString(o);
     } catch (JsonProcessingException e) {
-      logger.error("{}", e);
+      logger.error("", e);
     }
 
     return json;

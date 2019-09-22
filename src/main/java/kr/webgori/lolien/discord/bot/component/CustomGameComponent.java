@@ -49,7 +49,6 @@ import net.rithms.riot.api.endpoints.match.dto.ParticipantStats;
 import net.rithms.riot.api.endpoints.match.dto.TeamBans;
 import net.rithms.riot.api.endpoints.match.dto.TeamStats;
 import net.rithms.riot.constant.Platform;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
@@ -67,9 +66,6 @@ public class CustomGameComponent {
   private final ChampRepository champRepository;
   private final RedisTemplate<String, Object> redisTemplate;
   private final Gson gson;
-
-  @Value("${riot.api.key}")
-  private String riotApiKey;
 
   /**
    * execute.
@@ -338,7 +334,7 @@ public class CustomGameComponent {
     }
 
     try {
-      ApiConfig config = new ApiConfig().setKey(riotApiKey);
+      ApiConfig config = new ApiConfig().setKey(ConfigComponent.RIOT_API_KEY);
       RiotApi riotApi = new RiotApi(config);
       Match match = riotApi.getMatch(Platform.KR, matchId);
 
