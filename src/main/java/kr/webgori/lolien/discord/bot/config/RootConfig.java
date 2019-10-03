@@ -7,6 +7,10 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class RootConfig {
+  /**
+   * webMvcConfigurer.
+   * @return webMvcConfigurer
+   */
   @Bean
   public WebMvcConfigurer webMvcConfigurer() {
     return new WebMvcConfigurer() {
