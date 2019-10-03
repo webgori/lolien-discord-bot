@@ -30,8 +30,11 @@ public class ConfigComponent implements InitializingBean {
 
   private final Gson gson;
 
-  @Value("${config.file.path}")
-  private String jsonConfigFilePath;
+  @Value("${config.file.path.windows}")
+  private String jsonConfigFilePathWindows;
+
+  @Value("${config.file.path.linux}")
+  private String jsonConfigFilePathLinux;
 
   @Value("${spring.profiles.active}")
   private String profile;
@@ -51,13 +54,22 @@ public class ConfigComponent implements InitializingBean {
   }
 
   private void getJsonString() {
+    String filePath = "";
+
     try {
-      String filePath = String.format(jsonConfigFilePath, profile);
+      String os = System.getProperty("os.name");
+
+      if (os.startsWith("Windows")) {
+        filePath = String.format(jsonConfigFilePathWindows, profile);
+      } else {
+        filePath = String.format(jsonConfigFilePathLinux, profile);
+      }
+
       FileInputStream fileInputStream = new FileInputStream(filePath);
       JSON_STRING = IOUtils.toString(fileInputStream, StandardCharsets.UTF_8);
     } catch (IOException e) {
       logger.error("", e);
-      throw new PasswordFileNotFoundException("invalid " + jsonConfigFilePath + " path");
+      throw new PasswordFileNotFoundException("invalid " + filePath + " path");
     }
   }
 
