@@ -2,7 +2,7 @@ spring:
   application:
     name: lolien-discord-bot
   profiles:
-    active: local
+    active: dev
   data:
     redis:
       repositories:
@@ -17,4 +17,6 @@ spring:
 
 config:
   file:
-    path: /usr/local/tomcat/conf/config-%s.json
+    path:
+      windows: C:\config-%s.json
+      linux: /usr/local/tomcat/conf/config-%s.json
