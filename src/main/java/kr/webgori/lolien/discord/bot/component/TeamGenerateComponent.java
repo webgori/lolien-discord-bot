@@ -155,7 +155,7 @@ public class TeamGenerateComponent {
 
         message.append(fullChallongeUrl);
       } catch (DataAccessException e) {
-        logger.error("{}", e);
+        logger.error("", e);
       }
     }
 
@@ -460,7 +460,7 @@ public class TeamGenerateComponent {
 
       return tier;
     } catch (RiotApiException e) {
-      logger.error("{}", e);
+      logger.error("", e);
       throw new IllegalArgumentException("RiotApiException");
     }
   }
