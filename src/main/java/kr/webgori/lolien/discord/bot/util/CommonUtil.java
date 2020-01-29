@@ -125,6 +125,11 @@ public class CommonUtil {
     }
   }
 
+  /**
+   * matchId로 match 정보 조회.
+   * @param matchId matchId
+   * @return Match
+   */
   public static Match getMatch(long matchId) {
     try {
       ApiConfig config = new ApiConfig().setKey(ConfigComponent.RIOT_API_KEY);
