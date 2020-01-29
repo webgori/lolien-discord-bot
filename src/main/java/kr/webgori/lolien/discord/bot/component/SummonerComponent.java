@@ -1,5 +1,6 @@
 package kr.webgori.lolien.discord.bot.component;
 
+import static kr.webgori.lolien.discord.bot.component.TeamGenerateComponent.CURRENT_SEASON;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.numberToRomanNumeral;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.sendErrorMessage;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.sendMessage;
@@ -41,7 +42,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class SummonerComponent {
   private static final String DEFAULT_TIER = "UNRANKED";
-  private static final String CURRENT_SEASON = "S9";
 
   private final LoLienSummonerRepository loLienSummonerRepository;
   private final LeagueRepository leagueRepository;

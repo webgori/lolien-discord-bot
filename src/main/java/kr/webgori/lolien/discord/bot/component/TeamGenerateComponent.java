@@ -55,7 +55,7 @@ public class TeamGenerateComponent {
   private static final String[] TIER_LIST = {"IRON", "BRONZE", "SILVER", "GOLD", "PLATINUM",
       "DIAMOND", "MASTER", "GRANDMASTER", "CHALLENGE"};
   private static final String[] RANK_LIST = {"IV", "III", "II", "I"};
-  private static final String CURRENT_SEASON = "S9";
+  static final String CURRENT_SEASON = "S10";
   private static final String DEFAULT_TIER = "UNRANKED";
   private static final int PERIOD_POINT = 5;
   private static final int LOOP_LIMIT_COUNT = 5;
