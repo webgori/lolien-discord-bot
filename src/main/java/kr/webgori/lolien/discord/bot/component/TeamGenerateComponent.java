@@ -45,7 +45,6 @@ import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.constant.Platform;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -69,6 +68,7 @@ public class TeamGenerateComponent {
 
   /**
    * execute.
+   *
    * @param event event
    */
   public void execute(MessageReceivedEvent event) {
@@ -403,7 +403,7 @@ public class TeamGenerateComponent {
     StringBuilder stringBuilder = new StringBuilder();
 
     for (String summoner : entryList) {
-      LinkedHashMap<Integer, Long> mostChampions = customGameComponent.getMostChamp(summoner, 3);
+      LinkedHashMap<Integer, Long> mostChampions = customGameComponent.getMostChamp(summoner);
       List<String> mostChampionsList = Lists.newArrayList();
 
       for (Map.Entry<Integer, Long> mostChampion : mostChampions.entrySet()) {
@@ -471,6 +471,7 @@ public class TeamGenerateComponent {
 
   /**
    * 시즌 초반인지 확인.
+   *
    * @return 시즌 초반 여부 (true: 시즌 초반, false: 시즌 초반 이후)
    */
   private boolean checkEarlyInTheSeason() {

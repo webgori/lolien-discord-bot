@@ -10,12 +10,18 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.TimeUnit;
+import kr.webgori.lolien.discord.bot.component.ConfigComponent;
 import kr.webgori.lolien.discord.bot.spring.CustomLocalDateTimeDeserializer;
 import kr.webgori.lolien.discord.bot.spring.CustomLocalDateTimeSerializer;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.entities.MessageEmbed;
 import net.dv8tion.jda.core.entities.TextChannel;
+import net.rithms.riot.api.ApiConfig;
+import net.rithms.riot.api.RiotApi;
+import net.rithms.riot.api.RiotApiException;
+import net.rithms.riot.api.endpoints.match.dto.Match;
+import net.rithms.riot.constant.Platform;
 
 @Slf4j
 @SuppressFBWarnings(value = "CRLF_INJECTION_LOGS")
@@ -105,5 +111,29 @@ public class CommonUtil {
 
   public static int getCurrentMonth() {
     return LocalDate.now().getMonthValue();
+  }
+
+  private static void throwRiotApiException(RiotApiException e) {
+    int errorCode = e.getErrorCode();
+    if (errorCode == RiotApiException.FORBIDDEN) {
+      String message =
+          "Riot API Key가 만료되어 기능이 정상적으로 작동하지 않습니다. 개발자에게 알려주세요.";
+      throw new IllegalArgumentException(message);
+    } else {
+      logger.error("{}", e.getMessage());
+      throw new IllegalArgumentException("riotApiException");
+    }
+  }
+
+  public static Match getMatch(long matchId) {
+    try {
+      ApiConfig config = new ApiConfig().setKey(ConfigComponent.RIOT_API_KEY);
+      RiotApi riotApi = new RiotApi(config);
+      return riotApi.getMatch(Platform.KR, matchId);
+    } catch (RiotApiException e) {
+      throwRiotApiException(e);
+    }
+
+    throw new IllegalStateException();
   }
 }
