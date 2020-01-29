@@ -1,6 +1,7 @@
 package kr.webgori.lolien.discord.bot.component;
 
 import static kr.webgori.lolien.discord.bot.component.TeamGenerateComponent.CURRENT_SEASON;
+import static kr.webgori.lolien.discord.bot.util.CommonUtil.getSeasonFormat;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.numberToRomanNumeral;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.sendErrorMessage;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.sendMessage;
@@ -221,7 +222,7 @@ public class SummonerComponent {
           String prevSeason = Strings.EMPTY;
 
           for (Element seasonElement : seasonElements) {
-            prevSeason = seasonElement.text();
+            prevSeason = getSeasonFormat(seasonElement.text());
           }
 
           boolean title = tierElement.hasAttr("title");

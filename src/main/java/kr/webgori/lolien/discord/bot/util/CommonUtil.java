@@ -141,4 +141,15 @@ public class CommonUtil {
 
     throw new IllegalStateException();
   }
+
+  /**
+   * op.gg의 시즌을 형식에 맞게 변경.
+   * @param season season
+   * @return formatted season
+   */
+  public static String getSeasonFormat(String season) {
+    String[] s = season.split("S");
+    int seasonNumber = Integer.parseInt(s[1]);
+    return seasonNumber <= 9 ? "S0" + seasonNumber : season;
+  }
 }
