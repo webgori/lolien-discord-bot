@@ -1,5 +1,6 @@
 package kr.webgori.lolien.discord.bot.component;
 
+import static kr.webgori.lolien.discord.bot.util.CommonUtil.getCurrentMonth;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.getTournamentCreatedDate;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.sendErrorMessage;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.sendMessage;
@@ -225,7 +226,8 @@ public class TeamGenerateComponent {
         League prevSeasonLeague = leagues.get(1);
         String prevTier = prevSeasonLeague.getTier();
 
-        if (currentTier.equals(DEFAULT_TIER)) {
+        // 현재 시즌이 언랭 이거나 시즌 초반 이면 전 시즌 티어로 계산
+        if (currentTier.equals(DEFAULT_TIER) || checkEarlyInTheSeason()) {
           tier = prevTier;
         } else {
           int currentTierPoint = tiers.get(currentTier);
@@ -363,7 +365,8 @@ public class TeamGenerateComponent {
           League prevSeasonLeague = leagues.get(1);
           String prevTier = prevSeasonLeague.getTier();
 
-          if (currentTier.equals(DEFAULT_TIER)) {
+          // 현재 시즌이 언랭 이거나 시즌 초반 이면 전 시즌 티어로 계산
+          if (currentTier.equals(DEFAULT_TIER) || checkEarlyInTheSeason()) {
             tier = prevTier;
           } else {
             int currentTierPoint = tiers.get(currentTier);
@@ -464,5 +467,13 @@ public class TeamGenerateComponent {
 
   private void sendSyntax(TextChannel textChannel) {
     sendErrorMessage(textChannel, "잘못된 명령어 입니다. !팀구성 밸런스 소환사명1, 소환사명2, 소환사명3 ...", Color.RED);
+  }
+
+  /**
+   * 시즌 초반인지 확인.
+   * @return 시즌 초반 여부 (true: 시즌 초반, false: 시즌 초반 이후)
+   */
+  private boolean checkEarlyInTheSeason() {
+    return getCurrentMonth() <= 6;
   }
 }
