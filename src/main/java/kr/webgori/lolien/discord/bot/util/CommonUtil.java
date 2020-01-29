@@ -67,7 +67,7 @@ public class CommonUtil {
       case "4":
         return "IV";
       default:
-        throw new IllegalArgumentException("can not covert number");
+        throw new IllegalArgumentException("can not covert number " + number);
     }
   }
 

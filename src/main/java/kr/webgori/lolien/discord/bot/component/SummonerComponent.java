@@ -244,6 +244,12 @@ public class SummonerComponent {
             prevTierSplitList.set(1, "4");
           }
 
+          if (!prevTierSplitList.get(1).equals("1") && !prevTierSplitList.get(1).equals("2")
+              && !prevTierSplitList.get(1).equals("3") && !prevTierSplitList.get(1).equals("4")) {
+            logger.error(prevTierSplitList.get(1));
+            prevTierSplitList.set(1, "1");
+          }
+
           prevTierSplitList.set(1, numberToRomanNumeral(prevTierSplitList.get(1)));
           String prevTier = String.join("-", prevTierSplitList);
 
