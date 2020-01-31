@@ -23,7 +23,6 @@ import net.rithms.riot.api.ApiConfig;
 import net.rithms.riot.api.RiotApi;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.match.dto.Match;
-import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.constant.Platform;
 import org.apache.logging.log4j.util.Strings;
 import org.assertj.core.util.Lists;
@@ -97,23 +96,6 @@ public class UnitTest {
 
         leagueRepository.save(league);
       }
-    }
-  }
-
-  @Test
-  public void riotSpectatorApiTest() {
-    String summonerName = "추풍추풍";
-    LoLienSummoner loLienSummoner = loLienSummonerRepository.findBySummonerName(summonerName);
-    String id = loLienSummoner.getId();
-
-    try {
-      ApiConfig config = new ApiConfig().setKey(ConfigComponent.RIOT_API_KEY);
-      RiotApi riotApi = new RiotApi(config);
-      CurrentGameInfo currentGameInfo = riotApi.getActiveGameBySummoner(Platform.KR, id);
-      long gameId = currentGameInfo.getGameId();
-      Match match = riotApi.getMatch(Platform.KR, gameId);
-    } catch (RiotApiException e) {
-      throwRiotApiException(e);
     }
   }
 
@@ -202,17 +184,5 @@ public class UnitTest {
     }
 
     return tiersMap;
-  }
-
-  private static void throwRiotApiException(RiotApiException e) {
-    int errorCode = e.getErrorCode();
-    if (errorCode == RiotApiException.FORBIDDEN) {
-      String message =
-          "Riot API Key가 만료되어 기능이 정상적으로 작동하지 않습니다. 개발자에게 알려주세요.";
-      throw new IllegalArgumentException(message);
-    } else {
-      logger.error("{}", e.getMessage());
-      throw new IllegalArgumentException("riotApiException");
-    }
   }
 }
