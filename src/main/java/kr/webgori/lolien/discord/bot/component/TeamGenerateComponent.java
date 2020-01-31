@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import kr.webgori.lolien.discord.bot.entity.Champ;
@@ -98,6 +99,17 @@ public class TeamGenerateComponent {
 
     if (entries.length % 5 != 0) {
       sendErrorMessage(textChannel, "참가자가 인원이 잘못되었습니다.", Color.RED);
+      return;
+    }
+
+    String discordNickname = event.getMember().getEffectiveName();
+
+    boolean existsSummoner = loLienSummonerRepository.existsBySummonerName(discordNickname);
+
+    if (!existsSummoner) {
+      sendErrorMessage(textChannel,
+          "디스코드 별명과 등록한 소환사명이 다르거나 소환사 등록이 되지 않은 사용자 입니다.",
+          Color.RED);
       return;
     }
 
