@@ -18,13 +18,17 @@ import org.springframework.context.annotation.Configuration;
 @RequiredArgsConstructor
 @Configuration
 public class JdaConfig {
-  public static JDA jda = null;
+  public static JDA jda;
 
   private final HelpComponent helpComponent;
   private final SummonerComponent summonerComponent;
   private final TeamGenerateComponent teamGenerateComponent;
   private final CustomGameComponent customGameComponent;
   private final MemoComponent memoComponent;
+
+  private static void setJda(JDA jda) {
+    JdaConfig.jda = jda;
+  }
 
   /**
    * jda.
@@ -41,7 +45,7 @@ public class JdaConfig {
             memoComponent))
         .build();
 
-    JdaConfig.jda = jda;
+    setJda(jda);
 
     return jda;
   }
