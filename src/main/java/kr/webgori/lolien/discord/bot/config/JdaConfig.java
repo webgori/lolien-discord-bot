@@ -18,6 +18,8 @@ import org.springframework.context.annotation.Configuration;
 @RequiredArgsConstructor
 @Configuration
 public class JdaConfig {
+  public static JDA jda = null;
+
   private final HelpComponent helpComponent;
   private final SummonerComponent summonerComponent;
   private final TeamGenerateComponent teamGenerateComponent;
@@ -32,11 +34,15 @@ public class JdaConfig {
    */
   @Bean
   public JDA jda() throws LoginException {
-    return new JDABuilder(ConfigComponent.DISCORD_TOKEN)
+    JDA jda = new JDABuilder(ConfigComponent.DISCORD_TOKEN)
         .addEventListener(new CustomEventListener())
         .addEventListener(new CustomListenerAdapter(
             helpComponent, summonerComponent, teamGenerateComponent, customGameComponent,
             memoComponent))
         .build();
+
+    JdaConfig.jda = jda;
+
+    return jda;
   }
 }

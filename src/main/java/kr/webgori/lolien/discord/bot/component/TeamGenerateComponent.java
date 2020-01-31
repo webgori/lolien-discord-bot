@@ -2,8 +2,10 @@ package kr.webgori.lolien.discord.bot.component;
 
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.getCurrentMonth;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.getTournamentCreatedDate;
+import static kr.webgori.lolien.discord.bot.util.CommonUtil.localDateTimeToString;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.sendErrorMessage;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.sendMessage;
+import static kr.webgori.lolien.discord.bot.util.CommonUtil.stringToLocalDateTime;
 
 import at.stefangeyer.challonge.Challonge;
 import at.stefangeyer.challonge.exception.DataAccessException;
@@ -19,6 +21,8 @@ import at.stefangeyer.challonge.serializer.gson.GsonSerializer;
 import com.google.common.collect.Lists;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.awt.Color;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -29,6 +33,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import kr.webgori.lolien.discord.bot.config.JdaConfig;
 import kr.webgori.lolien.discord.bot.entity.Champ;
 import kr.webgori.lolien.discord.bot.entity.League;
 import kr.webgori.lolien.discord.bot.entity.LoLienSummoner;
@@ -43,9 +48,15 @@ import net.rithms.riot.api.ApiConfig;
 import net.rithms.riot.api.RiotApi;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
+import net.rithms.riot.api.endpoints.match.dto.Match;
+import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
+import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameParticipant;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.constant.Platform;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.data.redis.core.HashOperations;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -61,11 +72,18 @@ public class TeamGenerateComponent {
   private static final int PERIOD_POINT = 5;
   private static final int LOOP_LIMIT_COUNT = 5;
   private static final int FAIL_LIMIT_COUNT = 5;
+  private static final String REDIS_GENERATED_TEAM_USERS_INFO_KEY
+      = "lolien-discord-bot:generated-team-users-info";
+  private static final String REDIS_GENERATED_TEAM_MATCHES_INFO_KEY
+      = "lolien-discord-bot:generated-team-matches-info";
+  private static final Long LOLIEN_DISCORD_BOT_CUSTOM_GAME_GENERATE_TEAM_CHANNEL_ID
+      = 564816760059068445L;
 
   private final LoLienSummonerRepository loLienSummonerRepository;
   private final LeagueRepository leagueRepository;
   private final CustomGameComponent customGameComponent;
   private final ChampRepository champRepository;
+  private final RedisTemplate<String, Object> redisTemplate;
 
   /**
    * execute.
@@ -170,6 +188,15 @@ public class TeamGenerateComponent {
         logger.error("", e);
       }
     }
+
+    LoLienSummoner loLienSummoner = loLienSummonerRepository.findBySummonerName(discordNickname);
+    String id = loLienSummoner.getId();
+
+    HashOperations<String, Object, String> hashOperations = redisTemplate.opsForHash();
+    LocalDateTime now = LocalDateTime.now();
+    String nowString = localDateTimeToString(now);
+
+    hashOperations.put(REDIS_GENERATED_TEAM_USERS_INFO_KEY, id, nowString);
 
     sendMessage(textChannel, message.toString());
   }
@@ -488,5 +515,105 @@ public class TeamGenerateComponent {
    */
   private boolean checkEarlyInTheSeason() {
     return getCurrentMonth() <= 6;
+  }
+
+  @Scheduled(cron = "0 */5 * ? * *")
+  private void checkActiveGame() {
+    HashOperations<String, Object, Object> hashOperations = redisTemplate.opsForHash();
+    Set<Object> ids = hashOperations.keys(REDIS_GENERATED_TEAM_USERS_INFO_KEY);
+
+    for (Object id : ids) {
+      Optional.ofNullable(hashOperations.get(REDIS_GENERATED_TEAM_USERS_INFO_KEY, id))
+          .ifPresent(s -> {
+            long between = ChronoUnit.MINUTES.between(stringToLocalDateTime((String) s),
+                LocalDateTime.now());
+
+            if (between >= 10) {
+              getActiveGameBySummoner((String) id)
+                  .ifPresent(currentGameInfo -> {
+                    List<CurrentGameParticipant> participants = currentGameInfo.getParticipants();
+
+                    List<String> summonerIds = participants
+                        .stream()
+                        .map(CurrentGameParticipant::getSummonerId)
+                        .collect(Collectors.toList());
+
+                    long existsTotalSummonerCount = loLienSummonerRepository
+                        .countByIdIn(summonerIds);
+
+                    if (existsTotalSummonerCount >= 5) {
+                      long gameId = currentGameInfo.getGameId();
+
+                      Boolean hasKey = hashOperations
+                          .hasKey(REDIS_GENERATED_TEAM_MATCHES_INFO_KEY, gameId);
+
+                      if (!hasKey) {
+                        String summonersName = currentGameInfo
+                            .getParticipants()
+                            .stream()
+                            .map(CurrentGameParticipant::getSummonerName)
+                            .collect(Collectors.joining(","));
+
+                        hashOperations.put(
+                            REDIS_GENERATED_TEAM_MATCHES_INFO_KEY, gameId, summonersName);
+
+                        TextChannel textChannel = JdaConfig
+                            .jda
+                            .getTextChannelById(
+                                LOLIEN_DISCORD_BOT_CUSTOM_GAME_GENERATE_TEAM_CHANNEL_ID);
+
+                        sendErrorMessage(textChannel, "LoLien 내전이 시작되었습니다.", Color.BLUE);
+                      }
+                    }
+                  });
+              hashOperations.delete(REDIS_GENERATED_TEAM_USERS_INFO_KEY, id);
+            }
+          });
+    }
+  }
+
+  @Scheduled(cron = "0 */30 * ? * *")
+  private void checkEndGame() {
+    HashOperations<String, Object, Object> hashOperations = redisTemplate.opsForHash();
+    Set<Object> ids = hashOperations.keys(REDIS_GENERATED_TEAM_MATCHES_INFO_KEY);
+
+    for (Object id : ids) {
+      long matchId = (long) id;
+      Optional<Match> matchOptional = getMatchByMatchId(matchId);
+      matchOptional.flatMap(match -> Optional.ofNullable(hashOperations
+          .get(REDIS_GENERATED_TEAM_MATCHES_INFO_KEY, id))).ifPresent(a -> {
+
+            String[] summonersName = ((String) a).split(",");
+
+            if (summonersName.length > 0) {
+              customGameComponent.addResult(matchId, summonersName);
+            }
+
+            hashOperations.delete(REDIS_GENERATED_TEAM_MATCHES_INFO_KEY, matchId);
+          });
+    }
+  }
+
+  private RiotApi getRiotApi() {
+    ApiConfig config = new ApiConfig().setKey(ConfigComponent.RIOT_API_KEY);
+    return new RiotApi(config);
+  }
+
+  private Optional<CurrentGameInfo> getActiveGameBySummoner(String id) {
+    try {
+      RiotApi riotApi = getRiotApi();
+      return Optional.of(riotApi.getActiveGameBySummoner(Platform.KR, id));
+    } catch (RiotApiException e) {
+      return Optional.empty();
+    }
+  }
+
+  private Optional<Match> getMatchByMatchId(long matchId) {
+    RiotApi riotApi = getRiotApi();
+    try {
+      return Optional.ofNullable(riotApi.getMatch(Platform.KR, matchId));
+    } catch (RiotApiException e) {
+      return Optional.empty();
+    }
   }
 }

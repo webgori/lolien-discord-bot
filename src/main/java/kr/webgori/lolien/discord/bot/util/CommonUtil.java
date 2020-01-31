@@ -152,4 +152,22 @@ public class CommonUtil {
     int seasonNumber = Integer.parseInt(s[1]);
     return seasonNumber <= 9 ? "S0" + seasonNumber : season;
   }
+
+  /**
+   * LocalDateTime to String.
+   * @param localDateTime localDateTime
+   * @return String
+   */
+  public static String localDateTimeToString(LocalDateTime localDateTime) {
+    return localDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+  }
+
+  /**
+   * String to LocalDateTime.
+   * @param string string
+   * @return LocalDateTime
+   */
+  public static LocalDateTime stringToLocalDateTime(String string) {
+    return LocalDateTime.parse(string, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+  }
 }

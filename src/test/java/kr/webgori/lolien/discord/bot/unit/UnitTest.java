@@ -11,12 +11,20 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 import kr.webgori.lolien.discord.bot.LolienDiscordBotApplication;
+import kr.webgori.lolien.discord.bot.component.ConfigComponent;
 import kr.webgori.lolien.discord.bot.entity.League;
 import kr.webgori.lolien.discord.bot.entity.LoLienSummoner;
 import kr.webgori.lolien.discord.bot.repository.LeagueRepository;
 import kr.webgori.lolien.discord.bot.repository.LoLienSummonerRepository;
 import lombok.extern.slf4j.Slf4j;
+import net.rithms.riot.api.ApiConfig;
+import net.rithms.riot.api.RiotApi;
+import net.rithms.riot.api.RiotApiException;
+import net.rithms.riot.api.endpoints.match.dto.Match;
+import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
+import net.rithms.riot.constant.Platform;
 import org.apache.logging.log4j.util.Strings;
 import org.assertj.core.util.Lists;
 import org.jsoup.Jsoup;
@@ -92,6 +100,41 @@ public class UnitTest {
     }
   }
 
+  @Test
+  public void riotSpectatorApiTest() {
+    String summonerName = "추풍추풍";
+    LoLienSummoner loLienSummoner = loLienSummonerRepository.findBySummonerName(summonerName);
+    String id = loLienSummoner.getId();
+
+    try {
+      ApiConfig config = new ApiConfig().setKey(ConfigComponent.RIOT_API_KEY);
+      RiotApi riotApi = new RiotApi(config);
+      CurrentGameInfo currentGameInfo = riotApi.getActiveGameBySummoner(Platform.KR, id);
+      long gameId = currentGameInfo.getGameId();
+      Match match = riotApi.getMatch(Platform.KR, gameId);
+      String win = match.getTeams().get(0).getWin();
+    } catch (RiotApiException e) {
+      throwRiotApiException(e);
+    }
+  }
+
+  @Test
+  public void summonerOrderTest() throws RiotApiException {
+    ApiConfig config = new ApiConfig().setKey(ConfigComponent.RIOT_API_KEY);
+    RiotApi riotApi = new RiotApi(config);
+
+    long gameId = 4121228833L;
+    Match match = riotApi.getMatch(Platform.KR, gameId);
+
+    List<String> summonersName = match
+        .getParticipantIdentities()
+        .stream()
+        .map(p -> p.getPlayer().getSummonerName())
+        .collect(Collectors.toList());
+
+    logger.error("{}", summonersName);
+  }
+
   private String getSeasonFormat(String season) {
     String[] s = season.split("S");
     int seasonNumber = Integer.parseInt(s[1]);
@@ -160,5 +203,17 @@ public class UnitTest {
     }
 
     return tiersMap;
+  }
+
+  private static void throwRiotApiException(RiotApiException e) {
+    int errorCode = e.getErrorCode();
+    if (errorCode == RiotApiException.FORBIDDEN) {
+      String message =
+          "Riot API Key가 만료되어 기능이 정상적으로 작동하지 않습니다. 개발자에게 알려주세요.";
+      throw new IllegalArgumentException(message);
+    } else {
+      logger.error("{}", e.getMessage());
+      throw new IllegalArgumentException("riotApiException");
+    }
   }
 }

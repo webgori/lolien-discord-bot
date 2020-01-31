@@ -17,4 +17,6 @@ public interface LoLienSummonerRepository extends JpaRepository<LoLienSummoner, 
   List<LoLienSummoner> findTop5ByIdxNotIn(Set<Integer> summonersIdx);
 
   List<LoLienSummoner> findTop5By();
+
+  long countByIdIn(List<String> ids);
 }
