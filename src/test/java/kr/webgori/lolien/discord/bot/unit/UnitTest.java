@@ -112,7 +112,6 @@ public class UnitTest {
       CurrentGameInfo currentGameInfo = riotApi.getActiveGameBySummoner(Platform.KR, id);
       long gameId = currentGameInfo.getGameId();
       Match match = riotApi.getMatch(Platform.KR, gameId);
-      String win = match.getTeams().get(0).getWin();
     } catch (RiotApiException e) {
       throwRiotApiException(e);
     }
