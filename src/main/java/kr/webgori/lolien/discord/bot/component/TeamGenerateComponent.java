@@ -528,7 +528,7 @@ public class TeamGenerateComponent {
             long between = ChronoUnit.MINUTES.between(stringToLocalDateTime((String) s),
                 LocalDateTime.now());
 
-            if (between >= 10) {
+            if (between >= 15) {
               getActiveGameBySummoner((String) id)
                   .ifPresent(currentGameInfo -> {
                     List<CurrentGameParticipant> participants = currentGameInfo.getParticipants();
@@ -564,7 +564,8 @@ public class TeamGenerateComponent {
                             .getTextChannelById(
                                 LOLIEN_DISCORD_BOT_CUSTOM_GAME_GENERATE_TEAM_CHANNEL_ID);
 
-                        sendErrorMessage(textChannel, "LoLien 내전이 시작되었습니다.", Color.BLUE);
+                        String message = "LoLien 내전이 시작되었습니다.";
+                        sendMessage(textChannel, message);
                       }
                     }
                   });
