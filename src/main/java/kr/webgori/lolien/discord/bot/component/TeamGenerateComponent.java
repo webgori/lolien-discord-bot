@@ -528,7 +528,9 @@ public class TeamGenerateComponent {
             long between = ChronoUnit.MINUTES.between(stringToLocalDateTime((String) s),
                 LocalDateTime.now());
 
-            if (between >= 15) {
+            if (between >= 30) {
+              deleteGeneratedTeamUsersInfo(hashOperations, id);
+            } else if (between >= 15) {
               getActiveGameBySummoner((String) id)
                   .ifPresent(currentGameInfo -> {
                     List<CurrentGameParticipant> participants = currentGameInfo.getParticipants();
@@ -568,11 +570,16 @@ public class TeamGenerateComponent {
                         sendMessage(textChannel, message);
                       }
                     }
+                    deleteGeneratedTeamUsersInfo(hashOperations, id);
                   });
-              hashOperations.delete(REDIS_GENERATED_TEAM_USERS_INFO_KEY, id);
             }
           });
     }
+  }
+
+  private void deleteGeneratedTeamUsersInfo(HashOperations<String, Object, Object> hashOperations,
+                                            Object id) {
+    hashOperations.delete(REDIS_GENERATED_TEAM_USERS_INFO_KEY, id);
   }
 
   @Scheduled(cron = "0 */1 * ? * *")
