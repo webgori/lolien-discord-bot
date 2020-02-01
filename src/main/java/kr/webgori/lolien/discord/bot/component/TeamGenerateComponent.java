@@ -530,7 +530,7 @@ public class TeamGenerateComponent {
 
             if (between >= 30) {
               deleteGeneratedTeamUsersInfo(hashOperations, id);
-            } else if (between >= 15) {
+            } else if (between >= 10) {
               getActiveGameBySummoner((String) id)
                   .ifPresent(currentGameInfo -> {
                     List<CurrentGameParticipant> participants = currentGameInfo.getParticipants();
