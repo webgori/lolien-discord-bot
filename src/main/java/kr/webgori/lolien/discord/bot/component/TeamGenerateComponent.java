@@ -546,7 +546,7 @@ public class TeamGenerateComponent {
                       long gameId = currentGameInfo.getGameId();
 
                       Boolean hasKey = hashOperations
-                          .hasKey(REDIS_GENERATED_TEAM_MATCHES_INFO_KEY, gameId);
+                          .hasKey(REDIS_GENERATED_TEAM_MATCHES_INFO_KEY, String.valueOf(gameId));
 
                       if (!hasKey) {
                         String summonersName = currentGameInfo
