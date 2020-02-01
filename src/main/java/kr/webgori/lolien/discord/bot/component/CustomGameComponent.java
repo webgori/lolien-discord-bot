@@ -367,6 +367,7 @@ public class CustomGameComponent {
           .builder()
           .match(loLienMatch)
           .loLienSummoner(bySummonerName)
+          .stats(loLienParticipantStats)
           .build();
 
       BeanUtils.copyProperties(participant, loLienParticipant);
