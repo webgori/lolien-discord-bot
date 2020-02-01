@@ -541,7 +541,8 @@ public class TeamGenerateComponent {
                     long existsTotalSummonerCount = loLienSummonerRepository
                         .countByIdIn(summonerIds);
 
-                    if (existsTotalSummonerCount >= 5) {
+                    // 소환사 등록한 사용자가 6명 이상이면 (내전이면)
+                    if (existsTotalSummonerCount > 5) {
                       long gameId = currentGameInfo.getGameId();
 
                       Boolean hasKey = hashOperations
