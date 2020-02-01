@@ -410,11 +410,12 @@ public class CustomGameComponent {
 
     for (String summonerName : entries) {
       HashOperations<String, Object, Object> opsForHash = redisTemplate.opsForHash();
+      String nonSpaceSummonerName = summonerName.replaceAll("\\s+","");
       boolean hasHashKey = opsForHash.hasKey(REDIS_MOST_CHAMPS_KEY, summonerName);
       if (hasHashKey) {
-        opsForHash.delete(REDIS_MOST_CHAMPS_KEY, summonerName);
+        opsForHash.delete(REDIS_MOST_CHAMPS_KEY, nonSpaceSummonerName);
       }
-      getMostChamp(summonerName);
+      getMostChamp(nonSpaceSummonerName);
     }
   }
 
