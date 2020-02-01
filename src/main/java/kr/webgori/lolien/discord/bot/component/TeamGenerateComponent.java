@@ -580,7 +580,7 @@ public class TeamGenerateComponent {
     Set<Object> ids = hashOperations.keys(REDIS_GENERATED_TEAM_MATCHES_INFO_KEY);
 
     for (Object id : ids) {
-      long matchId = (long) id;
+      long matchId = Long.parseLong((String) id);
       Optional<Match> matchOptional = getMatchByMatchId(matchId);
       matchOptional.flatMap(match -> Optional.ofNullable(hashOperations
           .get(REDIS_GENERATED_TEAM_MATCHES_INFO_KEY, String.valueOf(id)))).ifPresent(a -> {
