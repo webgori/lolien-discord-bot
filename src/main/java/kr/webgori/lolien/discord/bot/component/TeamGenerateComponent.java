@@ -556,7 +556,7 @@ public class TeamGenerateComponent {
                             .collect(Collectors.joining(","));
 
                         hashOperations.put(
-                            REDIS_GENERATED_TEAM_MATCHES_INFO_KEY, gameId, summonersName);
+                            REDIS_GENERATED_TEAM_MATCHES_INFO_KEY, String.valueOf(gameId), summonersName);
 
                         TextChannel textChannel = JdaConfig
                             .jda
