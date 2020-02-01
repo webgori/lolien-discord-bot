@@ -321,12 +321,13 @@ public class CustomGameComponent {
    */
   public void addResult(long matchId, String[] entries) {
     for (String summonerName : entries) {
-      boolean hasSummonerName = loLienSummonerRepository.existsBySummonerName(summonerName);
+      String nonSpaceSummonerName = summonerName.replaceAll("\\s+","");
+      boolean hasSummonerName = loLienSummonerRepository.existsBySummonerName(nonSpaceSummonerName);
 
       if (!hasSummonerName) {
         String errorMessage = String.format(
             "Discord에서 \"!소환사 등록 %s\" 명령어로 소환사 등록을 먼저 해주시기 바랍니다.",
-            summonerName);
+            nonSpaceSummonerName);
 
         throw new IllegalArgumentException(errorMessage);
       }
@@ -358,8 +359,9 @@ public class CustomGameComponent {
       BeanUtils.copyProperties(stats, loLienParticipantStats);
 
       String summonerName = entries[i];
+      String nonSpaceSummonerName = summonerName.replaceAll("\\s+","");
       LoLienSummoner bySummonerName = loLienSummonerRepository
-          .findBySummonerName(summonerName);
+          .findBySummonerName(nonSpaceSummonerName);
 
       LoLienParticipant loLienParticipant = LoLienParticipant
           .builder()
