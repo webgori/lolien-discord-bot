@@ -556,7 +556,8 @@ public class TeamGenerateComponent {
                             .collect(Collectors.joining(","));
 
                         hashOperations.put(
-                            REDIS_GENERATED_TEAM_MATCHES_INFO_KEY, String.valueOf(gameId), summonersName);
+                            REDIS_GENERATED_TEAM_MATCHES_INFO_KEY, String.valueOf(gameId),
+                            summonersName);
 
                         TextChannel textChannel = JdaConfig
                             .jda
@@ -582,7 +583,7 @@ public class TeamGenerateComponent {
       long matchId = (long) id;
       Optional<Match> matchOptional = getMatchByMatchId(matchId);
       matchOptional.flatMap(match -> Optional.ofNullable(hashOperations
-          .get(REDIS_GENERATED_TEAM_MATCHES_INFO_KEY, id))).ifPresent(a -> {
+          .get(REDIS_GENERATED_TEAM_MATCHES_INFO_KEY, String.valueOf(id)))).ifPresent(a -> {
 
             String[] summonersName = ((String) a).split(",");
 
@@ -590,7 +591,7 @@ public class TeamGenerateComponent {
               customGameComponent.addResult(matchId, summonersName);
             }
 
-            hashOperations.delete(REDIS_GENERATED_TEAM_MATCHES_INFO_KEY, matchId);
+            hashOperations.delete(REDIS_GENERATED_TEAM_MATCHES_INFO_KEY, String.valueOf(matchId));
           });
     }
   }
