@@ -575,7 +575,7 @@ public class TeamGenerateComponent {
     }
   }
 
-  @Scheduled(cron = "0 */30 * ? * *")
+  @Scheduled(cron = "0 */1 * ? * *")
   private void checkEndGame() {
     HashOperations<String, Object, Object> hashOperations = redisTemplate.opsForHash();
     Set<Object> ids = hashOperations.keys(REDIS_GENERATED_TEAM_MATCHES_INFO_KEY);
