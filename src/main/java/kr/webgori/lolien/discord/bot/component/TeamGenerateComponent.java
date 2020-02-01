@@ -517,7 +517,7 @@ public class TeamGenerateComponent {
     return getCurrentMonth() <= 6;
   }
 
-  @Scheduled(cron = "0 */5 * ? * *")
+  @Scheduled(cron = "0 */1 * ? * *")
   private void checkActiveGame() {
     HashOperations<String, Object, Object> hashOperations = redisTemplate.opsForHash();
     Set<Object> ids = hashOperations.keys(REDIS_GENERATED_TEAM_USERS_INFO_KEY);
