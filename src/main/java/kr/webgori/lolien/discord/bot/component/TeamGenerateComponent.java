@@ -537,7 +537,7 @@ public class TeamGenerateComponent {
 
                     List<String> summonerIds = participants
                         .stream()
-                        .map(CurrentGameParticipant::getSummonerId)
+                        .map(c -> c.getSummonerName().replaceAll("\\s+",""))
                         .collect(Collectors.toList());
 
                     long existsTotalSummonerCount = loLienSummonerRepository
