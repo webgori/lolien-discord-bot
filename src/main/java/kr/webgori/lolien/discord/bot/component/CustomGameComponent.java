@@ -25,14 +25,12 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import kr.webgori.lolien.discord.bot.entity.Champ;
 import kr.webgori.lolien.discord.bot.entity.LoLienMatch;
 import kr.webgori.lolien.discord.bot.entity.LoLienParticipant;
 import kr.webgori.lolien.discord.bot.entity.LoLienParticipantStats;
 import kr.webgori.lolien.discord.bot.entity.LoLienSummoner;
 import kr.webgori.lolien.discord.bot.entity.LoLienTeamBans;
 import kr.webgori.lolien.discord.bot.entity.LoLienTeamStats;
-import kr.webgori.lolien.discord.bot.repository.ChampRepository;
 import kr.webgori.lolien.discord.bot.repository.LoLienMatchRepository;
 import kr.webgori.lolien.discord.bot.repository.LoLienParticipantRepository;
 import kr.webgori.lolien.discord.bot.repository.LoLienSummonerRepository;
@@ -62,9 +60,9 @@ public class CustomGameComponent {
   private final LoLienSummonerRepository loLienSummonerRepository;
   private final LoLienMatchRepository loLienMatchRepository;
   private final LoLienParticipantRepository loLienParticipantRepository;
-  private final ChampRepository champRepository;
   private final RedisTemplate<String, Object> redisTemplate;
   private final Gson gson;
+  private final ChampComponent champComponent;
 
   /**
    * execute.
@@ -274,8 +272,7 @@ public class CustomGameComponent {
 
         for (Map.Entry<Integer, Long> mostChampion : mostChampions.entrySet()) {
           int champId = mostChampion.getKey();
-          Champ champ = champRepository.findByKey(champId);
-          String championName = champ.getName();
+          String championName = champComponent.getChampionNameByChampId(champId);
 
           Long count = mostChampion.getValue();
           List<LoLienParticipant> champs = loLienParticipantRepository

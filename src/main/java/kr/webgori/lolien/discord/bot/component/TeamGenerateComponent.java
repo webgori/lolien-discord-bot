@@ -34,10 +34,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import kr.webgori.lolien.discord.bot.config.JdaConfig;
-import kr.webgori.lolien.discord.bot.entity.Champ;
 import kr.webgori.lolien.discord.bot.entity.League;
 import kr.webgori.lolien.discord.bot.entity.LoLienSummoner;
-import kr.webgori.lolien.discord.bot.repository.ChampRepository;
 import kr.webgori.lolien.discord.bot.repository.LeagueRepository;
 import kr.webgori.lolien.discord.bot.repository.LoLienSummonerRepository;
 import lombok.RequiredArgsConstructor;
@@ -82,8 +80,8 @@ public class TeamGenerateComponent {
   private final LoLienSummonerRepository loLienSummonerRepository;
   private final LeagueRepository leagueRepository;
   private final CustomGameComponent customGameComponent;
-  private final ChampRepository champRepository;
   private final RedisTemplate<String, Object> redisTemplate;
+  private final ChampComponent champComponent;
 
   /**
    * execute.
@@ -447,8 +445,7 @@ public class TeamGenerateComponent {
 
       for (Map.Entry<Integer, Long> mostChampion : mostChampions.entrySet()) {
         int champId = mostChampion.getKey();
-        Champ champ = champRepository.findByKey(champId);
-        String championName = champ.getName();
+        String championName = champComponent.getChampionNameByChampId(champId);
         mostChampionsList.add(championName);
       }
 
