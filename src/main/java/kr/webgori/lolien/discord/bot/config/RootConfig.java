@@ -29,6 +29,10 @@ public class RootConfig {
     };
   }
 
+  /**
+   * restTemplate.
+   * @return RestTemplate
+   */
   @Bean
   public RestTemplate restTemplate() {
     RestTemplate restTemplate = new RestTemplate();
