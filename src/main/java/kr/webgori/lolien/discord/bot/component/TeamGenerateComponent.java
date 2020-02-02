@@ -119,8 +119,9 @@ public class TeamGenerateComponent {
     }
 
     String discordNickname = event.getMember().getEffectiveName();
+    String nonSpaceDiscordNickname = discordNickname.replaceAll("\\s+","");
 
-    boolean existsSummoner = loLienSummonerRepository.existsBySummonerName(discordNickname);
+    boolean existsSummoner = loLienSummonerRepository.existsBySummonerName(nonSpaceDiscordNickname);
 
     if (!existsSummoner) {
       sendErrorMessage(textChannel,
