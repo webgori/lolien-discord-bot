@@ -188,7 +188,9 @@ public class TeamGenerateComponent {
       }
     }
 
-    LoLienSummoner loLienSummoner = loLienSummonerRepository.findBySummonerName(discordNickname);
+    LoLienSummoner loLienSummoner = loLienSummonerRepository
+        .findBySummonerName(nonSpaceDiscordNickname);
+
     String id = loLienSummoner.getId();
 
     HashOperations<String, Object, String> hashOperations = redisTemplate.opsForHash();
