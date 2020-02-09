@@ -8,7 +8,6 @@ import static kr.webgori.lolien.discord.bot.util.CommonUtil.sendMessage;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.awt.Color;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -38,7 +37,6 @@ import org.jsoup.select.Elements;
 import org.springframework.stereotype.Component;
 
 @Slf4j
-@SuppressFBWarnings(value = "CRLF_INJECTION_LOGS")
 @RequiredArgsConstructor
 @Component
 public class SummonerComponent {

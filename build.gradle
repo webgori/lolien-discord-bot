@@ -1,15 +1,19 @@
 import com.github.spotbugs.SpotBugsTask
 
-plugins {
-    id 'org.springframework.boot' version '2.0.9.RELEASE'
-    id 'java'
-    id 'war'
-    id 'checkstyle'
-    id "io.freefair.lombok" version "3.8.0"
-    id  'com.github.spotbugs' version '2.0.0'
+buildscript {
+    ext {
+        springBootVersion = '2.0.9.RELEASE'
+    }
 }
 
-apply plugin: 'io.spring.dependency-management'
+plugins {
+    id "java"
+    id "war"
+    id "checkstyle"
+    id "com.github.spotbugs" version "3.0.0"
+    id "io.spring.dependency-management" version "1.0.9.RELEASE"
+    id "io.franzbecker.gradle-lombok" version "3.2.0"
+}
 
 group = 'kr.webgori'
 version = '0.0.1-SNAPSHOT'
@@ -24,10 +28,6 @@ tasks.withType(SpotBugsTask) {
     reports.html.enabled = true
 }
 
-bootWar {
-    archiveFileName = 'ROOT.war'
-}
-
 configurations {
     compileOnly {
         extendsFrom annotationProcessor
@@ -38,6 +38,12 @@ repositories {
     mavenCentral()
     jcenter()
     maven { url = "https://jitpack.io" }
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.boot:spring-boot-starter-parent:${springBootVersion}"
+    }
 }
 
 ext {
@@ -69,6 +75,8 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     implementation group: 'com.github.taycaldwell', name: 'riot-api-java', version: '4.3.0'
     implementation group: 'org.jsoup', name: 'jsoup', version: '1.11.3'
+    compileOnly 'org.projectlombok:lombok:1.18.4'
+    implementation group: 'org.springdoc', name: 'springdoc-openapi-ui', version: '1.2.30'
 }
 
 dependencyManagement {

@@ -9,7 +9,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.awt.Color;
 import java.text.DecimalFormat;
 import java.time.Duration;
@@ -50,7 +49,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 @Slf4j
-@SuppressFBWarnings(value = "CRLF_INJECTION_LOGS")
 @RequiredArgsConstructor
 @Component
 public class CustomGameComponent {

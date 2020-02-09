@@ -5,7 +5,6 @@ import static kr.webgori.lolien.discord.bot.util.CommonUtil.sendErrorMessage;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.sendMessage;
 
 import com.google.common.collect.Lists;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.awt.Color;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -20,7 +19,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
-@SuppressFBWarnings(value = "CRLF_INJECTION_LOGS")
 @RequiredArgsConstructor
 @Component
 public class MemoComponent {

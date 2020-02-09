@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.awt.Color;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -24,7 +23,6 @@ import net.rithms.riot.api.endpoints.match.dto.Match;
 import net.rithms.riot.constant.Platform;
 
 @Slf4j
-@SuppressFBWarnings(value = "CRLF_INJECTION_LOGS")
 public class CommonUtil {
   public static void sendMessage(TextChannel textChannel, String message) {
     textChannel.sendMessage(message).queue();

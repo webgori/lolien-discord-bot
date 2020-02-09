@@ -1,7 +1,6 @@
 package kr.webgori.lolien.discord.bot.hooks;
 
 import com.google.common.collect.Lists;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.List;
 import kr.webgori.lolien.discord.bot.component.CustomGameComponent;
 import kr.webgori.lolien.discord.bot.component.HelpComponent;
@@ -16,7 +15,6 @@ import net.dv8tion.jda.core.hooks.ListenerAdapter;
 
 @RequiredArgsConstructor
 @Slf4j
-@SuppressFBWarnings(value = "CRLF_INJECTION_LOGS")
 public class CustomListenerAdapter extends ListenerAdapter {
   private final HelpComponent helpComponent;
   private final SummonerComponent summonerComponent;

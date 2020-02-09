@@ -1,7 +1,6 @@
 package kr.webgori.lolien.discord.bot.service.impl;
 
 import com.google.common.collect.Lists;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.List;
 import java.util.Set;
 import kr.webgori.lolien.discord.bot.component.CustomGameComponent;
@@ -21,7 +20,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
-@SuppressFBWarnings(value = "CRLF_INJECTION_LOGS")
 @RequiredArgsConstructor
 @Service
 public class CustomGameServiceImpl implements CustomGameService {

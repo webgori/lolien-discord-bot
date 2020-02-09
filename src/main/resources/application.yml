@@ -22,3 +22,12 @@ config:
     path:
       windows: C:\config-%s.json
       linux: /usr/local/tomcat/conf/config-%s.json
+
+springdoc:
+  api-docs:
+    groups:
+      enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    displayRequestDuration: true
+    groups-order: DESC

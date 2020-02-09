@@ -19,7 +19,6 @@ import at.stefangeyer.challonge.rest.retrofit.RetrofitRestClient;
 import at.stefangeyer.challonge.serializer.Serializer;
 import at.stefangeyer.challonge.serializer.gson.GsonSerializer;
 import com.google.common.collect.Lists;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.awt.Color;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -58,7 +57,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Slf4j
-@SuppressFBWarnings(value = "CRLF_INJECTION_LOGS")
 @RequiredArgsConstructor
 @Component
 public class TeamGenerateComponent {

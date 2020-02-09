@@ -2,7 +2,6 @@ package kr.webgori.lolien.discord.bot.quartz;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -30,7 +29,6 @@ import org.springframework.stereotype.Component;
 
 @NoArgsConstructor
 @Slf4j
-@SuppressFBWarnings(value = "CRLF_INJECTION_LOGS")
 @Component
 class UpdateTierJob implements Job {
   private static final String REDIS_UPDATE_TIERS_KEY = "lolien-discord-bot:update-tiers";
