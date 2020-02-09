@@ -43,7 +43,7 @@ public class ConfigComponent implements InitializingBean {
     return DATA_SOURCE_URL;
   }
 
-  public static void setDataSourceUrl(String dataSourceUrl) {
+  private static void setDataSourceUrl(String dataSourceUrl) {
     DATA_SOURCE_URL = dataSourceUrl;
   }
 
@@ -51,7 +51,7 @@ public class ConfigComponent implements InitializingBean {
     return DATA_SOURCE_USERNAME;
   }
 
-  public static void setDataSourceUsername(String dataSourceUsername) {
+  private static void setDataSourceUsername(String dataSourceUsername) {
     DATA_SOURCE_USERNAME = dataSourceUsername;
   }
 
@@ -59,7 +59,7 @@ public class ConfigComponent implements InitializingBean {
     return DATA_SOURCE_PASSWORD;
   }
 
-  public static void setDataSourcePassword(String dataSourcePassword) {
+  private static void setDataSourcePassword(String dataSourcePassword) {
     DATA_SOURCE_PASSWORD = dataSourcePassword;
   }
 
@@ -67,7 +67,7 @@ public class ConfigComponent implements InitializingBean {
     return RIOT_API_KEY;
   }
 
-  public static void setRiotApiKey(String riotApiKey) {
+  private static void setRiotApiKey(String riotApiKey) {
     RIOT_API_KEY = riotApiKey;
   }
 
@@ -75,7 +75,7 @@ public class ConfigComponent implements InitializingBean {
     return DISCORD_TOKEN;
   }
 
-  public static void setDiscordToken(String discordToken) {
+  private static void setDiscordToken(String discordToken) {
     DISCORD_TOKEN = discordToken;
   }
 
@@ -83,7 +83,7 @@ public class ConfigComponent implements InitializingBean {
     return REDIS_HOST;
   }
 
-  public static void setRedisHost(String redisHost) {
+  private static void setRedisHost(String redisHost) {
     REDIS_HOST = redisHost;
   }
 
@@ -91,12 +91,12 @@ public class ConfigComponent implements InitializingBean {
     return REDIS_PASSWORD;
   }
 
-  public static void setRedisPassword(String redisPassword) {
+  private static void setRedisPassword(String redisPassword) {
     REDIS_PASSWORD = redisPassword;
   }
 
   @Override
-  public void afterPropertiesSet() throws Exception {
+  public void afterPropertiesSet() {
     getJsonStringFromConfig();
     getDataSourceUrlFromConfig();
     getDataSourceUsernameFromConfig();

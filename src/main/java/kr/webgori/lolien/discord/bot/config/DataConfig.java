@@ -13,6 +13,8 @@ import org.springframework.context.annotation.Configuration;
 @Slf4j
 @Configuration
 public class DataConfig {
+  private final ConfigComponent configComponent;
+
   /**
    * dataSource.
    * @return dataSource
