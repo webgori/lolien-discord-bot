@@ -13,20 +13,22 @@ import org.springframework.context.annotation.Configuration;
 @Slf4j
 @Configuration
 public class DataConfig {
-  private final ConfigComponent configComponent;
-
   /**
    * dataSource.
    * @return dataSource
    */
   @Bean
   public DataSource dataSource() {
+    String dataSourceUrl = ConfigComponent.getDataSourceUrl();
+    String dataSourceUsername = ConfigComponent.getDataSourceUsername();
+    String dataSourcePassword = ConfigComponent.getDataSourcePassword();
+
     return DataSourceBuilder
         .create()
         .type(HikariDataSource.class)
-        .url(ConfigComponent.DATA_SOURCE_URL)
-        .username(ConfigComponent.DATA_SOURCE_USERNAME)
-        .password(ConfigComponent.DATA_SOURCE_PASSWORD)
+        .url(dataSourceUrl)
+        .username(dataSourceUsername)
+        .password(dataSourcePassword)
         .build();
   }
 }

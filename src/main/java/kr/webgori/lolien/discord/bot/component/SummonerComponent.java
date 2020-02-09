@@ -90,7 +90,8 @@ public class SummonerComponent {
         return;
       }
 
-      ApiConfig config = new ApiConfig().setKey(ConfigComponent.RIOT_API_KEY);
+      String riotApiKey = ConfigComponent.getRiotApiKey();
+      ApiConfig config = new ApiConfig().setKey(riotApiKey);
       RiotApi riotApi = new RiotApi(config);
 
       Summoner summoner = riotApi.getSummonerByName(Platform.KR, summonerName);

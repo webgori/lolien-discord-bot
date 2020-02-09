@@ -101,7 +101,8 @@ public class UnitTest {
 
   @Test
   public void summonerOrderTest() throws RiotApiException {
-    ApiConfig config = new ApiConfig().setKey(ConfigComponent.RIOT_API_KEY);
+    String riotApiKey = ConfigComponent.getRiotApiKey();
+    ApiConfig config = new ApiConfig().setKey(riotApiKey);
     RiotApi riotApi = new RiotApi(config);
 
     long gameId = 4121228833L;

@@ -129,8 +129,11 @@ public class CommonUtil {
    * @return Match
    */
   public static Match getMatch(long matchId) {
+    String riotApiKey = ConfigComponent.getRiotApiKey();
+
     try {
-      ApiConfig config = new ApiConfig().setKey(ConfigComponent.RIOT_API_KEY);
+      ApiConfig config;
+      config = new ApiConfig().setKey(riotApiKey);
       RiotApi riotApi = new RiotApi(config);
       return riotApi.getMatch(Platform.KR, matchId);
     } catch (RiotApiException e) {

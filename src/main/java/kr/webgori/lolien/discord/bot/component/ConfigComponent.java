@@ -18,15 +18,15 @@ import org.springframework.stereotype.Component;
 @Component
 public class ConfigComponent implements InitializingBean {
   private static String JSON_STRING;
-  public static String DATA_SOURCE_URL;
-  public static String DATA_SOURCE_USERNAME;
-  public static String DATA_SOURCE_PASSWORD;
+  private static String DATA_SOURCE_URL;
+  private static String DATA_SOURCE_USERNAME;
+  private static String DATA_SOURCE_PASSWORD;
   static String CHALLONGE_API_KEY;
   static String CHALLONGE_USERNAME;
-  public static String RIOT_API_KEY;
-  public static String DISCORD_TOKEN;
-  public static String REDIS_HOST;
-  public static String REDIS_PASSWORD;
+  private static String RIOT_API_KEY;
+  private static String DISCORD_TOKEN;
+  private static String REDIS_HOST;
+  private static String REDIS_PASSWORD;
 
   private final Gson gson;
 
@@ -39,21 +39,77 @@ public class ConfigComponent implements InitializingBean {
   @Value("${spring.profiles.active}")
   private String profile;
 
-  @Override
-  public void afterPropertiesSet() throws Exception {
-    getJsonString();
-    getDataSourceUrl();
-    getDataSourceUsername();
-    getDataSourcePassword();
-    getChallongeUsername();
-    getChallongeApiKey();
-    getRiotApiKey();
-    getDiscordToken();
-    getRedisHost();
-    getRedisPassword();
+  public static String getDataSourceUrl() {
+    return DATA_SOURCE_URL;
   }
 
-  private void getJsonString() {
+  public static void setDataSourceUrl(String dataSourceUrl) {
+    DATA_SOURCE_URL = dataSourceUrl;
+  }
+
+  public static String getDataSourceUsername() {
+    return DATA_SOURCE_USERNAME;
+  }
+
+  public static void setDataSourceUsername(String dataSourceUsername) {
+    DATA_SOURCE_USERNAME = dataSourceUsername;
+  }
+
+  public static String getDataSourcePassword() {
+    return DATA_SOURCE_PASSWORD;
+  }
+
+  public static void setDataSourcePassword(String dataSourcePassword) {
+    DATA_SOURCE_PASSWORD = dataSourcePassword;
+  }
+
+  public static String getRiotApiKey() {
+    return RIOT_API_KEY;
+  }
+
+  public static void setRiotApiKey(String riotApiKey) {
+    RIOT_API_KEY = riotApiKey;
+  }
+
+  public static String getDiscordToken() {
+    return DISCORD_TOKEN;
+  }
+
+  public static void setDiscordToken(String discordToken) {
+    DISCORD_TOKEN = discordToken;
+  }
+
+  public static String getRedisHost() {
+    return REDIS_HOST;
+  }
+
+  public static void setRedisHost(String redisHost) {
+    REDIS_HOST = redisHost;
+  }
+
+  public static String getRedisPassword() {
+    return REDIS_PASSWORD;
+  }
+
+  public static void setRedisPassword(String redisPassword) {
+    REDIS_PASSWORD = redisPassword;
+  }
+
+  @Override
+  public void afterPropertiesSet() throws Exception {
+    getJsonStringFromConfig();
+    getDataSourceUrlFromConfig();
+    getDataSourceUsernameFromConfig();
+    getDataSourcePasswordFromConfig();
+    getChallongeUsernameFromConfig();
+    getChallongeApiKeyFromConfig();
+    getRiotApiKeyFromConfig();
+    getDiscordTokenFromConfig();
+    getRedisHostFromConfig();
+    getRedisPasswordFromConfig();
+  }
+
+  private void getJsonStringFromConfig() {
     String filePath = "";
 
     try {
@@ -73,34 +129,40 @@ public class ConfigComponent implements InitializingBean {
     }
   }
 
-  private void getDataSourceUrl() {
+  private void getDataSourceUrlFromConfig() {
     JsonObject jsonObject = gson.fromJson(JSON_STRING, JsonObject.class);
-    DATA_SOURCE_URL = jsonObject
+    String dataSourceUrl = jsonObject
         .get("dataSource")
         .getAsJsonObject()
         .get("url")
         .getAsString();
+
+    setDataSourceUrl(dataSourceUrl);
   }
 
-  private void getDataSourceUsername() {
+  private void getDataSourceUsernameFromConfig() {
     JsonObject jsonObject = gson.fromJson(JSON_STRING, JsonObject.class);
-    DATA_SOURCE_USERNAME = jsonObject
+    String dataSourceUsername = jsonObject
         .get("dataSource")
         .getAsJsonObject()
         .get("username")
         .getAsString();
+
+    setDataSourceUsername(dataSourceUsername);
   }
 
-  private void getDataSourcePassword() {
+  private void getDataSourcePasswordFromConfig() {
     JsonObject jsonObject = gson.fromJson(JSON_STRING, JsonObject.class);
-    DATA_SOURCE_PASSWORD = jsonObject
+    String dataSourcePassword = jsonObject
         .get("dataSource")
         .getAsJsonObject()
         .get("password")
         .getAsString();
+
+    setDataSourcePassword(dataSourcePassword);
   }
 
-  private void getChallongeUsername() {
+  private void getChallongeUsernameFromConfig() {
     JsonObject jsonObject = gson.fromJson(JSON_STRING, JsonObject.class);
     CHALLONGE_USERNAME = jsonObject.get("challonge")
         .getAsJsonObject()
@@ -108,7 +170,7 @@ public class ConfigComponent implements InitializingBean {
         .getAsString();
   }
 
-  private void getChallongeApiKey() {
+  private void getChallongeApiKeyFromConfig() {
     JsonObject jsonObject = gson.fromJson(JSON_STRING, JsonObject.class);
     CHALLONGE_API_KEY = jsonObject
         .get("challonge")
@@ -117,35 +179,43 @@ public class ConfigComponent implements InitializingBean {
         .getAsString();
   }
 
-  private void getRiotApiKey() {
+  private void getRiotApiKeyFromConfig() {
     JsonObject jsonObject = gson.fromJson(JSON_STRING, JsonObject.class);
-    RIOT_API_KEY = jsonObject
+    String riotApiKey = jsonObject
         .get("riotApiKey")
         .getAsString();
+
+    setRiotApiKey(riotApiKey);
   }
 
-  private void getDiscordToken() {
+  private void getDiscordTokenFromConfig() {
     JsonObject jsonObject = gson.fromJson(JSON_STRING, JsonObject.class);
-    DISCORD_TOKEN = jsonObject
+    String discordToken = jsonObject
         .get("discordToken")
         .getAsString();
+
+    setDiscordToken(discordToken);
   }
 
-  private void getRedisHost() {
+  private void getRedisHostFromConfig() {
     JsonObject jsonObject = gson.fromJson(JSON_STRING, JsonObject.class);
-    REDIS_HOST = jsonObject
+    String redisHost = jsonObject
         .get("redis")
         .getAsJsonObject()
         .get("host")
         .getAsString();
+
+    setRedisHost(redisHost);
   }
 
-  private void getRedisPassword() {
+  private void getRedisPasswordFromConfig() {
     JsonObject jsonObject = gson.fromJson(JSON_STRING, JsonObject.class);
-    REDIS_PASSWORD = jsonObject
+    String redisPassword = jsonObject
         .get("redis")
         .getAsJsonObject()
         .get("password")
         .getAsString();
+
+    setRedisPassword(redisPassword);
   }
 }

@@ -27,11 +27,14 @@ public class RedisConfig {
   @Bean
   public RedisConnectionFactory redisConnectionFactory() {
     RedisStandaloneConfiguration serverConfig = new RedisStandaloneConfiguration("server", 6379);
-    serverConfig.setHostName(ConfigComponent.REDIS_HOST);
+
+    String redisHost = ConfigComponent.getRedisHost();
+    serverConfig.setHostName(redisHost);
+
     serverConfig.setPort(port);
     serverConfig.setDatabase(database);
 
-    Optional.ofNullable(ConfigComponent.REDIS_PASSWORD).ifPresent(p -> {
+    Optional.ofNullable(ConfigComponent.getRedisPassword()).ifPresent(p -> {
       RedisPassword redisPassword = RedisPassword.of(p);
       serverConfig.setPassword(redisPassword);
     });

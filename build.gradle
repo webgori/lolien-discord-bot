@@ -1,11 +1,5 @@
 import com.github.spotbugs.SpotBugsTask
 
-buildscript {
-    ext {
-        springBootVersion = '2.0.9.RELEASE'
-    }
-}
-
 plugins {
     id "java"
     id "war"
@@ -18,6 +12,10 @@ plugins {
 group = 'kr.webgori'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '1.8'
+
+war {
+    archiveFileName = 'ROOT.war'
+}
 
 spotbugs {
     toolVersion = '3.1.12'
@@ -40,14 +38,15 @@ repositories {
     maven { url = "https://jitpack.io" }
 }
 
+ext {
+    set('springBootVersion', "2.0.9.RELEASE")
+    set('springCloudDependencyVersion', "Finchley.SR4")
+}
+
 dependencyManagement {
     imports {
         mavenBom "org.springframework.boot:spring-boot-starter-parent:${springBootVersion}"
     }
-}
-
-ext {
-    set('springCloudDependencyVersion', "Finchley.SR4")
 }
 
 sourceSets {

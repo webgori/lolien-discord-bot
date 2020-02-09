@@ -476,7 +476,8 @@ public class TeamGenerateComponent {
   }
 
   private String getCurrentSeasonTier(String summonerName) {
-    ApiConfig config = new ApiConfig().setKey(ConfigComponent.RIOT_API_KEY);
+    String riotApiKey = ConfigComponent.getRiotApiKey();
+    ApiConfig config = new ApiConfig().setKey(riotApiKey);
     RiotApi riotApi = new RiotApi(config);
 
     try {
@@ -560,7 +561,7 @@ public class TeamGenerateComponent {
                             summonersName);
 
                         TextChannel textChannel = JdaConfig
-                            .jda
+                            .getJda()
                             .getTextChannelById(
                                 LOLIEN_DISCORD_BOT_CUSTOM_GAME_GENERATE_TEAM_CHANNEL_ID);
 
@@ -603,7 +604,8 @@ public class TeamGenerateComponent {
   }
 
   private RiotApi getRiotApi() {
-    ApiConfig config = new ApiConfig().setKey(ConfigComponent.RIOT_API_KEY);
+    String riotApiKey = ConfigComponent.getRiotApiKey();
+    ApiConfig config = new ApiConfig().setKey(riotApiKey);
     return new RiotApi(config);
   }
 
