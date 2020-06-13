@@ -513,7 +513,7 @@ public class TeamGenerateComponent {
    * @return 시즌 초반 여부 (true: 시즌 초반, false: 시즌 초반 이후)
    */
   private boolean checkEarlyInTheSeason() {
-    return getCurrentMonth() <= 6;
+    return getCurrentMonth() < 6;
   }
 
   @Scheduled(cron = "0 */1 * ? * *")
