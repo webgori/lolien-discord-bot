@@ -265,7 +265,7 @@ public class TeamGenerateComponent {
         String prevTier = prevSeasonLeague.getTier();
 
         // 현재 시즌이 언랭 이거나 시즌 초반 이면 전 시즌 티어로 계산
-        if (currentTier.equals(DEFAULT_TIER) || checkEarlyInTheSeason()) {
+        if (currentTier.equals(DEFAULT_TIER) && checkEarlyInTheSeason()) {
           tier = prevTier;
         } else {
           int currentTierPoint = tiers.get(currentTier);
@@ -404,7 +404,7 @@ public class TeamGenerateComponent {
           String prevTier = prevSeasonLeague.getTier();
 
           // 현재 시즌이 언랭 이거나 시즌 초반 이면 전 시즌 티어로 계산
-          if (currentTier.equals(DEFAULT_TIER) || checkEarlyInTheSeason()) {
+          if (currentTier.equals(DEFAULT_TIER) && checkEarlyInTheSeason()) {
             tier = prevTier;
           } else {
             int currentTierPoint = tiers.get(currentTier);
