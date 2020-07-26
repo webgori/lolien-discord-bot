@@ -6,7 +6,6 @@ plugins {
     id "checkstyle"
     id "com.github.spotbugs" version "3.0.0"
     id "io.spring.dependency-management" version "1.0.9.RELEASE"
-    id "io.franzbecker.gradle-lombok" version "3.2.0"
 }
 
 group = 'kr.webgori'
@@ -57,6 +56,10 @@ sourceSets {
 }
 
 dependencies {
+    annotationProcessor 'org.projectlombok:lombok:1.18.12'
+
+    compileOnly 'org.projectlombok:lombok:1.18.12'
+
     implementation('org.springframework.boot:spring-boot-starter-data-jpa')
     implementation('org.springframework.boot:spring-boot-starter-data-redis')
     implementation('org.springframework.boot:spring-boot-starter-web')
@@ -75,8 +78,11 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     implementation group: 'com.github.taycaldwell', name: 'riot-api-java', version: '4.3.0'
     implementation group: 'org.jsoup', name: 'jsoup', version: '1.11.3'
-    compileOnly 'org.projectlombok:lombok:1.18.4'
     implementation group: 'org.springdoc', name: 'springdoc-openapi-ui', version: '1.2.30'
+
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
+
+    testCompileOnly 'org.projectlombok:lombok:1.18.12'
 }
 
 dependencyManagement {
