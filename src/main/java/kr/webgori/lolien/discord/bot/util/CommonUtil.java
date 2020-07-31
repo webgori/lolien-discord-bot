@@ -176,6 +176,11 @@ public class CommonUtil {
     return LocalDateTime.parse(string, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
   }
 
+  /**
+   * stringArrayToStringList.
+   * @param stringArray stringArray
+   * @return string list
+   */
   public static List<String> stringArrayToStringList(String[] stringArray) {
     return Arrays
         .stream(stringArray)
