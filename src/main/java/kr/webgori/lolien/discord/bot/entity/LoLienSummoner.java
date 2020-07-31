@@ -52,4 +52,8 @@ public class LoLienSummoner {
 
   @Column
   private Integer mmr;
+
+  public void addMmr(Integer mmr) {
+    this.mmr += mmr;
+  }
 }

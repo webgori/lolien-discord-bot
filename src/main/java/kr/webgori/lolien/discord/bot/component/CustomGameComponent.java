@@ -403,6 +403,8 @@ public class CustomGameComponent {
 
     loLienMatchRepository.save(loLienMatch);
 
+    addResultMmr(loLienMatch);
+
     for (String summonerName : entries) {
       HashOperations<String, Object, Object> opsForHash = redisTemplate.opsForHash();
       String nonSpaceSummonerName = summonerName.replaceAll("\\s+","");
@@ -411,6 +413,78 @@ public class CustomGameComponent {
         opsForHash.delete(REDIS_MOST_CHAMPS_KEY, nonSpaceSummonerName);
       }
       getMostChamp(nonSpaceSummonerName);
+    }
+  }
+
+  private void addResultMmr(LoLienMatch loLienMatch) {
+    Set<LoLienParticipant> participants = loLienMatch.getParticipants();
+
+    List<LoLienSummoner> team1Summoners = participants
+        .stream()
+        .filter(a -> a.getTeamId() == 100)
+        .map(LoLienParticipant::getLoLienSummoner)
+        .collect(Collectors.toList());
+
+    double team1MmrAverage = team1Summoners
+        .stream()
+        .mapToInt(LoLienSummoner::getMmr)
+        .average()
+        .orElse(0);
+
+    List<LoLienSummoner> team2Summoners = participants
+        .stream()
+        .filter(a -> a.getTeamId() == 200)
+        .map(LoLienParticipant::getLoLienSummoner)
+        .collect(Collectors.toList());
+
+    double team2MmrAverage = team2Summoners
+        .stream()
+        .mapToInt(LoLienSummoner::getMmr)
+        .average()
+        .orElse(0);
+
+    for (LoLienParticipant loLienParticipant : participants) {
+      LoLienParticipantStats stats = loLienParticipant.getStats();
+      Integer teamId = loLienParticipant.getTeamId();
+
+      Boolean win = stats.getWin();
+      LoLienSummoner loLienSummoner = loLienParticipant.getLoLienSummoner();
+      int mmr = loLienSummoner.getMmr();
+
+      int addMmr = 0;
+
+      if (win) {
+        if (teamId == 100) {
+          if (mmr > team2MmrAverage) {
+            addMmr = (int) (mmr / team2MmrAverage * 1);
+          } else if (mmr < team2MmrAverage) {
+            addMmr = (int) (team2MmrAverage / mmr * 1.5);
+          }
+        } else if (teamId == 200) {
+          if (mmr > team1MmrAverage) {
+            addMmr = (int) (mmr / team1MmrAverage * 1);
+          } else if (mmr < team1MmrAverage) {
+            addMmr = (int) (team1MmrAverage / mmr * 1.5);
+          }
+        }
+      } else {
+        if (teamId == 100) {
+          if (mmr > team2MmrAverage) {
+            addMmr = (int) (mmr / team2MmrAverage * 1);
+          } else if (mmr < team2MmrAverage) {
+            addMmr = (int) (team2MmrAverage / mmr * 1.5);
+          }
+        } else if (teamId == 200) {
+          if (mmr > team1MmrAverage) {
+            addMmr = (int) (mmr / team1MmrAverage * 1.5);
+          } else if (mmr < team1MmrAverage) {
+            addMmr = (int) (team1MmrAverage / mmr * 1);
+          }
+        }
+      }
+
+      loLienSummoner.addMmr(addMmr);
+      loLienSummonerRepository.save(loLienSummoner);
     }
   }
 
