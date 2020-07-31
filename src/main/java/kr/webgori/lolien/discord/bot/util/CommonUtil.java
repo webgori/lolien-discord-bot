@@ -8,7 +8,11 @@ import java.awt.Color;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import kr.webgori.lolien.discord.bot.component.ConfigComponent;
 import kr.webgori.lolien.discord.bot.spring.CustomLocalDateTimeDeserializer;
 import kr.webgori.lolien.discord.bot.spring.CustomLocalDateTimeSerializer;
@@ -170,5 +174,11 @@ public class CommonUtil {
    */
   public static LocalDateTime stringToLocalDateTime(String string) {
     return LocalDateTime.parse(string, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+  }
+
+  public static List<String> stringArrayToStringList(String[] stringArray) {
+    return Arrays
+        .stream(stringArray)
+        .collect(Collectors.toList());
   }
 }

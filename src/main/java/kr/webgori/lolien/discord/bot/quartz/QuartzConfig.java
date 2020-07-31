@@ -39,7 +39,7 @@ public class QuartzConfig {
             .forJob(updateTierJobADetails)
             .withIdentity("UpdateTierTrigger")
             .withSchedule(
-                    CronScheduleBuilder.cronSchedule("0 */1 * ? * *"))
+                    CronScheduleBuilder.cronSchedule("0 0 * ? * *"))
             .build();
   }
 }
