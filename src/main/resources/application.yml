@@ -31,3 +31,10 @@ springdoc:
     path: /swagger-ui.html
     displayRequestDuration: true
     groups-order: DESC
+
+management:
+  endpoints:
+    web:
+      base-path: /application
+      path-mapping:
+        health: healthcheck
