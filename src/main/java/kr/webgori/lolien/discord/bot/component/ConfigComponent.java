@@ -80,6 +80,10 @@ public class ConfigComponent implements InitializingBean {
     DISCORD_TOKEN = discordToken;
   }
 
+  /**
+   * getRedisHost.
+   * @return redis host
+   */
   public String getRedisHost() {
     if (Objects.isNull(REDIS_HOST)) {
       getRedisHostFromConfig();
@@ -92,6 +96,10 @@ public class ConfigComponent implements InitializingBean {
     REDIS_HOST = redisHost;
   }
 
+  /**
+   * getRedisPassword.
+   * @return redis password
+   */
   public String getRedisPassword() {
     if (Objects.isNull(REDIS_PASSWORD)) {
       getRedisPasswordFromConfig();
