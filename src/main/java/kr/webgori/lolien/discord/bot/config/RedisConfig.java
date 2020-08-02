@@ -2,6 +2,7 @@ package kr.webgori.lolien.discord.bot.config;
 
 import java.util.Optional;
 import kr.webgori.lolien.discord.bot.component.ConfigComponent;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,8 +13,11 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactor
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
+@RequiredArgsConstructor
 @Configuration
 public class RedisConfig {
+  private final ConfigComponent configComponent;
+
   @Value("${spring.redis.port}")
   private int port;
 
@@ -22,19 +26,20 @@ public class RedisConfig {
 
   /**
    * JedisConnectionFactory.
+   *
    * @return JedisConnectionFactory
    */
   @Bean
   public RedisConnectionFactory redisConnectionFactory() {
     RedisStandaloneConfiguration serverConfig = new RedisStandaloneConfiguration("server", 6379);
 
-    String redisHost = ConfigComponent.getRedisHost();
+    String redisHost = configComponent.getRedisHost();
     serverConfig.setHostName(redisHost);
 
     serverConfig.setPort(port);
     serverConfig.setDatabase(database);
 
-    Optional.ofNullable(ConfigComponent.getRedisPassword()).ifPresent(p -> {
+    Optional.ofNullable(configComponent.getRedisPassword()).ifPresent(p -> {
       RedisPassword redisPassword = RedisPassword.of(p);
       serverConfig.setPassword(redisPassword);
     });
@@ -44,6 +49,7 @@ public class RedisConfig {
 
   /**
    * RedisTemplate.
+   *
    * @return RedisTemplate
    */
   @Bean

@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 import kr.webgori.lolien.discord.bot.exception.PasswordFileNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -79,7 +80,11 @@ public class ConfigComponent implements InitializingBean {
     DISCORD_TOKEN = discordToken;
   }
 
-  public static String getRedisHost() {
+  public String getRedisHost() {
+    if (Objects.isNull(REDIS_HOST)) {
+      getRedisHostFromConfig();
+    }
+
     return REDIS_HOST;
   }
 
@@ -87,7 +92,11 @@ public class ConfigComponent implements InitializingBean {
     REDIS_HOST = redisHost;
   }
 
-  public static String getRedisPassword() {
+  public String getRedisPassword() {
+    if (Objects.isNull(REDIS_PASSWORD)) {
+      getRedisPasswordFromConfig();
+    }
+
     return REDIS_PASSWORD;
   }
 
@@ -198,6 +207,10 @@ public class ConfigComponent implements InitializingBean {
   }
 
   private void getRedisHostFromConfig() {
+    if (Objects.isNull(JSON_STRING)) {
+      getJsonStringFromConfig();
+    }
+
     JsonObject jsonObject = gson.fromJson(JSON_STRING, JsonObject.class);
     String redisHost = jsonObject
         .get("redis")
