@@ -36,5 +36,6 @@ management:
   endpoints:
     web:
       base-path: /application
-      path-mapping:
-        health: healthcheck
+  endpoint:
+    health:
+      show-details: always
