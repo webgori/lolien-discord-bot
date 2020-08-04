@@ -53,7 +53,11 @@ public class LoLienSummoner {
   @Column
   private Integer mmr;
 
-  public void addMmr(Integer mmr) {
+  public void plusMmr(Integer mmr) {
     this.mmr += mmr;
+  }
+
+  public void minusMmr(Integer mmr) {
+    this.mmr -= mmr;
   }
 }
