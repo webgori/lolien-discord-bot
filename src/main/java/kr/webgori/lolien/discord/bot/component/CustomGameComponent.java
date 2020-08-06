@@ -456,15 +456,15 @@ public class CustomGameComponent {
 
         if (teamId == 100) {
           if (mmr > team2MmrAverage) {
-            resultMmr = (int) (mmr / team2MmrAverage * 1);
+            resultMmr = (int) ((mmr / team2MmrAverage) * 1);
           } else if (mmr < team2MmrAverage) {
-            resultMmr = (int) (team2MmrAverage / mmr * 1.5);
+            resultMmr = (int) ((team2MmrAverage / mmr) * 1.5);
           }
         } else if (teamId == 200) {
           if (mmr > team1MmrAverage) {
-            resultMmr = (int) (mmr / team1MmrAverage * 1);
+            resultMmr = (int) ((mmr / team1MmrAverage) * 1);
           } else if (mmr < team1MmrAverage) {
-            resultMmr = (int) (team1MmrAverage / mmr * 1.5);
+            resultMmr = (int) ((team1MmrAverage / mmr) * 1.5);
           }
         }
 
