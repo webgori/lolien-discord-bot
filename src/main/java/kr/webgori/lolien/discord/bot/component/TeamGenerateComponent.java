@@ -417,14 +417,14 @@ public class TeamGenerateComponent {
       matchOptional.flatMap(match -> Optional.ofNullable(hashOperations
           .get(REDIS_GENERATED_TEAM_MATCHES_INFO_KEY, String.valueOf(id)))).ifPresent(a -> {
 
-        String[] summonersName = ((String) a).split(",");
+            String[] summonersName = ((String) a).split(",");
 
-        if (summonersName.length > 0) {
-          customGameComponent.addResult(matchId, summonersName);
-        }
+            if (summonersName.length > 0) {
+              customGameComponent.addResult(matchId, summonersName);
+            }
 
-        hashOperations.delete(REDIS_GENERATED_TEAM_MATCHES_INFO_KEY, String.valueOf(matchId));
-      });
+            hashOperations.delete(REDIS_GENERATED_TEAM_MATCHES_INFO_KEY, String.valueOf(matchId));
+          });
     }
   }
 
