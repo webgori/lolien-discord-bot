@@ -61,6 +61,7 @@ public class CustomGameComponent {
   private final RedisTemplate<String, Object> redisTemplate;
   private final Gson gson;
   private final ChampComponent champComponent;
+  private final CommonComponent commonComponent;
 
   /**
    * execute.
@@ -79,7 +80,7 @@ public class CustomGameComponent {
 
     String arg1 = commands.get(1);
 
-    switch (arg1) {
+    switch (arg1.toUpperCase()) {
       case "결과":
         if (commands.size() < 3) {
           sendSyntax(textChannel);
@@ -257,11 +258,7 @@ public class CustomGameComponent {
         }
 
         String summonerName = summonerNameBuilder.toString();
-        boolean existsSummonerName = loLienSummonerRepository.existsBySummonerName(summonerName);
-
-        if (!existsSummonerName) {
-          String errorMessage = String.format("%s 소환사가 존재하지 않습니다.", summonerName);
-          sendErrorMessage(textChannel, errorMessage, Color.RED);
+        if (checkSummonerName(textChannel, summonerName)) {
           return;
         }
 
@@ -304,8 +301,59 @@ public class CustomGameComponent {
           sendErrorMessage(textChannel, "내전 데이터가 존재하지 않습니다.", Color.RED);
         }
         break;
+      case "MMR":
+        if (commands.size() == 2) {
+          List<LoLienSummoner> top5ByOrderByMmrDesc = loLienSummonerRepository
+              .findTop5ByOrderByMmrDesc();
+
+          StringBuilder messageBuilder = new StringBuilder();
+
+          for (int i = 0; i < top5ByOrderByMmrDesc.size(); i++) {
+            LoLienSummoner loLienSummoner = top5ByOrderByMmrDesc.get(i);
+            summonerName = loLienSummoner.getSummonerName();
+            int mmr = loLienSummoner.getMmr();
+
+            String message = String.format("%d. %s (%s)", i + 1, summonerName, mmr);
+
+            messageBuilder.append(message);
+            messageBuilder.append("\n");
+          }
+
+          sendMessage(textChannel, messageBuilder.toString());
+        } else {
+          summonerNameBuilder = new StringBuilder();
+
+          for (int i = 2; i < commands.size(); i++) {
+            summonerNameBuilder.append(commands.get(i));
+          }
+
+          summonerName = summonerNameBuilder.toString();
+          if (checkSummonerName(textChannel, summonerName)) {
+            return;
+          }
+
+          LoLienSummoner bySummonerName = loLienSummonerRepository.findBySummonerName(summonerName);
+          commonComponent.checkExistsMmr(bySummonerName);
+          int mmr = bySummonerName.getMmr();
+          String message = String.format("%s님의 MMR은 %s 입니다.", summonerName, mmr);
+
+          sendMessage(textChannel, message);
+        }
+
+        break;
       default:
     }
+  }
+
+  private boolean checkSummonerName(TextChannel textChannel, String summonerName) {
+    boolean existsSummonerName = loLienSummonerRepository.existsBySummonerName(summonerName);
+
+    if (!existsSummonerName) {
+      String errorMessage = String.format("%s 소환사가 존재하지 않습니다.", summonerName);
+      sendErrorMessage(textChannel, errorMessage, Color.RED);
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -316,7 +364,7 @@ public class CustomGameComponent {
    */
   public void addResult(long matchId, String[] entries) {
     for (String summonerName : entries) {
-      String nonSpaceSummonerName = summonerName.replaceAll("\\s+","");
+      String nonSpaceSummonerName = summonerName.replaceAll("\\s+", "");
       boolean hasSummonerName = loLienSummonerRepository.existsBySummonerName(nonSpaceSummonerName);
 
       if (!hasSummonerName) {
@@ -354,7 +402,7 @@ public class CustomGameComponent {
       BeanUtils.copyProperties(stats, loLienParticipantStats);
 
       String summonerName = entries[i];
-      String nonSpaceSummonerName = summonerName.replaceAll("\\s+","");
+      String nonSpaceSummonerName = summonerName.replaceAll("\\s+", "");
       LoLienSummoner bySummonerName = loLienSummonerRepository
           .findBySummonerName(nonSpaceSummonerName);
 
@@ -407,7 +455,7 @@ public class CustomGameComponent {
 
     for (String summonerName : entries) {
       HashOperations<String, Object, Object> opsForHash = redisTemplate.opsForHash();
-      String nonSpaceSummonerName = summonerName.replaceAll("\\s+","");
+      String nonSpaceSummonerName = summonerName.replaceAll("\\s+", "");
       boolean hasHashKey = opsForHash.hasKey(REDIS_MOST_CHAMPS_KEY, summonerName);
       if (hasHashKey) {
         opsForHash.delete(REDIS_MOST_CHAMPS_KEY, nonSpaceSummonerName);

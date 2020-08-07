@@ -23,13 +23,9 @@ import java.util.stream.Collectors;
 import kr.webgori.lolien.discord.bot.config.JdaConfig;
 import kr.webgori.lolien.discord.bot.dto.LoLienGenerateTeamDto;
 import kr.webgori.lolien.discord.bot.entity.League;
-import kr.webgori.lolien.discord.bot.entity.LoLienSeasonCompensation;
 import kr.webgori.lolien.discord.bot.entity.LoLienSummoner;
-import kr.webgori.lolien.discord.bot.entity.LoLienTierScore;
 import kr.webgori.lolien.discord.bot.repository.LeagueRepository;
-import kr.webgori.lolien.discord.bot.repository.LoLienSeasonCompensationRepository;
 import kr.webgori.lolien.discord.bot.repository.LoLienSummonerRepository;
-import kr.webgori.lolien.discord.bot.repository.LoLienTierScoreRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.core.entities.TextChannel;
@@ -70,8 +66,7 @@ public class TeamGenerateComponent {
   private final CustomGameComponent customGameComponent;
   private final RedisTemplate<String, Object> redisTemplate;
   private final ChampComponent champComponent;
-  private final LoLienSeasonCompensationRepository loLienSeasonCompensationRepository;
-  private final LoLienTierScoreRepository loLienTierScoreRepository;
+  private final CommonComponent commonComponent;
 
   /**
    * execute.
@@ -155,7 +150,7 @@ public class TeamGenerateComponent {
         LoLienSummoner loLienSummoner = loLienSummonerRepository.findBySummonerName(summonerName);
 
         checkCurrentSeasonTier(summonerName, loLienSummoner);
-        checkExistsMmr(loLienSummoner);
+        commonComponent.checkExistsMmr(loLienSummoner);
 
         if (team1.size() < 5) {
           team1.add(loLienSummoner);
@@ -242,44 +237,6 @@ public class TeamGenerateComponent {
         .mapToInt(LoLienSummoner::getMmr)
         .average()
         .orElse(0);
-  }
-
-  private void checkExistsMmr(LoLienSummoner loLienSummoner) {
-    Integer mmr = loLienSummoner.getMmr();
-
-    if (Objects.isNull(mmr)) {
-      initSummerMmr(loLienSummoner);
-    }
-  }
-
-  private void initSummerMmr(LoLienSummoner loLienSummoner) {
-    float season08Mmr = getSummonerMmrBySeason(loLienSummoner, "S08");
-    float season09Mmr = getSummonerMmrBySeason(loLienSummoner, "S09");
-    float season10Mmr = getSummonerMmrBySeason(loLienSummoner, "S10");
-
-    int mmr = (int) (season08Mmr + season09Mmr + season10Mmr);
-
-    loLienSummoner.setMmr(mmr);
-    loLienSummonerRepository.save(loLienSummoner);
-  }
-
-  private float getSummonerMmrBySeason(LoLienSummoner loLienSummoner, String season) {
-    League league = leagueRepository.findByLoLienSummonerAndSeason(loLienSummoner, season);
-
-    if (Objects.isNull(league)) {
-      return 0;
-    }
-
-    String tier = league.getTier();
-    LoLienTierScore tierScore = loLienTierScoreRepository.findByTier(tier);
-    Integer score = tierScore.getScore();
-
-    LoLienSeasonCompensation season08Compensation = loLienSeasonCompensationRepository
-        .findBySeason(season);
-
-    Float compensationValue = season08Compensation.getCompensationValue();
-
-    return score * compensationValue;
   }
 
   private void checkCurrentSeasonTier(String summonerName, LoLienSummoner loLienSummoner) {
@@ -460,14 +417,14 @@ public class TeamGenerateComponent {
       matchOptional.flatMap(match -> Optional.ofNullable(hashOperations
           .get(REDIS_GENERATED_TEAM_MATCHES_INFO_KEY, String.valueOf(id)))).ifPresent(a -> {
 
-            String[] summonersName = ((String) a).split(",");
+        String[] summonersName = ((String) a).split(",");
 
-            if (summonersName.length > 0) {
-              customGameComponent.addResult(matchId, summonersName);
-            }
+        if (summonersName.length > 0) {
+          customGameComponent.addResult(matchId, summonersName);
+        }
 
-            hashOperations.delete(REDIS_GENERATED_TEAM_MATCHES_INFO_KEY, String.valueOf(matchId));
-          });
+        hashOperations.delete(REDIS_GENERATED_TEAM_MATCHES_INFO_KEY, String.valueOf(matchId));
+      });
     }
   }
 
@@ -503,7 +460,8 @@ public class TeamGenerateComponent {
         .stream()
         .filter(l -> l.getSeason().equals("S08") || l.getSeason().equals("S09")
             || l.getSeason().equals("S10"))
-        .max(Comparator.comparing(a -> tiers.get(a.getTier())))
+        .filter(l -> !l.getTier().equals(DEFAULT_TIER))
+        .max(Comparator.comparing(l -> tiers.get(l.getTier())))
         .orElse(null);
   }
 }
