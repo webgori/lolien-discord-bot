@@ -335,7 +335,7 @@ public class CustomGameComponent {
           LoLienSummoner bySummonerName = loLienSummonerRepository.findBySummonerName(summonerName);
           commonComponent.checkExistsMmr(bySummonerName);
           int mmr = bySummonerName.getMmr();
-          String message = String.format("%s님의 MMR은 %s 입니다.", summonerName, mmr);
+          String message = String.format("%s님의 내전 MMR은 %s 입니다.", summonerName, mmr);
 
           sendMessage(textChannel, message);
         }
