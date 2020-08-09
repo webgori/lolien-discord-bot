@@ -5,11 +5,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.awt.Color;
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -185,5 +185,23 @@ public class CommonUtil {
     return Arrays
         .stream(stringArray)
         .collect(Collectors.toList());
+  }
+
+  /**
+   * getTimestamp.
+   * @param localDateTime localDateTime
+   * @return timestamp
+   */
+  public static long getTimestamp(LocalDateTime localDateTime) {
+    return Timestamp.valueOf(localDateTime).getTime();
+  }
+
+  /**
+   * getTimestamp.
+   * @return timestamp
+   */
+  public static long getTimestamp() {
+    LocalDateTime now = LocalDateTime.now();
+    return getTimestamp(now);
   }
 }

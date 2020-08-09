@@ -16,9 +16,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import kr.webgori.lolien.discord.bot.entity.League;
-import kr.webgori.lolien.discord.bot.entity.LoLienSummoner;
+import kr.webgori.lolien.discord.bot.entity.LolienSummoner;
 import kr.webgori.lolien.discord.bot.repository.LeagueRepository;
-import kr.webgori.lolien.discord.bot.repository.LoLienSummonerRepository;
+import kr.webgori.lolien.discord.bot.repository.LolienSummonerRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.core.entities.TextChannel;
@@ -42,7 +42,7 @@ import org.springframework.stereotype.Component;
 public class SummonerComponent {
   private static final String DEFAULT_TIER = "UNRANKED";
 
-  private final LoLienSummonerRepository loLienSummonerRepository;
+  private final LolienSummonerRepository lolienSummonerRepository;
   private final LeagueRepository leagueRepository;
 
   public static String getDefaultTier() {
@@ -83,7 +83,7 @@ public class SummonerComponent {
     String summonerName = summonerNameBuilder.toString();
 
     try {
-      boolean hasSummonerName = loLienSummonerRepository.existsBySummonerName(summonerName);
+      boolean hasSummonerName = lolienSummonerRepository.existsBySummonerName(summonerName);
 
       if (hasSummonerName) {
         sendErrorMessage(textChannel, "이미 등록되어 있는 소환사 이름 입니다.", Color.RED);
@@ -97,14 +97,14 @@ public class SummonerComponent {
       Summoner summoner = riotApi.getSummonerByName(Platform.KR, summonerName);
       String summonerId = summoner.getId();
       String accountId = summoner.getAccountId();
-      boolean existsByAccountId = loLienSummonerRepository.existsByAccountId(accountId);
+      boolean existsByAccountId = lolienSummonerRepository.existsByAccountId(accountId);
 
       // 변경한 소환사명 갱신
       if (existsByAccountId) {
-        LoLienSummoner loLienSummoner = loLienSummonerRepository.findByAccountId(accountId);
-        String oldSummonerName = loLienSummoner.getSummonerName();
-        loLienSummoner.setSummonerName(summonerName);
-        loLienSummonerRepository.save(loLienSummoner);
+        LolienSummoner lolienSummoner = lolienSummonerRepository.findByAccountId(accountId);
+        String oldSummonerName = lolienSummoner.getSummonerName();
+        lolienSummoner.setSummonerName(summonerName);
+        lolienSummonerRepository.save(lolienSummoner);
         String infoMessage = String.format("%s 소환사명을 %s로 갱신하였습니다.", oldSummonerName, summonerName);
         sendMessage(textChannel, infoMessage);
         return;
@@ -132,12 +132,12 @@ public class SummonerComponent {
       for (Map.Entry<String, String> entry : tiersFromOpGg.entrySet()) {
         String key = entry.getKey();
         String value = entry.getValue();
-        LoLienSummoner loLienSummoner = loLienSummonerRepository
+        LolienSummoner lolienSummoner = lolienSummonerRepository
             .findBySummonerName(summonerName);
 
         League league = League
             .builder()
-            .loLienSummoner(loLienSummoner)
+            .lolienSummoner(lolienSummoner)
             .season(key)
             .tier(value)
             .build();
@@ -185,7 +185,7 @@ public class SummonerComponent {
     List<League> leagues = new ArrayList<>();
     leagues.add(league);
 
-    LoLienSummoner loLienSummoner = LoLienSummoner
+    LolienSummoner lolienSummoner = LolienSummoner
         .builder()
         .id(summonerId)
         .accountId(accountId)
@@ -194,9 +194,9 @@ public class SummonerComponent {
         .leagues(leagues)
         .build();
 
-    league.setLoLienSummoner(loLienSummoner);
+    league.setLolienSummoner(lolienSummoner);
 
-    loLienSummonerRepository.save(loLienSummoner);
+    lolienSummonerRepository.save(lolienSummoner);
   }
 
   /**

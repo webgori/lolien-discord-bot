@@ -22,12 +22,11 @@ public class ConfigComponent implements InitializingBean {
   private static String DATA_SOURCE_URL;
   private static String DATA_SOURCE_USERNAME;
   private static String DATA_SOURCE_PASSWORD;
-  static String CHALLONGE_API_KEY;
-  static String CHALLONGE_USERNAME;
   private static String RIOT_API_KEY;
   private static String DISCORD_TOKEN;
   private static String REDIS_HOST;
   private static String REDIS_PASSWORD;
+  private static String JWT_SECRET_KEY;
 
   private final Gson gson;
 
@@ -80,8 +79,17 @@ public class ConfigComponent implements InitializingBean {
     DISCORD_TOKEN = discordToken;
   }
 
+  public String getJwtSecretKey() {
+    return JWT_SECRET_KEY;
+  }
+
+  private static void setJwtSecretKey(String jwtSecretKey) {
+    JWT_SECRET_KEY = jwtSecretKey;
+  }
+
   /**
    * getRedisHost.
+   *
    * @return redis host
    */
   public String getRedisHost() {
@@ -98,6 +106,7 @@ public class ConfigComponent implements InitializingBean {
 
   /**
    * getRedisPassword.
+   *
    * @return redis password
    */
   public String getRedisPassword() {
@@ -118,8 +127,6 @@ public class ConfigComponent implements InitializingBean {
     getDataSourceUrlFromConfig();
     getDataSourceUsernameFromConfig();
     getDataSourcePasswordFromConfig();
-    getChallongeUsernameFromConfig();
-    getChallongeApiKeyFromConfig();
     getRiotApiKeyFromConfig();
     getDiscordTokenFromConfig();
     getRedisHostFromConfig();
@@ -179,23 +186,6 @@ public class ConfigComponent implements InitializingBean {
     setDataSourcePassword(dataSourcePassword);
   }
 
-  private void getChallongeUsernameFromConfig() {
-    JsonObject jsonObject = gson.fromJson(JSON_STRING, JsonObject.class);
-    CHALLONGE_USERNAME = jsonObject.get("challonge")
-        .getAsJsonObject()
-        .get("username")
-        .getAsString();
-  }
-
-  private void getChallongeApiKeyFromConfig() {
-    JsonObject jsonObject = gson.fromJson(JSON_STRING, JsonObject.class);
-    CHALLONGE_API_KEY = jsonObject
-        .get("challonge")
-        .getAsJsonObject()
-        .get("apiKey")
-        .getAsString();
-  }
-
   private void getRiotApiKeyFromConfig() {
     JsonObject jsonObject = gson.fromJson(JSON_STRING, JsonObject.class);
     String riotApiKey = jsonObject
@@ -238,5 +228,14 @@ public class ConfigComponent implements InitializingBean {
         .getAsString();
 
     setRedisPassword(redisPassword);
+  }
+
+  public void getJwtSecretKeyFromConfig() {
+    JsonObject jsonObject = gson.fromJson(JSON_STRING, JsonObject.class);
+    String jwtSecretKey = jsonObject
+        .get("jwtSecretKey")
+        .getAsString();
+
+    setJwtSecretKey(jwtSecretKey);
   }
 }

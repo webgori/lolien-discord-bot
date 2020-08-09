@@ -10,7 +10,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
-import kr.webgori.lolien.discord.bot.entity.LoLienSummoner;
+import kr.webgori.lolien.discord.bot.entity.LolienSummoner;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -24,14 +24,14 @@ import lombok.ToString;
 @Entity
 @Table(name = "lolien_league_participant")
 @ToString(exclude = {"match"})
-public class LoLienLeagueParticipant {
+public class LolienLeagueParticipant {
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Integer idx;
 
   @ManyToOne
   @JoinColumn(name = "match_idx", nullable = false)
-  private LoLienLeagueMatch match;
+  private LolienLeagueMatch match;
 
   @Column(name = "champion_id")
   private Integer championId;
@@ -44,12 +44,12 @@ public class LoLienLeagueParticipant {
 
   @OneToOne(mappedBy = "participant", cascade = CascadeType.ALL)
   @JoinColumn(name = "participant_stats_idx")
-  private LoLienLeagueParticipantStats stats;
+  private LolienLeagueParticipantStats stats;
 
   @Column(name = "team_id")
   private Integer teamId;
 
   @ManyToOne
   @JoinColumn(name = "summoner_idx", nullable = false)
-  private LoLienSummoner loLienSummoner;
+  private LolienSummoner lolienSummoner;
 }

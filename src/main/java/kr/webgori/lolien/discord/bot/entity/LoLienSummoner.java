@@ -9,7 +9,6 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
@@ -27,8 +26,8 @@ import lombok.ToString;
 @Entity
 @Table(name = "summoner")
 @ToString(exclude = {"leagues", "participants"})
-@EqualsAndHashCode(exclude = {"participants"})
-public class LoLienSummoner {
+@EqualsAndHashCode(exclude = {"participants", "lolienUser"})
+public class LolienSummoner {
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Integer idx;
@@ -44,14 +43,17 @@ public class LoLienSummoner {
   @Column(name = "summoner_name")
   private String summonerName;
 
-  @OneToMany(mappedBy = "loLienSummoner", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+  @OneToMany(mappedBy = "lolienSummoner", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
   private List<League> leagues;
 
-  @OneToMany(mappedBy = "loLienSummoner", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-  private Set<LoLienParticipant> participants;
+  @OneToMany(mappedBy = "lolienSummoner", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  private Set<LolienParticipant> participants;
 
   @Column
   private Integer mmr;
+
+  @OneToOne(mappedBy = "lolienSummoner")
+  private LolienUser lolienUser;
 
   public void plusMmr(Integer mmr) {
     this.mmr += mmr;

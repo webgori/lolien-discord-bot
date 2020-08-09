@@ -6,17 +6,17 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.util.List;
 import java.util.Set;
-import kr.webgori.lolien.discord.bot.entity.LoLienSummoner;
-import kr.webgori.lolien.discord.bot.entity.league.LoLienLeague;
-import kr.webgori.lolien.discord.bot.entity.league.LoLienLeagueMatch;
-import kr.webgori.lolien.discord.bot.entity.league.LoLienLeagueParticipant;
-import kr.webgori.lolien.discord.bot.entity.league.LoLienLeagueParticipantStats;
-import kr.webgori.lolien.discord.bot.entity.league.LoLienLeagueTeamBans;
-import kr.webgori.lolien.discord.bot.entity.league.LoLienLeagueTeamStats;
+import kr.webgori.lolien.discord.bot.entity.LolienSummoner;
+import kr.webgori.lolien.discord.bot.entity.league.LolienLeague;
+import kr.webgori.lolien.discord.bot.entity.league.LolienLeagueMatch;
+import kr.webgori.lolien.discord.bot.entity.league.LolienLeagueParticipant;
+import kr.webgori.lolien.discord.bot.entity.league.LolienLeagueParticipantStats;
+import kr.webgori.lolien.discord.bot.entity.league.LolienLeagueTeamBans;
+import kr.webgori.lolien.discord.bot.entity.league.LolienLeagueTeamStats;
 import kr.webgori.lolien.discord.bot.exception.LeagueNotFoundException;
-import kr.webgori.lolien.discord.bot.repository.LoLienSummonerRepository;
-import kr.webgori.lolien.discord.bot.repository.league.LoLienLeagueMatchRepository;
-import kr.webgori.lolien.discord.bot.repository.league.LoLienLeagueRepository;
+import kr.webgori.lolien.discord.bot.repository.LolienSummonerRepository;
+import kr.webgori.lolien.discord.bot.repository.league.LolienLeagueMatchRepository;
+import kr.webgori.lolien.discord.bot.repository.league.LolienLeagueRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.rithms.riot.api.endpoints.match.dto.Match;
@@ -31,9 +31,9 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Component
 public class LeagueComponent {
-  private final LoLienLeagueRepository loLienLeagueRepository;
-  private final LoLienSummonerRepository loLienSummonerRepository;
-  private final LoLienLeagueMatchRepository loLienLeagueMatchRepository;
+  private final LolienLeagueRepository lolienLeagueRepository;
+  private final LolienSummonerRepository lolienSummonerRepository;
+  private final LolienLeagueMatchRepository lolienLeagueMatchRepository;
 
   /**
    * addResult.
@@ -43,12 +43,12 @@ public class LeagueComponent {
    * @param entries   entries
    */
   public void addResult(int leagueIdx, long matchId, String[] entries) {
-    LoLienLeague loLienLeague = loLienLeagueRepository
+    LolienLeague lolienLeague = lolienLeagueRepository
         .findById(leagueIdx)
         .orElseThrow(() -> new LeagueNotFoundException("존재하지 않는 리그 입니다."));
 
     for (String summonerName : entries) {
-      boolean hasSummonerName = loLienSummonerRepository.existsBySummonerName(summonerName);
+      boolean hasSummonerName = lolienSummonerRepository.existsBySummonerName(summonerName);
 
       if (!hasSummonerName) {
         String errorMessage = String.format(
@@ -61,17 +61,17 @@ public class LeagueComponent {
 
     Match match = getMatch(matchId);
 
-    Set<LoLienLeagueParticipant> loLienLeagueParticipantSet = Sets.newHashSet();
-    Set<LoLienLeagueTeamStats> loLienLeagueTeamStatsSet = Sets.newHashSet();
+    Set<LolienLeagueParticipant> lolienLeagueParticipantSet = Sets.newHashSet();
+    Set<LolienLeagueTeamStats> lolienLeagueTeamStatsSet = Sets.newHashSet();
 
-    LoLienLeagueMatch loLienLeagueMatch = LoLienLeagueMatch
+    LolienLeagueMatch lolienLeagueMatch = LolienLeagueMatch
         .builder()
-        .lolienLeague(loLienLeague)
-        .participants(loLienLeagueParticipantSet)
-        .teams(loLienLeagueTeamStatsSet)
+        .lolienLeague(lolienLeague)
+        .participants(lolienLeagueParticipantSet)
+        .teams(lolienLeagueTeamStatsSet)
         .build();
 
-    BeanUtils.copyProperties(match, loLienLeagueMatch);
+    BeanUtils.copyProperties(match, lolienLeagueMatch);
 
     List<Participant> participants = match.getParticipants();
 
@@ -79,41 +79,41 @@ public class LeagueComponent {
       Participant participant = participants.get(i);
       ParticipantStats stats = participant.getStats();
 
-      LoLienLeagueParticipantStats loLienLeagueParticipantStats = LoLienLeagueParticipantStats
+      LolienLeagueParticipantStats lolienLeagueParticipantStats = LolienLeagueParticipantStats
           .builder()
           .build();
 
-      BeanUtils.copyProperties(stats, loLienLeagueParticipantStats);
+      BeanUtils.copyProperties(stats, lolienLeagueParticipantStats);
 
       String summonerName = entries[i];
-      LoLienSummoner bySummonerName = loLienSummonerRepository
+      LolienSummoner bySummonerName = lolienSummonerRepository
           .findBySummonerName(summonerName);
 
-      LoLienLeagueParticipant loLienLeagueParticipant = LoLienLeagueParticipant
+      LolienLeagueParticipant lolienLeagueParticipant = LolienLeagueParticipant
           .builder()
-          .match(loLienLeagueMatch)
-          .stats(loLienLeagueParticipantStats)
-          .loLienSummoner(bySummonerName)
+          .match(lolienLeagueMatch)
+          .stats(lolienLeagueParticipantStats)
+          .lolienSummoner(bySummonerName)
           .build();
 
-      BeanUtils.copyProperties(participant, loLienLeagueParticipant);
+      BeanUtils.copyProperties(participant, lolienLeagueParticipant);
 
-      loLienLeagueParticipantStats.setParticipant(loLienLeagueParticipant);
+      lolienLeagueParticipantStats.setParticipant(lolienLeagueParticipant);
 
-      loLienLeagueParticipantSet.add(loLienLeagueParticipant);
+      lolienLeagueParticipantSet.add(lolienLeagueParticipant);
     }
 
     List<TeamStats> teams = match.getTeams();
-    List<LoLienLeagueTeamBans> loLienLeagueTeamBansList = Lists.newArrayList();
+    List<LolienLeagueTeamBans> lolienLeagueTeamBansList = Lists.newArrayList();
 
     for (TeamStats teamStats : teams) {
-      LoLienLeagueTeamStats loLienLeagueTeamStats = LoLienLeagueTeamStats
+      LolienLeagueTeamStats lolienLeagueTeamStats = LolienLeagueTeamStats
           .builder()
-          .match(loLienLeagueMatch)
-          .bans(loLienLeagueTeamBansList)
+          .match(lolienLeagueMatch)
+          .bans(lolienLeagueTeamBansList)
           .build();
 
-      BeanUtils.copyProperties(teamStats, loLienLeagueTeamStats);
+      BeanUtils.copyProperties(teamStats, lolienLeagueTeamStats);
 
       List<TeamBans> bans = teamStats.getBans();
 
@@ -121,20 +121,20 @@ public class LeagueComponent {
         int championId = teamBans.getChampionId();
         int pickTurn = teamBans.getPickTurn();
 
-        LoLienLeagueTeamBans loLienLeagueTeamBans = LoLienLeagueTeamBans
+        LolienLeagueTeamBans lolienLeagueTeamBans = LolienLeagueTeamBans
             .builder()
-            .teamStats(loLienLeagueTeamStats)
+            .teamStats(lolienLeagueTeamStats)
             .championId(championId)
             .pickTurn(pickTurn)
             .build();
 
-        loLienLeagueTeamBansList.add(loLienLeagueTeamBans);
+        lolienLeagueTeamBansList.add(lolienLeagueTeamBans);
       }
 
-      loLienLeagueTeamStatsSet.add(loLienLeagueTeamStats);
+      lolienLeagueTeamStatsSet.add(lolienLeagueTeamStats);
     }
 
-    loLienLeagueMatchRepository.save(loLienLeagueMatch);
+    lolienLeagueMatchRepository.save(lolienLeagueMatch);
 
     /*for (String summonerName : entries) {
       HashOperations<String, Object, Object> opsForHash = redisTemplate.opsForHash();

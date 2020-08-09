@@ -25,7 +25,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Data
 @Entity
 @Table(name = "lolien_league")
-public class LoLienLeague {
+public class LolienLeague {
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Integer idx;
@@ -33,7 +33,7 @@ public class LoLienLeague {
   private String title;
 
   @OneToMany(mappedBy = "lolienLeague", cascade = CascadeType.ALL)
-  private List<LoLienLeagueMatch> loLienLeagueMatches;
+  private List<LolienLeagueMatch> lolienLeagueMatches;
 
   @CreatedDate
   @Column(name = "created_date", nullable = false)

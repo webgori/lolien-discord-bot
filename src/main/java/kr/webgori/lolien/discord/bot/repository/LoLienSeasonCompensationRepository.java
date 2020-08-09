@@ -1,10 +1,10 @@
 package kr.webgori.lolien.discord.bot.repository;
 
-import kr.webgori.lolien.discord.bot.entity.LoLienSeasonCompensation;
+import kr.webgori.lolien.discord.bot.entity.LolienSeasonCompensation;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface LoLienSeasonCompensationRepository
-    extends JpaRepository<LoLienSeasonCompensation, String> {
+public interface LolienSeasonCompensationRepository
+    extends JpaRepository<LolienSeasonCompensation, String> {
 
-  LoLienSeasonCompensation findBySeason(String season);
+  LolienSeasonCompensation findBySeason(String season);
 }

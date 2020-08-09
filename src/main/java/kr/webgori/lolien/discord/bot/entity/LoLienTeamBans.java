@@ -21,14 +21,14 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(name = "team_bans")
 @EqualsAndHashCode(exclude = {"teamStats"})
-public class LoLienTeamBans {
+public class LolienTeamBans {
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Integer idx;
 
   @ManyToOne
   @JoinColumn(name = "team_stats_idx", nullable = false)
-  private LoLienTeamStats teamStats;
+  private LolienTeamStats teamStats;
 
   @Column(name = "champion_id")
   private Integer championId;

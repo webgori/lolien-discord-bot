@@ -4,11 +4,11 @@ import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Set;
 import kr.webgori.lolien.discord.bot.component.CustomGameComponent;
-import kr.webgori.lolien.discord.bot.entity.LoLienMatch;
-import kr.webgori.lolien.discord.bot.entity.LoLienParticipant;
-import kr.webgori.lolien.discord.bot.entity.LoLienParticipantStats;
-import kr.webgori.lolien.discord.bot.entity.LoLienSummoner;
-import kr.webgori.lolien.discord.bot.repository.LoLienMatchRepository;
+import kr.webgori.lolien.discord.bot.entity.LolienMatch;
+import kr.webgori.lolien.discord.bot.entity.LolienParticipant;
+import kr.webgori.lolien.discord.bot.entity.LolienParticipantStats;
+import kr.webgori.lolien.discord.bot.entity.LolienSummoner;
+import kr.webgori.lolien.discord.bot.repository.LolienMatchRepository;
 import kr.webgori.lolien.discord.bot.request.CustomGameAddResultRequest;
 import kr.webgori.lolien.discord.bot.response.CustomGameResponse;
 import kr.webgori.lolien.discord.bot.response.CustomGameSummonerResponse;
@@ -23,7 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Service
 public class CustomGameServiceImpl implements CustomGameService {
-  private final LoLienMatchRepository loLienMatchRepository;
+  private final LolienMatchRepository lolienMatchRepository;
   private final CustomGameComponent customGameComponent;
 
   @Transactional
@@ -32,7 +32,7 @@ public class CustomGameServiceImpl implements CustomGameService {
     long matchId = customGameAddResultRequest.getMatchId();
     String entriesString = customGameAddResultRequest.getEntries();
 
-    boolean existsByGameId = loLienMatchRepository.existsByGameId(matchId);
+    boolean existsByGameId = lolienMatchRepository.existsByGameId(matchId);
 
     if (existsByGameId) {
       throw new IllegalArgumentException("이미 등록된 리그 결과 입니다.");
@@ -50,60 +50,60 @@ public class CustomGameServiceImpl implements CustomGameService {
   @Transactional(readOnly = true)
   @Override
   public CustomGamesResponse getCustomGames() {
-    List<LoLienMatch> loLienMatches = loLienMatchRepository.findTop5AllByOrderByGameCreationDesc();
+    List<LolienMatch> lolienMatches = lolienMatchRepository.findTop5AllByOrderByGameCreationDesc();
 
     List<CustomGameResponse> customGames = Lists.newArrayList();
 
-    for (LoLienMatch loLienMatch : loLienMatches) {
-      int idx = loLienMatch.getIdx();
-      long gameCreation = loLienMatch.getGameCreation();
-      long gameDuration = loLienMatch.getGameDuration();
-      long gameId = loLienMatch.getGameId();
-      String gameMode = loLienMatch.getGameMode();
-      String gameType = loLienMatch.getGameType();
-      String gameVersion = loLienMatch.getGameVersion();
-      int mapId = loLienMatch.getMapId();
-      String platformId = loLienMatch.getPlatformId();
-      int queueId = loLienMatch.getQueueId();
-      int seasonId = loLienMatch.getSeasonId();
+    for (LolienMatch lolienMatch : lolienMatches) {
+      int idx = lolienMatch.getIdx();
+      long gameCreation = lolienMatch.getGameCreation();
+      long gameDuration = lolienMatch.getGameDuration();
+      long gameId = lolienMatch.getGameId();
+      String gameMode = lolienMatch.getGameMode();
+      String gameType = lolienMatch.getGameType();
+      String gameVersion = lolienMatch.getGameVersion();
+      int mapId = lolienMatch.getMapId();
+      String platformId = lolienMatch.getPlatformId();
+      int queueId = lolienMatch.getQueueId();
+      int seasonId = lolienMatch.getSeasonId();
 
-      Set<LoLienParticipant> participants = loLienMatch.getParticipants();
+      Set<LolienParticipant> participants = lolienMatch.getParticipants();
 
       List<CustomGameSummonerResponse> customGameSummonerResponses = Lists.newArrayList();
 
-      for (LoLienParticipant loLienParticipant : participants) {
-        LoLienSummoner loLienSummoner = loLienParticipant.getLoLienSummoner();
-        int spell1Id = loLienParticipant.getSpell1Id();
-        int spell2Id = loLienParticipant.getSpell2Id();
+      for (LolienParticipant lolienParticipant : participants) {
+        LolienSummoner lolienSummoner = lolienParticipant.getLolienSummoner();
+        int spell1Id = lolienParticipant.getSpell1Id();
+        int spell2Id = lolienParticipant.getSpell2Id();
 
-        int loLienSummonerIdx = loLienSummoner.getIdx();
-        String summonerName = loLienSummoner.getSummonerName();
+        int lolienSummonerIdx = lolienSummoner.getIdx();
+        String summonerName = lolienSummoner.getSummonerName();
 
-        int championId = loLienParticipant.getChampionId();
+        int championId = lolienParticipant.getChampionId();
 
-        LoLienParticipantStats loLienParticipantStats = loLienParticipant.getStats();
+        LolienParticipantStats lolienParticipantStats = lolienParticipant.getStats();
 
-        long totalDamageDealtToChampions = loLienParticipantStats.getTotalDamageDealtToChampions();
-        int wardsPlaced = loLienParticipantStats.getWardsPlaced();
+        long totalDamageDealtToChampions = lolienParticipantStats.getTotalDamageDealtToChampions();
+        int wardsPlaced = lolienParticipantStats.getWardsPlaced();
 
-        int kills = loLienParticipantStats.getKills();
-        int deaths = loLienParticipantStats.getDeaths();
-        int assists = loLienParticipantStats.getAssists();
+        int kills = lolienParticipantStats.getKills();
+        int deaths = lolienParticipantStats.getDeaths();
+        int assists = lolienParticipantStats.getAssists();
 
-        int champLevel = loLienParticipantStats.getChampLevel();
-        int totalMinionsKilled = loLienParticipantStats.getTotalMinionsKilled();
+        int champLevel = lolienParticipantStats.getChampLevel();
+        int totalMinionsKilled = lolienParticipantStats.getTotalMinionsKilled();
 
-        int item0 = loLienParticipantStats.getItem0();
-        int item1 = loLienParticipantStats.getItem1();
-        int item2 = loLienParticipantStats.getItem2();
-        int item3 = loLienParticipantStats.getItem3();
-        int item4 = loLienParticipantStats.getItem4();
-        int item5 = loLienParticipantStats.getItem5();
-        int item6 = loLienParticipantStats.getItem6();
+        int item0 = lolienParticipantStats.getItem0();
+        int item1 = lolienParticipantStats.getItem1();
+        int item2 = lolienParticipantStats.getItem2();
+        int item3 = lolienParticipantStats.getItem3();
+        int item4 = lolienParticipantStats.getItem4();
+        int item5 = lolienParticipantStats.getItem5();
+        int item6 = lolienParticipantStats.getItem6();
 
         CustomGameSummonerResponse customGameSummonerResponse = CustomGameSummonerResponse
             .builder()
-            .idx(loLienSummonerIdx)
+            .idx(lolienSummonerIdx)
             .summonerName(summonerName)
             .championId(championId)
             .totalDamageDealtToChampions(totalDamageDealtToChampions)

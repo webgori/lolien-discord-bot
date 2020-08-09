@@ -9,9 +9,9 @@ import java.util.stream.Collectors;
 import kr.webgori.lolien.discord.bot.component.ConfigComponent;
 import kr.webgori.lolien.discord.bot.component.SummonerComponent;
 import kr.webgori.lolien.discord.bot.entity.League;
-import kr.webgori.lolien.discord.bot.entity.LoLienSummoner;
+import kr.webgori.lolien.discord.bot.entity.LolienSummoner;
 import kr.webgori.lolien.discord.bot.repository.LeagueRepository;
-import kr.webgori.lolien.discord.bot.repository.LoLienSummonerRepository;
+import kr.webgori.lolien.discord.bot.repository.LolienSummonerRepository;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.rithms.riot.api.ApiConfig;
@@ -37,7 +37,7 @@ class UpdateTierJob implements Job {
   private RedisTemplate<String, Object> redisTemplate;
 
   @Autowired
-  private LoLienSummonerRepository loLienSummonerRepository;
+  private LolienSummonerRepository lolienSummonerRepository;
 
   @Autowired
   private LeagueRepository leagueRepository;
@@ -47,7 +47,7 @@ class UpdateTierJob implements Job {
     String currentSeason = SummonerComponent.getCurrentSeason();
 
     SetOperations<String, Object> setOperations = redisTemplate.opsForSet();
-    long summonersCount = loLienSummonerRepository.count();
+    long summonersCount = lolienSummonerRepository.count();
 
     Set<Object> members = Optional
         .ofNullable(setOperations.members(REDIS_UPDATE_TIERS_KEY))
@@ -58,54 +58,54 @@ class UpdateTierJob implements Job {
       redisTemplate.delete(REDIS_UPDATE_TIERS_KEY);
     }
 
-    List<LoLienSummoner> summoners;
+    List<LolienSummoner> summoners;
 
     if (members.isEmpty()) {
-      summoners = loLienSummonerRepository.findTop5By();
+      summoners = lolienSummonerRepository.findTop5By();
     } else {
       Set<Integer> memberIdxSet = members
           .stream()
           .map(idx -> Integer.parseInt((String) idx))
           .collect(Collectors.toSet());
-      summoners = loLienSummonerRepository.findTop5ByIdxNotIn(memberIdxSet);
+      summoners = lolienSummonerRepository.findTop5ByIdxNotIn(memberIdxSet);
     }
 
     String riotApiKey = ConfigComponent.getRiotApiKey();
     ApiConfig config = new ApiConfig().setKey(riotApiKey);
     RiotApi riotApi = new RiotApi(config);
 
-    for (LoLienSummoner loLienSummoner : summoners) {
-      int summonerIdx = loLienSummoner.getIdx();
+    for (LolienSummoner lolienSummoner : summoners) {
+      int summonerIdx = lolienSummoner.getIdx();
       setOperations.add(REDIS_UPDATE_TIERS_KEY, String.valueOf(summonerIdx));
 
-      String accountId = loLienSummoner.getAccountId();
+      String accountId = lolienSummoner.getAccountId();
 
       try {
         Summoner summoner = riotApi.getSummonerByAccount(Platform.KR, accountId);
 
-        int summonerLevel = loLienSummoner.getSummonerLevel();
+        int summonerLevel = lolienSummoner.getSummonerLevel();
         int summonerLevelApi = summoner.getSummonerLevel();
 
         if (summonerLevel != summonerLevelApi) {
-          loLienSummoner.setSummonerLevel(summonerLevelApi);
+          lolienSummoner.setSummonerLevel(summonerLevelApi);
         }
 
-        String summonerName = loLienSummoner.getSummonerName();
+        String summonerName = lolienSummoner.getSummonerName();
         String summonerNameApi = summoner.getName().replaceAll("\\s+", "");
 
         if (!summonerName.equals(summonerNameApi)) {
-          loLienSummoner.setSummonerName(summonerNameApi);
+          lolienSummoner.setSummonerName(summonerNameApi);
         }
 
-        loLienSummonerRepository.save(loLienSummoner);
+        lolienSummonerRepository.save(lolienSummoner);
 
-        String summonerId = loLienSummoner.getId();
+        String summonerId = lolienSummoner.getId();
 
         Set<LeagueEntry> leagueEntrySet = riotApi
             .getLeagueEntriesBySummonerId(Platform.KR, summonerId);
 
         List<LeagueEntry> leagueEntries = Lists.newArrayList(leagueEntrySet);
-        List<League> leagues = loLienSummoner.getLeagues();
+        List<League> leagues = lolienSummoner.getLeagues();
 
         for (League league : leagues) {
           String season = league.getSeason();

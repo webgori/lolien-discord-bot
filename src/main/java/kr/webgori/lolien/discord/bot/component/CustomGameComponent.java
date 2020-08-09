@@ -1,14 +1,13 @@
 package kr.webgori.lolien.discord.bot.component;
 
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.getMatch;
-import static kr.webgori.lolien.discord.bot.util.CommonUtil.objectToJsonString;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.sendErrorMessage;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.sendMessage;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.gson.Gson;
 import java.awt.Color;
 import java.text.DecimalFormat;
 import java.time.Duration;
@@ -20,20 +19,22 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import kr.webgori.lolien.discord.bot.entity.LoLienMatch;
-import kr.webgori.lolien.discord.bot.entity.LoLienParticipant;
-import kr.webgori.lolien.discord.bot.entity.LoLienParticipantStats;
-import kr.webgori.lolien.discord.bot.entity.LoLienSummoner;
-import kr.webgori.lolien.discord.bot.entity.LoLienTeamBans;
-import kr.webgori.lolien.discord.bot.entity.LoLienTeamStats;
-import kr.webgori.lolien.discord.bot.repository.LoLienMatchRepository;
-import kr.webgori.lolien.discord.bot.repository.LoLienParticipantRepository;
-import kr.webgori.lolien.discord.bot.repository.LoLienSummonerRepository;
-import kr.webgori.lolien.discord.bot.spring.LinkedIntegerLongHashMapTypeToken;
+import kr.webgori.lolien.discord.bot.dto.SummonerMostChampDto;
+import kr.webgori.lolien.discord.bot.dto.SummonerMostChampsDto;
+import kr.webgori.lolien.discord.bot.entity.LolienMatch;
+import kr.webgori.lolien.discord.bot.entity.LolienParticipant;
+import kr.webgori.lolien.discord.bot.entity.LolienParticipantStats;
+import kr.webgori.lolien.discord.bot.entity.LolienSummoner;
+import kr.webgori.lolien.discord.bot.entity.LolienTeamBans;
+import kr.webgori.lolien.discord.bot.entity.LolienTeamStats;
+import kr.webgori.lolien.discord.bot.repository.LolienMatchRepository;
+import kr.webgori.lolien.discord.bot.repository.LolienParticipantRepository;
+import kr.webgori.lolien.discord.bot.repository.LolienSummonerRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.core.entities.TextChannel;
@@ -44,8 +45,8 @@ import net.rithms.riot.api.endpoints.match.dto.ParticipantStats;
 import net.rithms.riot.api.endpoints.match.dto.TeamBans;
 import net.rithms.riot.api.endpoints.match.dto.TeamStats;
 import org.springframework.beans.BeanUtils;
-import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -55,13 +56,13 @@ public class CustomGameComponent {
   private static final String REDIS_MOST_CHAMPS_KEY = "lolien-discord-bot:most-champs";
   private static final int DEFAULT_MOST_CHAMP_COUNT = 3;
 
-  private final LoLienSummonerRepository loLienSummonerRepository;
-  private final LoLienMatchRepository loLienMatchRepository;
-  private final LoLienParticipantRepository loLienParticipantRepository;
+  private final LolienSummonerRepository lolienSummonerRepository;
+  private final LolienMatchRepository lolienMatchRepository;
+  private final LolienParticipantRepository lolienParticipantRepository;
   private final RedisTemplate<String, Object> redisTemplate;
-  private final Gson gson;
   private final ChampComponent champComponent;
   private final CommonComponent commonComponent;
+  private final ObjectMapper objectMapper;
 
   /**
    * execute.
@@ -96,19 +97,19 @@ public class CustomGameComponent {
               return;
             }
 
-            List<LoLienMatch> matches = loLienMatchRepository
+            List<LolienMatch> matches = lolienMatchRepository
                 .findTop5AllByOrderByGameCreationDesc();
 
             List<String> latestCustomGames = Lists.newArrayList();
 
-            for (LoLienMatch loLienMatch : matches) {
-              Long gameCreation = loLienMatch.getGameCreation();
+            for (LolienMatch lolienMatch : matches) {
+              Long gameCreation = lolienMatch.getGameCreation();
               ZoneId zone = ZoneId.systemDefault();
               DateTimeFormatter df = DateTimeFormatter
                   .ofPattern("yyyy-MM-dd HH:mm:ss").withZone(zone);
               String gameCreationDateTime = df.format(Instant.ofEpochMilli(gameCreation));
 
-              Long gameDuration = loLienMatch.getGameDuration();
+              Long gameDuration = lolienMatch.getGameDuration();
               Duration duration = Duration.ofSeconds(gameDuration);
               long hour = duration.toHours();
               long minute = duration.toMinutes();
@@ -117,16 +118,16 @@ public class CustomGameComponent {
                 minute = minute - hour * 60;
               }
 
-              Set<LoLienParticipant> participants = loLienMatch.getParticipants();
-              LoLienParticipant loLienParticipant = Collections
+              Set<LolienParticipant> participants = lolienMatch.getParticipants();
+              LolienParticipant lolienParticipant = Collections
                   .max(participants,
                       Comparator.comparing(s -> s.getStats()
                           .getTotalDamageDealtToChampions()));
 
-              LoLienSummoner loLienSummoner = loLienParticipant.getLoLienSummoner();
-              String summonerName = loLienSummoner.getSummonerName();
+              LolienSummoner lolienSummoner = lolienParticipant.getLolienSummoner();
+              String summonerName = lolienSummoner.getSummonerName();
 
-              LoLienParticipantStats stats = loLienParticipant.getStats();
+              LolienParticipantStats stats = lolienParticipant.getStats();
               Long totalDamageDealtToChampions = stats.getTotalDamageDealtToChampions();
               DecimalFormat decimalFormat = new DecimalFormat("###,###");
               String totalDamageToChampions = decimalFormat.format(totalDamageDealtToChampions);
@@ -175,14 +176,14 @@ public class CustomGameComponent {
               matchId = Long.parseLong(matcher.group());
             }
 
-            boolean existsByGameId = loLienMatchRepository.existsByGameId(matchId);
+            boolean existsByGameId = lolienMatchRepository.existsByGameId(matchId);
 
             if (!existsByGameId) {
               sendErrorMessage(textChannel, "내전 데이터가 존재하지 않습니다.", Color.RED);
               return;
             }
 
-            loLienMatchRepository.deleteByGameId(matchId);
+            lolienMatchRepository.deleteByGameId(matchId);
             break;
           }
           default:
@@ -191,9 +192,9 @@ public class CustomGameComponent {
       case "참여횟수":
         if (commands.size() == 2) {
           Map<String, Integer> top5OfCustomGamePlayCountMaps = Maps.newLinkedHashMap();
-          List<LoLienParticipant> participants = loLienParticipantRepository.findAll();
-          for (LoLienParticipant participant : participants) {
-            String summonerName = participant.getLoLienSummoner().getSummonerName();
+          List<LolienParticipant> participants = lolienParticipantRepository.findAll();
+          for (LolienParticipant participant : participants) {
+            String summonerName = participant.getLolienSummoner().getSummonerName();
             if (top5OfCustomGamePlayCountMaps.containsKey(summonerName)) {
               Integer customGamePlayCount = top5OfCustomGamePlayCountMaps.get(summonerName);
               top5OfCustomGamePlayCountMaps.put(summonerName, customGamePlayCount + 1);
@@ -234,7 +235,7 @@ public class CustomGameComponent {
           List<String> summonerNameList = Lists.newArrayList(summonerNames.split(","));
 
           for (String summonerName : summonerNameList) {
-            boolean existsSummonerName = loLienSummonerRepository
+            boolean existsSummonerName = lolienSummonerRepository
                 .existsBySummonerName(summonerName);
 
             if (!existsSummonerName) {
@@ -243,8 +244,8 @@ public class CustomGameComponent {
               continue;
             }
 
-            int customGamePlayCount = loLienParticipantRepository
-                .findByLoLienSummonerSummonerName(summonerName).size();
+            int customGamePlayCount = lolienParticipantRepository
+                .findByLolienSummonerSummonerName(summonerName).size();
             String message = String.format("%s (%s회)", summonerName, customGamePlayCount);
             sendMessage(textChannel, message);
           }
@@ -262,16 +263,17 @@ public class CustomGameComponent {
           return;
         }
 
-        LinkedHashMap<Integer, Long> mostChampions = getMostChamp(summonerName);
+        SummonerMostChampsDto mostChampsDto = getMostChamp(summonerName);
+        List<SummonerMostChampDto> mostChampDtoList = mostChampsDto.getMostChamps();
         List<String> mostChampionsList = Lists.newArrayList();
 
-        for (Map.Entry<Integer, Long> mostChampion : mostChampions.entrySet()) {
-          int champId = mostChampion.getKey();
+        for (SummonerMostChampDto mostChamp : mostChampDtoList) {
+          int champId = mostChamp.getChampionId();
           String championName = champComponent.getChampionNameByChampId(champId);
 
-          Long count = mostChampion.getValue();
-          List<LoLienParticipant> champs = loLienParticipantRepository
-              .findByLoLienSummonerSummonerNameAndChampionId(summonerName, champId);
+          long count = mostChamp.getCount();
+          List<LolienParticipant> champs = lolienParticipantRepository
+              .findByLolienSummonerSummonerNameAndChampionId(summonerName, champId);
 
           long wins = champs
               .stream()
@@ -303,15 +305,15 @@ public class CustomGameComponent {
         break;
       case "MMR":
         if (commands.size() == 2) {
-          List<LoLienSummoner> top5ByOrderByMmrDesc = loLienSummonerRepository
+          List<LolienSummoner> top5ByOrderByMmrDesc = lolienSummonerRepository
               .findTop5ByOrderByMmrDesc();
 
           StringBuilder messageBuilder = new StringBuilder();
 
           for (int i = 0; i < top5ByOrderByMmrDesc.size(); i++) {
-            LoLienSummoner loLienSummoner = top5ByOrderByMmrDesc.get(i);
-            summonerName = loLienSummoner.getSummonerName();
-            int mmr = loLienSummoner.getMmr();
+            LolienSummoner lolienSummoner = top5ByOrderByMmrDesc.get(i);
+            summonerName = lolienSummoner.getSummonerName();
+            int mmr = lolienSummoner.getMmr();
 
             String message = String.format("%d. %s (%s)", i + 1, summonerName, mmr);
 
@@ -332,7 +334,7 @@ public class CustomGameComponent {
             return;
           }
 
-          LoLienSummoner bySummonerName = loLienSummonerRepository.findBySummonerName(summonerName);
+          LolienSummoner bySummonerName = lolienSummonerRepository.findBySummonerName(summonerName);
           commonComponent.checkExistsMmr(bySummonerName);
           int mmr = bySummonerName.getMmr();
           String message = String.format("%s님의 내전 MMR은 %s 입니다.", summonerName, mmr);
@@ -346,7 +348,7 @@ public class CustomGameComponent {
   }
 
   private boolean checkSummonerName(TextChannel textChannel, String summonerName) {
-    boolean existsSummonerName = loLienSummonerRepository.existsBySummonerName(summonerName);
+    boolean existsSummonerName = lolienSummonerRepository.existsBySummonerName(summonerName);
 
     if (!existsSummonerName) {
       String errorMessage = String.format("%s 소환사가 존재하지 않습니다.", summonerName);
@@ -365,7 +367,7 @@ public class CustomGameComponent {
   public void addResult(long matchId, String[] entries) {
     for (String summonerName : entries) {
       String nonSpaceSummonerName = summonerName.replaceAll("\\s+", "");
-      boolean hasSummonerName = loLienSummonerRepository.existsBySummonerName(nonSpaceSummonerName);
+      boolean hasSummonerName = lolienSummonerRepository.existsBySummonerName(nonSpaceSummonerName);
 
       if (!hasSummonerName) {
         String errorMessage = String.format(
@@ -378,16 +380,16 @@ public class CustomGameComponent {
 
     Match match = getMatch(matchId);
 
-    Set<LoLienParticipant> loLienParticipantSet = Sets.newHashSet();
-    Set<LoLienTeamStats> loLienTeamStatsSet = Sets.newHashSet();
+    Set<LolienParticipant> lolienParticipantSet = Sets.newHashSet();
+    Set<LolienTeamStats> lolienTeamStatsSet = Sets.newHashSet();
 
-    LoLienMatch loLienMatch = LoLienMatch
+    LolienMatch lolienMatch = LolienMatch
         .builder()
-        .participants(loLienParticipantSet)
-        .teams(loLienTeamStatsSet)
+        .participants(lolienParticipantSet)
+        .teams(lolienTeamStatsSet)
         .build();
 
-    BeanUtils.copyProperties(match, loLienMatch);
+    BeanUtils.copyProperties(match, lolienMatch);
 
     List<Participant> participants = match.getParticipants();
 
@@ -395,39 +397,39 @@ public class CustomGameComponent {
       Participant participant = participants.get(i);
       ParticipantStats stats = participant.getStats();
 
-      LoLienParticipantStats loLienParticipantStats = LoLienParticipantStats
+      LolienParticipantStats lolienParticipantStats = LolienParticipantStats
           .builder()
           .build();
 
-      BeanUtils.copyProperties(stats, loLienParticipantStats);
+      BeanUtils.copyProperties(stats, lolienParticipantStats);
 
       String summonerName = entries[i];
       String nonSpaceSummonerName = summonerName.replaceAll("\\s+", "");
-      LoLienSummoner bySummonerName = loLienSummonerRepository
+      LolienSummoner bySummonerName = lolienSummonerRepository
           .findBySummonerName(nonSpaceSummonerName);
 
-      LoLienParticipant loLienParticipant = LoLienParticipant
+      LolienParticipant lolienParticipant = LolienParticipant
           .builder()
-          .match(loLienMatch)
-          .loLienSummoner(bySummonerName)
-          .stats(loLienParticipantStats)
+          .match(lolienMatch)
+          .lolienSummoner(bySummonerName)
+          .stats(lolienParticipantStats)
           .build();
 
-      BeanUtils.copyProperties(participant, loLienParticipant);
+      BeanUtils.copyProperties(participant, lolienParticipant);
 
-      loLienParticipantStats.setParticipant(loLienParticipant);
+      lolienParticipantStats.setParticipant(lolienParticipant);
 
-      loLienParticipantSet.add(loLienParticipant);
+      lolienParticipantSet.add(lolienParticipant);
     }
 
     List<TeamStats> teams = match.getTeams();
-    List<LoLienTeamBans> loLienTeamBansList = Lists.newArrayList();
+    List<LolienTeamBans> lolienTeamBansList = Lists.newArrayList();
 
     for (TeamStats teamStats : teams) {
-      LoLienTeamStats loLienTeamStats = LoLienTeamStats
+      LolienTeamStats lolienTeamStats = LolienTeamStats
           .builder()
-          .match(loLienMatch)
-          .bans(loLienTeamBansList)
+          .match(lolienMatch)
+          .bans(lolienTeamBansList)
           .build();
 
       List<TeamBans> bans = teamStats.getBans();
@@ -436,68 +438,72 @@ public class CustomGameComponent {
         int championId = teamBans.getChampionId();
         int pickTurn = teamBans.getPickTurn();
 
-        LoLienTeamBans loLienTeamBans = LoLienTeamBans
+        LolienTeamBans lolienTeamBans = LolienTeamBans
             .builder()
-            .teamStats(loLienTeamStats)
+            .teamStats(lolienTeamStats)
             .championId(championId)
             .pickTurn(pickTurn)
             .build();
 
-        loLienTeamBansList.add(loLienTeamBans);
+        lolienTeamBansList.add(lolienTeamBans);
       }
 
-      loLienTeamStatsSet.add(loLienTeamStats);
+      lolienTeamStatsSet.add(lolienTeamStats);
     }
 
-    loLienMatchRepository.save(loLienMatch);
+    lolienMatchRepository.save(lolienMatch);
 
-    addResultMmr(loLienMatch);
+    addResultMmr(lolienMatch);
 
     for (String summonerName : entries) {
-      HashOperations<String, Object, Object> opsForHash = redisTemplate.opsForHash();
+      ValueOperations<String, Object> opsForValue = redisTemplate.opsForValue();
+
       String nonSpaceSummonerName = summonerName.replaceAll("\\s+", "");
-      boolean hasHashKey = opsForHash.hasKey(REDIS_MOST_CHAMPS_KEY, summonerName);
-      if (hasHashKey) {
-        opsForHash.delete(REDIS_MOST_CHAMPS_KEY, nonSpaceSummonerName);
+      String key = String.format("%s:%s", REDIS_MOST_CHAMPS_KEY, nonSpaceSummonerName);
+      boolean hasKey = Optional.ofNullable(opsForValue.getOperations().hasKey(key)).orElse(false);
+
+      if (hasKey) {
+        opsForValue.getOperations().delete(key);
       }
+
       getMostChamp(nonSpaceSummonerName);
     }
   }
 
-  private void addResultMmr(LoLienMatch loLienMatch) {
-    Set<LoLienParticipant> participants = loLienMatch.getParticipants();
+  private void addResultMmr(LolienMatch lolienMatch) {
+    Set<LolienParticipant> participants = lolienMatch.getParticipants();
 
-    List<LoLienSummoner> team1Summoners = participants
+    List<LolienSummoner> team1Summoners = participants
         .stream()
         .filter(a -> a.getTeamId() == 100)
-        .map(LoLienParticipant::getLoLienSummoner)
+        .map(LolienParticipant::getLolienSummoner)
         .collect(Collectors.toList());
 
     double team1MmrAverage = team1Summoners
         .stream()
-        .mapToInt(LoLienSummoner::getMmr)
+        .mapToInt(LolienSummoner::getMmr)
         .average()
         .orElse(0);
 
-    List<LoLienSummoner> team2Summoners = participants
+    List<LolienSummoner> team2Summoners = participants
         .stream()
         .filter(a -> a.getTeamId() == 200)
-        .map(LoLienParticipant::getLoLienSummoner)
+        .map(LolienParticipant::getLolienSummoner)
         .collect(Collectors.toList());
 
     double team2MmrAverage = team2Summoners
         .stream()
-        .mapToInt(LoLienSummoner::getMmr)
+        .mapToInt(LolienSummoner::getMmr)
         .average()
         .orElse(0);
 
-    for (LoLienParticipant loLienParticipant : participants) {
-      LoLienParticipantStats stats = loLienParticipant.getStats();
-      Integer teamId = loLienParticipant.getTeamId();
+    for (LolienParticipant lolienParticipant : participants) {
+      LolienParticipantStats stats = lolienParticipant.getStats();
+      Integer teamId = lolienParticipant.getTeamId();
 
       Boolean win = stats.getWin();
-      LoLienSummoner loLienSummoner = loLienParticipant.getLoLienSummoner();
-      int mmr = loLienSummoner.getMmr();
+      LolienSummoner lolienSummoner = lolienParticipant.getLolienSummoner();
+      int mmr = lolienSummoner.getMmr();
 
       if (win) {
         int resultMmr = 0;
@@ -516,7 +522,7 @@ public class CustomGameComponent {
           }
         }
 
-        loLienSummoner.plusMmr(resultMmr);
+        lolienSummoner.plusMmr(resultMmr);
       } else {
         int resultMmr = 0;
 
@@ -534,43 +540,59 @@ public class CustomGameComponent {
           }
         }
 
-        loLienSummoner.minusMmr(resultMmr);
+        lolienSummoner.minusMmr(resultMmr);
       }
 
-      loLienSummonerRepository.save(loLienSummoner);
+      lolienSummonerRepository.save(lolienSummoner);
     }
   }
 
-  LinkedHashMap<Integer, Long> getMostChamp(String summonerName) {
-    HashOperations<String, Object, Object> opsForHash = redisTemplate.opsForHash();
-    boolean hasHashKey = opsForHash.hasKey(REDIS_MOST_CHAMPS_KEY, summonerName);
+  SummonerMostChampsDto getMostChamp(String summonerName) {
+    ValueOperations<String, Object> opsForValue = redisTemplate.opsForValue();
 
-    if (hasHashKey) {
-      String mostChampJson = (String) opsForHash.get(REDIS_MOST_CHAMPS_KEY, summonerName);
-      return gson.fromJson(mostChampJson, new LinkedIntegerLongHashMapTypeToken().getType());
+    String key = String.format("%s:%s", REDIS_MOST_CHAMPS_KEY, summonerName);
+    boolean hasKey = Optional.ofNullable(opsForValue.getOperations().hasKey(key)).orElse(false);
+
+    if (hasKey) {
+      Object obj = redisTemplate.opsForValue().get(key);
+      return objectMapper.convertValue(obj, SummonerMostChampsDto.class);
     } else {
-      List<LoLienParticipant> participants = loLienParticipantRepository
-          .findByLoLienSummonerSummonerName(summonerName);
+      List<LolienParticipant> participants = lolienParticipantRepository
+          .findByLolienSummonerSummonerName(summonerName);
 
-      LinkedHashMap<Integer, Long> mostChamps = participants
+      Map<Integer, Long> groupingByChampionId = participants
           .stream()
-          .collect(Collectors
-              .groupingBy(LoLienParticipant::getChampionId,
-                  Collectors.counting()))
-          .entrySet()
+          .collect(Collectors.groupingBy(LolienParticipant::getChampionId, Collectors.counting()));
+
+      List<SummonerMostChampDto> summonerMostChampDtoList = Lists.newArrayList();
+
+      for (Map.Entry<Integer, Long> groupingByMap : groupingByChampionId.entrySet()) {
+        int championId = groupingByMap.getKey();
+        long count = groupingByMap.getValue();
+
+        SummonerMostChampDto summonerMostChampDto = SummonerMostChampDto
+            .builder()
+            .championId(championId)
+            .count(count)
+            .build();
+
+        summonerMostChampDtoList.add(summonerMostChampDto);
+      }
+
+      summonerMostChampDtoList = summonerMostChampDtoList
           .stream()
-          .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+          .sorted(Comparator.comparing(SummonerMostChampDto::getCount).reversed())
           .limit(DEFAULT_MOST_CHAMP_COUNT)
-          .collect(
-              Collectors
-                  .toMap(Map.Entry::getKey,
-                      Map.Entry::getValue, (oldValue, newValue) -> oldValue,
-                      LinkedHashMap::new));
+          .collect(Collectors.toList());
 
-      String mostChampsJson = objectToJsonString(mostChamps);
-      opsForHash.put(REDIS_MOST_CHAMPS_KEY, summonerName, mostChampsJson);
+      SummonerMostChampsDto summonerMostChampsDto = SummonerMostChampsDto
+          .builder()
+          .mostChamps(summonerMostChampDtoList)
+          .build();
 
-      return mostChamps;
+      redisTemplate.opsForValue().set(key, summonerMostChampsDto);
+
+      return summonerMostChampsDto;
     }
   }
 

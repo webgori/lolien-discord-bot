@@ -15,9 +15,9 @@ import java.util.stream.Collectors;
 import kr.webgori.lolien.discord.bot.LolienDiscordBotApplication;
 import kr.webgori.lolien.discord.bot.component.ConfigComponent;
 import kr.webgori.lolien.discord.bot.entity.League;
-import kr.webgori.lolien.discord.bot.entity.LoLienSummoner;
+import kr.webgori.lolien.discord.bot.entity.LolienSummoner;
 import kr.webgori.lolien.discord.bot.repository.LeagueRepository;
-import kr.webgori.lolien.discord.bot.repository.LoLienSummonerRepository;
+import kr.webgori.lolien.discord.bot.repository.LolienSummonerRepository;
 import lombok.extern.slf4j.Slf4j;
 import net.rithms.riot.api.ApiConfig;
 import net.rithms.riot.api.RiotApi;
@@ -41,7 +41,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 @SpringBootTest(classes = LolienDiscordBotApplication.class)
 public class UnitTest {
   @Autowired
-  private LoLienSummonerRepository loLienSummonerRepository;
+  private LolienSummonerRepository lolienSummonerRepository;
 
   @Autowired
   private LeagueRepository leagueRepository;
@@ -76,10 +76,10 @@ public class UnitTest {
 
   @Test
   public void opGgTest() throws InterruptedException {
-    List<LoLienSummoner> all = loLienSummonerRepository.findAll();
+    List<LolienSummoner> all = lolienSummonerRepository.findAll();
 
-    for (LoLienSummoner loLienSummoner : all) {
-      String summonerName = loLienSummoner.getSummonerName();
+    for (LolienSummoner lolienSummoner : all) {
+      String summonerName = lolienSummoner.getSummonerName();
 
       Map<String, String> tiersFromOpGg = getTiersFromOpGg(summonerName);
 
@@ -89,7 +89,7 @@ public class UnitTest {
 
         League league = League
             .builder()
-            .loLienSummoner(loLienSummoner)
+            .lolienSummoner(lolienSummoner)
             .season(key)
             .tier(value)
             .build();

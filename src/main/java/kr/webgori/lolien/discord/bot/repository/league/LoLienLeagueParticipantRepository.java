@@ -1,15 +1,15 @@
 package kr.webgori.lolien.discord.bot.repository.league;
 
 import java.util.List;
-import kr.webgori.lolien.discord.bot.entity.LoLienParticipant;
-import kr.webgori.lolien.discord.bot.entity.league.LoLienLeagueParticipant;
+import kr.webgori.lolien.discord.bot.entity.LolienParticipant;
+import kr.webgori.lolien.discord.bot.entity.league.LolienLeagueParticipant;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface LoLienLeagueParticipantRepository
-    extends JpaRepository<LoLienLeagueParticipant, Integer> {
+public interface LolienLeagueParticipantRepository
+    extends JpaRepository<LolienLeagueParticipant, Integer> {
 
-  List<LoLienParticipant> findByLoLienSummonerSummonerName(String summonerName);
+  List<LolienParticipant> findByLolienSummonerSummonerName(String summonerName);
 
-  List<LoLienParticipant> findByLoLienSummonerSummonerNameAndChampionId(
+  List<LolienParticipant> findByLolienSummonerSummonerNameAndChampionId(
       String summonerName, int championId);
 }

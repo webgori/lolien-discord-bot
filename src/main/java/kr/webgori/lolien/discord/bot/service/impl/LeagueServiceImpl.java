@@ -4,9 +4,9 @@ import com.google.common.collect.Lists;
 import java.time.LocalDateTime;
 import java.util.List;
 import kr.webgori.lolien.discord.bot.component.LeagueComponent;
-import kr.webgori.lolien.discord.bot.entity.league.LoLienLeague;
-import kr.webgori.lolien.discord.bot.repository.league.LoLienLeagueMatchRepository;
-import kr.webgori.lolien.discord.bot.repository.league.LoLienLeagueRepository;
+import kr.webgori.lolien.discord.bot.entity.league.LolienLeague;
+import kr.webgori.lolien.discord.bot.repository.league.LolienLeagueMatchRepository;
+import kr.webgori.lolien.discord.bot.repository.league.LolienLeagueRepository;
 import kr.webgori.lolien.discord.bot.request.LeagueAddRequest;
 import kr.webgori.lolien.discord.bot.request.LeagueAddResultRequest;
 import kr.webgori.lolien.discord.bot.response.LeagueGetLeagueResponse;
@@ -21,20 +21,20 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Service
 public class LeagueServiceImpl implements LeagueService {
-  private final LoLienLeagueRepository loLienLeagueRepository;
+  private final LolienLeagueRepository lolienLeagueRepository;
   private final LeagueComponent leagueComponent;
-  private final LoLienLeagueMatchRepository loLienLeagueMatchRepository;
+  private final LolienLeagueMatchRepository lolienLeagueMatchRepository;
 
   @Transactional(readOnly = true)
   @Override
   public LeagueGetLeaguesResponse getLeagues() {
-    List<LoLienLeague> loLienLeagues = loLienLeagueRepository.findAll();
+    List<LolienLeague> lolienLeagues = lolienLeagueRepository.findAll();
     List<LeagueGetLeagueResponse> leagues = Lists.newArrayList();
 
-    for (LoLienLeague loLienLeague : loLienLeagues) {
-      int idx = loLienLeague.getIdx();
-      String title = loLienLeague.getTitle();
-      LocalDateTime createdDate = loLienLeague.getCreatedDate();
+    for (LolienLeague lolienLeague : lolienLeagues) {
+      int idx = lolienLeague.getIdx();
+      String title = lolienLeague.getTitle();
+      LocalDateTime createdDate = lolienLeague.getCreatedDate();
 
       LeagueGetLeagueResponse leagueGetLeagueResponse = LeagueGetLeagueResponse
           .builder()
@@ -53,8 +53,8 @@ public class LeagueServiceImpl implements LeagueService {
   @Override
   public void addLeague(LeagueAddRequest leagueAddRequest) {
     String title = leagueAddRequest.getTitle();
-    LoLienLeague loLienLeague = LoLienLeague.builder().title(title).build();
-    loLienLeagueRepository.save(loLienLeague);
+    LolienLeague lolienLeague = LolienLeague.builder().title(title).build();
+    lolienLeagueRepository.save(lolienLeague);
   }
 
   @Transactional
@@ -62,7 +62,7 @@ public class LeagueServiceImpl implements LeagueService {
   public void addLeagueResult(LeagueAddResultRequest leagueAddResultRequest) {
     long matchId = leagueAddResultRequest.getMatchId();
 
-    boolean existsByGameId = loLienLeagueMatchRepository.existsByGameId(matchId);
+    boolean existsByGameId = lolienLeagueMatchRepository.existsByGameId(matchId);
 
     if (existsByGameId) {
       throw new IllegalArgumentException("이미 등록된 리그 결과 입니다.");

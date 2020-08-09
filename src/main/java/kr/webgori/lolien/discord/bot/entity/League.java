@@ -32,5 +32,5 @@ public class League {
 
   @ManyToOne
   @JoinColumn(name = "summoner_idx", nullable = false)
-  private LoLienSummoner loLienSummoner;
+  private LolienSummoner lolienSummoner;
 }

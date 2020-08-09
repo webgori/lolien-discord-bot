@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @Data
 @Entity
 @Table(name = "season_compensation")
-public class LoLienSeasonCompensation {
+public class LolienSeasonCompensation {
   @Id
   private String season;
 

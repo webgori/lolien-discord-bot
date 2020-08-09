@@ -21,7 +21,7 @@ public class HelpComponent {
   public void execute(MessageReceivedEvent event) {
     TextChannel textChannel = event.getTextChannel();
 
-    String commandDesc = "┌LoLienBot 도움말 입니다. 자세한 문의사항은 GitHub ( https://github.com/webgori/spring-discord-bot ) 이슈 등록 부탁드립니다.";
+    String commandDesc = "┌LolienBot 도움말 입니다. 자세한 문의사항은 GitHub ( https://github.com/webgori/spring-discord-bot ) 이슈 등록 부탁드립니다.";
     String summonerCommand = "├!소환사 등록 소환사명: 소환사를 Database에 등록합니다.";
     String teamGenerateCommand = "├!팀구성 밸런스 소환사명1, 소환사명2, 소환사명3 ...: 내전 팀 구성시 평균 티어를 맞추어 팀을 구성합니다.";
     String customGameCommand1 = "├!내전 결과 조회: 최근 5개의 내전 이력을 보여줍니다.";

@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @Data
 @Entity
 @Table(name = "tier_score")
-public class LoLienTierScore {
+public class LolienTierScore {
   @Id
   private String tier;
 

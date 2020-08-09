@@ -39,3 +39,6 @@ management:
   endpoint:
     health:
       show-details: always
+
+clien:
+  url: https://www.clien.net/service/

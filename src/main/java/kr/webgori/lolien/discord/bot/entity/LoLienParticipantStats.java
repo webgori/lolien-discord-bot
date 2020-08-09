@@ -22,13 +22,13 @@ import lombok.ToString;
 @Table(name = "participant_stats")
 @ToString(exclude = {"participant"})
 @EqualsAndHashCode(exclude = {"participant"})
-public class LoLienParticipantStats {
+public class LolienParticipantStats {
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Integer idx;
 
   @OneToOne
-  private LoLienParticipant participant;
+  private LolienParticipant participant;
 
   @Column(name = "altars_captured")
   private Integer altarsCaptured;

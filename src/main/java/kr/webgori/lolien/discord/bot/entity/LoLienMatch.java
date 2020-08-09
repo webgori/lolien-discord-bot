@@ -25,7 +25,7 @@ import lombok.ToString;
 @Table(name = "`match`")
 @ToString(exclude = {"participants", "teams"})
 @EqualsAndHashCode(exclude = {"teams", "participants"})
-public class LoLienMatch {
+public class LolienMatch {
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Integer idx;
@@ -46,7 +46,7 @@ public class LoLienMatch {
   private Integer mapId;
 
   @OneToMany(mappedBy = "match", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-  private Set<LoLienParticipant> participants;
+  private Set<LolienParticipant> participants;
 
   @Column(name = "platform_id")
   private String platformId;
@@ -56,5 +56,5 @@ public class LoLienMatch {
   private Integer seasonId;
 
   @OneToMany(mappedBy = "match", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-  private Set<LoLienTeamStats> teams;
+  private Set<LolienTeamStats> teams;
 }

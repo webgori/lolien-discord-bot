@@ -21,11 +21,13 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import kr.webgori.lolien.discord.bot.config.JdaConfig;
-import kr.webgori.lolien.discord.bot.dto.LoLienGenerateTeamDto;
+import kr.webgori.lolien.discord.bot.dto.LolienGenerateTeamDto;
+import kr.webgori.lolien.discord.bot.dto.SummonerMostChampDto;
+import kr.webgori.lolien.discord.bot.dto.SummonerMostChampsDto;
 import kr.webgori.lolien.discord.bot.entity.League;
-import kr.webgori.lolien.discord.bot.entity.LoLienSummoner;
+import kr.webgori.lolien.discord.bot.entity.LolienSummoner;
 import kr.webgori.lolien.discord.bot.repository.LeagueRepository;
-import kr.webgori.lolien.discord.bot.repository.LoLienSummonerRepository;
+import kr.webgori.lolien.discord.bot.repository.LolienSummonerRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.core.entities.TextChannel;
@@ -61,7 +63,7 @@ public class TeamGenerateComponent {
   private static final Long LOLIEN_DISCORD_BOT_CUSTOM_GAME_GENERATE_TEAM_CHANNEL_ID
       = 564816760059068445L;
 
-  private final LoLienSummonerRepository loLienSummonerRepository;
+  private final LolienSummonerRepository lolienSummonerRepository;
   private final LeagueRepository leagueRepository;
   private final CustomGameComponent customGameComponent;
   private final RedisTemplate<String, Object> redisTemplate;
@@ -106,7 +108,7 @@ public class TeamGenerateComponent {
     String discordNickname = event.getMember().getEffectiveName();
     String nonSpaceDiscordNickname = discordNickname.replaceAll("\\s+", "");
 
-    boolean existsSummoner = loLienSummonerRepository.existsBySummonerName(nonSpaceDiscordNickname);
+    boolean existsSummoner = lolienSummonerRepository.existsBySummonerName(nonSpaceDiscordNickname);
 
     if (!existsSummoner) {
       sendErrorMessage(textChannel,
@@ -117,13 +119,13 @@ public class TeamGenerateComponent {
 
     List<String> entryList = stringArrayToStringList(entries);
 
-    LoLienGenerateTeamDto loLienGenerateTeamDto = getLoLienGenerateTeamDto(textChannel, entryList);
-    String message = getTeamGenerateMessage(loLienGenerateTeamDto);
+    LolienGenerateTeamDto lolienGenerateTeamDto = getLolienGenerateTeamDto(textChannel, entryList);
+    String message = getTeamGenerateMessage(lolienGenerateTeamDto);
 
-    LoLienSummoner loLienSummoner = loLienSummonerRepository
+    LolienSummoner lolienSummoner = lolienSummonerRepository
         .findBySummonerName(nonSpaceDiscordNickname);
 
-    String id = loLienSummoner.getId();
+    String id = lolienSummoner.getId();
 
     HashOperations<String, Object, String> hashOperations = redisTemplate.opsForHash();
     LocalDateTime now = LocalDateTime.now();
@@ -134,28 +136,28 @@ public class TeamGenerateComponent {
     sendMessage(textChannel, message);
   }
 
-  private LoLienGenerateTeamDto getLoLienGenerateTeamDto(TextChannel textChannel,
+  private LolienGenerateTeamDto getLolienGenerateTeamDto(TextChannel textChannel,
                                                          List<String> entryList) {
-    List<LoLienGenerateTeamDto> loLienGenerateTeamDtoList = Lists.newArrayList();
+    List<LolienGenerateTeamDto> lolienGenerateTeamDtoList = Lists.newArrayList();
 
     for (int i = 0; i < 50; i++) {
       Collections.shuffle(entryList);
 
-      List<LoLienSummoner> team1 = Lists.newArrayList();
-      List<LoLienSummoner> team2 = Lists.newArrayList();
+      List<LolienSummoner> team1 = Lists.newArrayList();
+      List<LolienSummoner> team2 = Lists.newArrayList();
 
       for (String summonerName : entryList) {
         checkSummonerRegister(textChannel, summonerName);
 
-        LoLienSummoner loLienSummoner = loLienSummonerRepository.findBySummonerName(summonerName);
+        LolienSummoner lolienSummoner = lolienSummonerRepository.findBySummonerName(summonerName);
 
-        checkCurrentSeasonTier(summonerName, loLienSummoner);
-        commonComponent.checkExistsMmr(loLienSummoner);
+        checkCurrentSeasonTier(summonerName, lolienSummoner);
+        commonComponent.checkExistsMmr(lolienSummoner);
 
         if (team1.size() < 5) {
-          team1.add(loLienSummoner);
+          team1.add(lolienSummoner);
         } else {
-          team2.add(loLienSummoner);
+          team2.add(lolienSummoner);
         }
       }
 
@@ -163,27 +165,27 @@ public class TeamGenerateComponent {
       int team2Mmr = getTeamMmr(team2);
       int mmrDifference = Math.abs(team1Mmr - team2Mmr);
 
-      LoLienGenerateTeamDto loLienGenerateTeamDto = LoLienGenerateTeamDto
+      LolienGenerateTeamDto lolienGenerateTeamDto = LolienGenerateTeamDto
           .builder()
           .summonersTeam1(team1)
           .summonersTeam2(team2)
           .mmrDifference(mmrDifference)
           .build();
 
-      loLienGenerateTeamDtoList.add(loLienGenerateTeamDto);
+      lolienGenerateTeamDtoList.add(lolienGenerateTeamDto);
     }
 
-    return loLienGenerateTeamDtoList
+    return lolienGenerateTeamDtoList
         .stream()
-        .min(Comparator.comparing(LoLienGenerateTeamDto::getMmrDifference))
+        .min(Comparator.comparing(LolienGenerateTeamDto::getMmrDifference))
         .orElseThrow(IllegalArgumentException::new);
   }
 
   @NotNull
-  private String getTeamGenerateMessage(LoLienGenerateTeamDto loLienGenerateTeamDto) {
+  private String getTeamGenerateMessage(LolienGenerateTeamDto lolienGenerateTeamDto) {
     StringBuilder message = new StringBuilder("1팀: ");
 
-    List<LoLienSummoner> summonersTeam1 = loLienGenerateTeamDto.getSummonersTeam1();
+    List<LolienSummoner> summonersTeam1 = lolienGenerateTeamDto.getSummonersTeam1();
 
     message = getTeamGenerateMessageByTeam(message, summonersTeam1);
 
@@ -191,15 +193,15 @@ public class TeamGenerateComponent {
 
     message.append("2팀: ");
 
-    List<LoLienSummoner> summonersTeam2 = loLienGenerateTeamDto.getSummonersTeam2();
+    List<LolienSummoner> summonersTeam2 = lolienGenerateTeamDto.getSummonersTeam2();
 
     return getTeamGenerateMessageByTeam(message, summonersTeam2).toString();
   }
 
   @NotNull
   private StringBuilder getTeamGenerateMessageByTeam(StringBuilder message,
-                                                     List<LoLienSummoner> summonersTeam2) {
-    for (LoLienSummoner summoner : summonersTeam2) {
+                                                     List<LolienSummoner> summonersTeam2) {
+    for (LolienSummoner summoner : summonersTeam2) {
       String summonerName = summoner.getSummonerName();
       message.append(summonerName);
 
@@ -223,7 +225,7 @@ public class TeamGenerateComponent {
 
     List<String> team2SummonerName = summonersTeam2
         .stream()
-        .map(LoLienSummoner::getSummonerName)
+        .map(LolienSummoner::getSummonerName)
         .collect(Collectors.toList());
 
     String team2SummonerMostTop3 = setTeamSummonerMostTop3(team2SummonerName);
@@ -231,16 +233,16 @@ public class TeamGenerateComponent {
     return message;
   }
 
-  private int getTeamMmr(List<LoLienSummoner> team1) {
+  private int getTeamMmr(List<LolienSummoner> team1) {
     return (int) team1
         .stream()
-        .mapToInt(LoLienSummoner::getMmr)
+        .mapToInt(LolienSummoner::getMmr)
         .average()
         .orElse(0);
   }
 
-  private void checkCurrentSeasonTier(String summonerName, LoLienSummoner loLienSummoner) {
-    boolean presentCurrentSeason = loLienSummoner
+  private void checkCurrentSeasonTier(String summonerName, LolienSummoner lolienSummoner) {
+    boolean presentCurrentSeason = lolienSummoner
         .getLeagues()
         .stream()
         .anyMatch(l -> l.getSeason().equals(CURRENT_SEASON));
@@ -250,7 +252,7 @@ public class TeamGenerateComponent {
 
       League league = League
           .builder()
-          .loLienSummoner(loLienSummoner)
+          .lolienSummoner(lolienSummoner)
           .season(CURRENT_SEASON)
           .tier(tier)
           .build();
@@ -260,7 +262,7 @@ public class TeamGenerateComponent {
   }
 
   private void checkSummonerRegister(TextChannel textChannel, String summonerName) {
-    boolean hasSummonerName = loLienSummonerRepository.existsBySummonerName(summonerName);
+    boolean hasSummonerName = lolienSummonerRepository.existsBySummonerName(summonerName);
 
     if (!hasSummonerName) {
       String errorMessage = String
@@ -275,11 +277,12 @@ public class TeamGenerateComponent {
     StringBuilder stringBuilder = new StringBuilder();
 
     for (String summoner : entryList) {
-      LinkedHashMap<Integer, Long> mostChampions = customGameComponent.getMostChamp(summoner);
+      SummonerMostChampsDto mostChampsDto = customGameComponent.getMostChamp(summoner);
+      List<SummonerMostChampDto> mostChampDtoList = mostChampsDto.getMostChamps();
       List<String> mostChampionsList = Lists.newArrayList();
 
-      for (Map.Entry<Integer, Long> mostChampion : mostChampions.entrySet()) {
-        int champId = mostChampion.getKey();
+      for (SummonerMostChampDto mostChampDto : mostChampDtoList) {
+        int champId = mostChampDto.getChampionId();
         String championName = champComponent.getChampionNameByChampId(champId);
         mostChampionsList.add(championName);
       }
@@ -364,7 +367,7 @@ public class TeamGenerateComponent {
                         .map(c -> c.getSummonerName().replaceAll("\\s+", ""))
                         .collect(Collectors.toList());
 
-                    long existsTotalSummonerCount = loLienSummonerRepository
+                    long existsTotalSummonerCount = lolienSummonerRepository
                         .countByIdIn(summonerIds);
 
                     // 소환사 등록한 사용자가 6명 이상이면 (내전이면)
@@ -390,7 +393,7 @@ public class TeamGenerateComponent {
                             .getTextChannelById(
                                 LOLIEN_DISCORD_BOT_CUSTOM_GAME_GENERATE_TEAM_CHANNEL_ID);
 
-                        String message = "LoLien 내전이 시작되었습니다.";
+                        String message = "Lolien 내전이 시작되었습니다.";
                         sendMessage(textChannel, message);
                       }
                     }
@@ -452,11 +455,11 @@ public class TeamGenerateComponent {
     }
   }
 
-  private League getMostTierInLatest3Month(LoLienSummoner loLienSummoner) {
+  private League getMostTierInLatest3Month(LolienSummoner lolienSummoner) {
     Map<String, Integer> tiers = getTiers();
 
     return leagueRepository
-        .findByLoLienSummoner(loLienSummoner)
+        .findByLolienSummoner(lolienSummoner)
         .stream()
         .filter(l -> l.getSeason().equals("S08") || l.getSeason().equals("S09")
             || l.getSeason().equals("S10"))

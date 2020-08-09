@@ -1,9 +1,18 @@
 package kr.webgori.lolien.discord.bot.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import kr.webgori.lolien.discord.bot.spring.CustomLocalDateTimeDeserializer;
+import kr.webgori.lolien.discord.bot.spring.CustomLocalDateTimeSerializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -12,6 +21,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class RootConfig {
   /**
    * webMvcConfigurer.
+   *
    * @return webMvcConfigurer
    */
   @Bean
@@ -31,6 +41,7 @@ public class RootConfig {
 
   /**
    * restTemplate.
+   *
    * @return RestTemplate
    */
   @Bean
@@ -39,5 +50,18 @@ public class RootConfig {
     restTemplate.getMessageConverters()
         .add(0, new StringHttpMessageConverter(StandardCharsets.UTF_8));
     return restTemplate;
+  }
+
+  @Bean
+  public ObjectMapper objectMapper() {
+    JavaTimeModule javaTimeModule = new JavaTimeModule();
+    javaTimeModule.addSerializer(LocalDateTime.class, new CustomLocalDateTimeSerializer());
+    javaTimeModule.addDeserializer(LocalDateTime.class, new CustomLocalDateTimeDeserializer());
+
+    return Jackson2ObjectMapperBuilder
+        .json()
+        .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+        .modules(javaTimeModule, new Jdk8Module())
+        .build();
   }
 }

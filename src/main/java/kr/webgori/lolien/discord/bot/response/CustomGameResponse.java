@@ -9,8 +9,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
-import kr.webgori.lolien.discord.bot.entity.LoLienParticipant;
-import kr.webgori.lolien.discord.bot.entity.LoLienTeamStats;
+import kr.webgori.lolien.discord.bot.entity.LolienParticipant;
+import kr.webgori.lolien.discord.bot.entity.LolienTeamStats;
 import lombok.Builder;
 import lombok.Data;
 

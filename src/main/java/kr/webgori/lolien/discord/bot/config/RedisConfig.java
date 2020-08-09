@@ -1,5 +1,6 @@
 package kr.webgori.lolien.discord.bot.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Optional;
 import kr.webgori.lolien.discord.bot.component.ConfigComponent;
 import lombok.RequiredArgsConstructor;
@@ -11,12 +12,14 @@ import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @RequiredArgsConstructor
 @Configuration
 public class RedisConfig {
   private final ConfigComponent configComponent;
+  private final ObjectMapper objectMapper;
 
   @Value("${spring.redis.port}")
   private int port;
@@ -56,7 +59,7 @@ public class RedisConfig {
   public RedisTemplate<String, Object> redisTemplate() {
     RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
     redisTemplate.setKeySerializer(new StringRedisSerializer());
-    redisTemplate.setValueSerializer(new StringRedisSerializer());
+    redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer(objectMapper));
     redisTemplate.setHashKeySerializer(new StringRedisSerializer());
     redisTemplate.setHashValueSerializer(new StringRedisSerializer());
     redisTemplate.setConnectionFactory(redisConnectionFactory());

@@ -25,17 +25,17 @@ import lombok.ToString;
 @Entity
 @Table(name = "team_stats")
 @ToString(exclude = {"match", "bans"})
-public class LoLienTeamStats {
+public class LolienTeamStats {
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Integer idx;
 
   @ManyToOne
   @JoinColumn(name = "match_idx", nullable = false)
-  private LoLienMatch match;
+  private LolienMatch match;
 
   @OneToMany(mappedBy = "teamStats", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-  private List<LoLienTeamBans> bans;
+  private List<LolienTeamBans> bans;
 
   @Column(name = "baron_kills")
   private Integer baronKills;
