@@ -48,15 +48,15 @@ public class AuthenticationTokenImpl extends AbstractAuthenticationToken {
     return "";
   }
 
-  /**
-   * getPrincipal.
-   * @return clien id
-   */
   @Override
   public Object getPrincipal() {
     return username;
   }
 
+  /**
+   * getHash.
+   * @return hash
+   */
   public String getHash() {
     SessionUserDto sessionUserDto = (SessionUserDto) getDetails();
     LocalDateTime createdAt = sessionUserDto.getCreatedAt();
