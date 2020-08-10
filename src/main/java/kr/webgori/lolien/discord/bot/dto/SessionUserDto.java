@@ -17,6 +17,10 @@ public class SessionUserDto {
   private String password;
   private LocalDateTime createdAt;
 
+  /**
+   * hasExpired.
+   * @return hasExpired
+   */
   public boolean hasExpired() {
     if (Objects.isNull(createdAt)) {
       return true;

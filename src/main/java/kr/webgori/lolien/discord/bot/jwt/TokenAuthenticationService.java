@@ -161,6 +161,11 @@ public class TokenAuthenticationService {
     return null;
   }
 
+  /**
+   * getClienId.
+   * @param httpServletRequest httpServletRequest
+   * @return clien id
+   */
   public String getClienId(HttpServletRequest httpServletRequest) {
     Authentication authentication = getAuthentication(httpServletRequest, null);
 

@@ -88,6 +88,11 @@ public class LolienServiceImpl implements LolienService {
     }
   }
 
+  /**
+   * checkLogin.
+   * @param id clien id
+   * @param password clien password
+   */
   public void checkLogin(String id, String password) {
     boolean successfulLogin = isSuccessfulLogin(id, password);
 

@@ -44,6 +44,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .singletonList(new AuthenticationProviderImpl(redisTemplate, lolienService, objectMapper)));
   }
 
+  /**
+   * corsFilter.
+   * @return corsFilter
+   */
   @Bean
   public CorsFilter corsFilter() {
     CorsConfiguration config = new CorsConfiguration();

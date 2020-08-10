@@ -39,6 +39,11 @@ public class CustomExceptionHandler {
     return new ResponseEntity<>(httpStatus);
   }
 
+  /**
+   * exception.
+   * @param exception exception
+   * @return ResponseEntity
+   */
   @ExceptionHandler(value = Exception.class)
   public ResponseEntity<Object> exception(Exception exception) {
     logger.error("", exception);

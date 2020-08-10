@@ -230,6 +230,9 @@ public class ConfigComponent implements InitializingBean {
     setRedisPassword(redisPassword);
   }
 
+  /**
+   * getJwtSecretKeyFromConfig.
+   */
   public void getJwtSecretKeyFromConfig() {
     JsonObject jsonObject = gson.fromJson(JSON_STRING, JsonObject.class);
     String jwtSecretKey = jsonObject

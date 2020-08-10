@@ -24,6 +24,14 @@ public class JwtLoginFilter extends AbstractAuthenticationProcessingFilter {
   private LolienService lolienService;
   private ObjectMapper objectMapper;
 
+  /**
+   * JwtLoginFilter.
+   * @param url url
+   * @param authenticationManager authenticationManager
+   * @param service service
+   * @param lolienService lolienService
+   * @param objectMapper objectMapper
+   */
   public JwtLoginFilter(String url, AuthenticationManager authenticationManager,
                         TokenAuthenticationService service, LolienService lolienService,
                         ObjectMapper objectMapper) {

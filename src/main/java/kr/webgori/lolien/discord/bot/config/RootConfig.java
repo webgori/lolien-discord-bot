@@ -52,6 +52,10 @@ public class RootConfig {
     return restTemplate;
   }
 
+  /**
+   * objectMapper.
+   * @return objectMapper
+   */
   @Bean
   public ObjectMapper objectMapper() {
     JavaTimeModule javaTimeModule = new JavaTimeModule();

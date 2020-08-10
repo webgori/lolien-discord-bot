@@ -23,6 +23,9 @@ public class AuthenticationTokenImpl extends AbstractAuthenticationToken {
     this.username = principal;
   }
 
+  /**
+   * authenticate.
+   */
   public void authenticate() {
     Object details = getDetails();
 
@@ -45,6 +48,10 @@ public class AuthenticationTokenImpl extends AbstractAuthenticationToken {
     return "";
   }
 
+  /**
+   * getPrincipal.
+   * @return clien id
+   */
   @Override
   public Object getPrincipal() {
     return username;
