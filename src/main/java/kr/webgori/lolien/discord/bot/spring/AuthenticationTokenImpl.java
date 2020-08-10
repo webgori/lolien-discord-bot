@@ -2,6 +2,8 @@ package kr.webgori.lolien.discord.bot.spring;
 
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.getTimestamp;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Objects;
@@ -15,6 +17,7 @@ import org.springframework.util.DigestUtils;
 @Slf4j
 @ToString(callSuper = true)
 public class AuthenticationTokenImpl extends AbstractAuthenticationToken {
+  private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
   private String username;
 
   public AuthenticationTokenImpl(String principal,
@@ -63,7 +66,7 @@ public class AuthenticationTokenImpl extends AbstractAuthenticationToken {
     long timestamp = getTimestamp(createdAt);
 
     String hashString = String.format("%s_%d", username, timestamp);
-    byte[] hashBytes = hashString.getBytes();
+    byte[] hashBytes = hashString.getBytes(DEFAULT_CHARSET);
     return DigestUtils.md5DigestAsHex(hashBytes);
   }
 }
