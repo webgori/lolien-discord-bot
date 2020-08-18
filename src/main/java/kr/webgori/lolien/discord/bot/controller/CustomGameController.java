@@ -40,10 +40,7 @@ public class CustomGameController {
   }
 
   @Operation(
-      summary = "최근 내전 5개를 조회",
-      security = {
-          @SecurityRequirement(name = "JWT")
-      })
+      summary = "최근 내전 5개를 조회")
   @ApiResponses(
       value = {
           @ApiResponse(
@@ -51,13 +48,7 @@ public class CustomGameController {
               description = "No Content",
               content = @Content(
                   mediaType = "application/json",
-                  schema = @Schema(implementation = CustomGamesResponse.class))),
-          @ApiResponse(
-              responseCode = "401",
-              description = "Unauthorized. 인증 정보를 찾을 수 없을 때"),
-          @ApiResponse(
-              responseCode = "403",
-              description = "Forbidden. 세션이 만료 됬을 때")
+                  schema = @Schema(implementation = CustomGamesResponse.class)))
       })
   @GetMapping("v1/custom-game")
   public CustomGamesResponse getCustomGames() {

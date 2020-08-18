@@ -66,12 +66,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   public void configure(WebSecurity web) {
     web
         .ignoring()
-        .antMatchers("/v3/api-docs/**", "/swagger-ui/**", "v1/custom-game/result");
+        .antMatchers("/v3/api-docs/**", "/swagger-ui/**")
+        .antMatchers("/v1/custom-game", "v1/custom-game/result");
   }
 
   @Override
   protected void configure(HttpSecurity http) throws Exception {
-
     http.headers().cacheControl();
 
     http
