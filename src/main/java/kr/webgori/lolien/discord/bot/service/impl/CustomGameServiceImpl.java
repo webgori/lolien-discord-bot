@@ -101,6 +101,8 @@ public class CustomGameServiceImpl implements CustomGameService {
         int item5 = lolienParticipantStats.getItem5();
         int item6 = lolienParticipantStats.getItem6();
 
+        int teamId = lolienParticipant.getTeamId();
+
         CustomGameSummonerResponse customGameSummonerResponse = CustomGameSummonerResponse
             .builder()
             .idx(lolienSummonerIdx)
@@ -122,6 +124,7 @@ public class CustomGameServiceImpl implements CustomGameService {
             .item5(item5)
             .item6(item6)
             .wardsPlaced(wardsPlaced)
+            .teamId(teamId)
             .build();
 
         customGameSummonerResponses.add(customGameSummonerResponse);

@@ -1,5 +1,6 @@
 package kr.webgori.lolien.discord.bot.response;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
 
@@ -43,4 +44,7 @@ public class CustomGameSummonerResponse {
   private int item6;
 
   private int wardsPlaced;
+
+  @Schema(description = "100: blue, 200: red")
+  private int teamId;
 }
