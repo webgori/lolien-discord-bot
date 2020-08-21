@@ -23,6 +23,9 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Service
 public class CustomGameServiceImpl implements CustomGameService {
+  private static final int BLUE_TEAM = 100;
+  private static final int RED_TEAM = 200;
+
   private final LolienMatchRepository lolienMatchRepository;
   private final CustomGameComponent customGameComponent;
 
@@ -69,7 +72,8 @@ public class CustomGameServiceImpl implements CustomGameService {
 
       Set<LolienParticipant> participants = lolienMatch.getParticipants();
 
-      List<CustomGameSummonerResponse> customGameSummonerResponses = Lists.newArrayList();
+      List<CustomGameSummonerResponse> blueTeamSummoners = Lists.newArrayList();
+      List<CustomGameSummonerResponse> redTeamSummoners = Lists.newArrayList();
 
       for (LolienParticipant lolienParticipant : participants) {
         LolienSummoner lolienSummoner = lolienParticipant.getLolienSummoner();
@@ -127,7 +131,11 @@ public class CustomGameServiceImpl implements CustomGameService {
             .teamId(teamId)
             .build();
 
-        customGameSummonerResponses.add(customGameSummonerResponse);
+        if (teamId == BLUE_TEAM) {
+          blueTeamSummoners.add(customGameSummonerResponse);
+        } else if (teamId == RED_TEAM) {
+          redTeamSummoners.add(customGameSummonerResponse);
+        }
       }
 
       CustomGameResponse customGameResponse = CustomGameResponse
@@ -143,7 +151,8 @@ public class CustomGameServiceImpl implements CustomGameService {
           .platformId(platformId)
           .queueId(queueId)
           .seasonId(seasonId)
-          .summoners(customGameSummonerResponses)
+          .blueTeamSummoners(blueTeamSummoners)
+          .redTeamSummoners(redTeamSummoners)
           .build();
 
       customGames.add(customGameResponse);

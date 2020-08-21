@@ -1,5 +1,6 @@
 package kr.webgori.lolien.discord.bot.response;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 import java.util.Set;
 import javax.persistence.CascadeType;
@@ -39,5 +40,9 @@ public class CustomGameResponse {
 
   private Integer seasonId;
 
-  private List<CustomGameSummonerResponse> summoners;
+  @Schema(description = "Blue팀 소환사 목록")
+  private List<CustomGameSummonerResponse> blueTeamSummoners;
+
+  @Schema(description = "Red팀 소환사 목록")
+  private List<CustomGameSummonerResponse> redTeamSummoners;
 }
