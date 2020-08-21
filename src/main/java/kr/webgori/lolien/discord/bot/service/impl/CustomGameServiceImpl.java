@@ -1,8 +1,11 @@
 package kr.webgori.lolien.discord.bot.service.impl;
 
 import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import kr.webgori.lolien.discord.bot.component.CustomGameComponent;
 import kr.webgori.lolien.discord.bot.entity.LolienMatch;
 import kr.webgori.lolien.discord.bot.entity.LolienParticipant;
@@ -70,7 +73,11 @@ public class CustomGameServiceImpl implements CustomGameService {
       int queueId = lolienMatch.getQueueId();
       int seasonId = lolienMatch.getSeasonId();
 
-      Set<LolienParticipant> participants = lolienMatch.getParticipants();
+      List<LolienParticipant> participants = lolienMatch
+          .getParticipants()
+          .stream()
+          .sorted(Comparator.comparing(LolienParticipant::getIdx))
+          .collect(Collectors.toList());
 
       List<CustomGameSummonerResponse> blueTeamSummoners = Lists.newArrayList();
       List<CustomGameSummonerResponse> redTeamSummoners = Lists.newArrayList();
