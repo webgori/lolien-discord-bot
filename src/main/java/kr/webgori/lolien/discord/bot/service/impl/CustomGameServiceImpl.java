@@ -3,6 +3,7 @@ package kr.webgori.lolien.discord.bot.service.impl;
 import com.google.common.collect.Lists;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import kr.webgori.lolien.discord.bot.component.CustomGameComponent;
 import kr.webgori.lolien.discord.bot.dto.CustomGameSummonerDto;
@@ -156,8 +157,8 @@ public class CustomGameServiceImpl implements CustomGameService {
           .collect(Collectors.toList());
 
       for (LolienTeamStats team : teams) {
-        boolean win = isWin(team.getWin());
-        int teamId = team.getTeamId();
+        Boolean win = isWin(team.getWin());
+        Integer teamId = team.getTeamId();
 
         List<LolienTeamBans> bans = team.getBans();
 
@@ -211,7 +212,11 @@ public class CustomGameServiceImpl implements CustomGameService {
         .build();
   }
 
-  private boolean isWin(String result) {
+  private Boolean isWin(String result) {
+    if (Objects.isNull(result)) {
+      return null;
+    }
+
     return result.equals("Win");
   }
 }

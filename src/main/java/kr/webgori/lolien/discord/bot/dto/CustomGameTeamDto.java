@@ -8,10 +8,10 @@ import lombok.Data;
 @Builder
 @Data
 public class CustomGameTeamDto {
-  private boolean win;
+  private Boolean win;
 
   @Schema(description = "100: blue, 200: red")
-  private int teamId;
+  private Integer teamId;
 
   private List<CustomGameTeamBanDto> bans;
 }
