@@ -5,13 +5,13 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import kr.webgori.lolien.discord.bot.request.CustomGameAddResultRequest;
 import kr.webgori.lolien.discord.bot.response.CustomGamesResponse;
 import kr.webgori.lolien.discord.bot.service.CustomGameService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -40,7 +40,7 @@ public class CustomGameController {
   }
 
   @Operation(
-      summary = "최근 내전 5개를 조회")
+      summary = "최근 내전 조회")
   @ApiResponses(
       value = {
           @ApiResponse(
@@ -53,5 +53,22 @@ public class CustomGameController {
   @GetMapping("v1/custom-game")
   public CustomGamesResponse getCustomGames() {
     return customGameService.getCustomGames();
+  }
+
+  @Operation(
+      summary = "소환사 이름으로 내전 조회")
+  @ApiResponses(
+      value = {
+          @ApiResponse(
+              responseCode = "200",
+              description = "No Content",
+              content = @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = CustomGamesResponse.class)))
+      })
+  @GetMapping("v1/custom-game/{summoner-name}")
+  public CustomGamesResponse getCustomGamesBySummoner(
+      @PathVariable("summoner-name") String summonerName) {
+    return customGameService.getCustomGamesBySummoner(summonerName);
   }
 }

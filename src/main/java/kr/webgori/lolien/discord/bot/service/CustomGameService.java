@@ -7,4 +7,6 @@ public interface CustomGameService {
   void addResult(CustomGameAddResultRequest customGameAddResultRequest);
 
   CustomGamesResponse getCustomGames();
+
+  CustomGamesResponse getCustomGamesBySummoner(String summonerName);
 }

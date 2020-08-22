@@ -15,6 +15,7 @@ import kr.webgori.lolien.discord.bot.entity.LolienSummoner;
 import kr.webgori.lolien.discord.bot.entity.LolienTeamBans;
 import kr.webgori.lolien.discord.bot.entity.LolienTeamStats;
 import kr.webgori.lolien.discord.bot.repository.LolienMatchRepository;
+import kr.webgori.lolien.discord.bot.repository.LolienSummonerRepository;
 import kr.webgori.lolien.discord.bot.request.CustomGameAddResultRequest;
 import kr.webgori.lolien.discord.bot.response.CustomGameResponse;
 import kr.webgori.lolien.discord.bot.response.CustomGamesResponse;
@@ -33,6 +34,7 @@ public class CustomGameServiceImpl implements CustomGameService {
 
   private final LolienMatchRepository lolienMatchRepository;
   private final CustomGameComponent customGameComponent;
+  private final LolienSummonerRepository lolienSummonerRepository;
 
   @Transactional
   @Override
@@ -60,6 +62,24 @@ public class CustomGameServiceImpl implements CustomGameService {
   public CustomGamesResponse getCustomGames() {
     List<LolienMatch> lolienMatches = lolienMatchRepository.findTop5AllByOrderByGameCreationDesc();
 
+    return getCustomGamesResponse(lolienMatches);
+  }
+
+  @Override
+  public CustomGamesResponse getCustomGamesBySummoner(String targetSummonerName) {
+    LolienSummoner bySummonerName = lolienSummonerRepository.findBySummonerName(targetSummonerName);
+
+    List<LolienMatch> lolienMatches = bySummonerName
+        .getParticipants()
+        .stream()
+        .map(LolienParticipant::getMatch)
+        .sorted(Comparator.comparing(LolienMatch::getIdx))
+        .collect(Collectors.toList());
+
+    return getCustomGamesResponse(lolienMatches);
+  }
+
+  private CustomGamesResponse getCustomGamesResponse(List<LolienMatch> lolienMatches) {
     List<CustomGameResponse> customGames = Lists.newArrayList();
     List<CustomGameTeamDto> teamDtoList = Lists.newArrayList();
     List<CustomGameTeamBanDto> teamBanDtoList = Lists.newArrayList();
