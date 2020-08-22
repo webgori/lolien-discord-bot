@@ -1,20 +1,22 @@
 package kr.webgori.lolien.discord.bot.service.impl;
 
 import com.google.common.collect.Lists;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import kr.webgori.lolien.discord.bot.component.CustomGameComponent;
+import kr.webgori.lolien.discord.bot.dto.CustomGameSummonerDto;
+import kr.webgori.lolien.discord.bot.dto.CustomGameTeamBanDto;
+import kr.webgori.lolien.discord.bot.dto.CustomGameTeamDto;
 import kr.webgori.lolien.discord.bot.entity.LolienMatch;
 import kr.webgori.lolien.discord.bot.entity.LolienParticipant;
 import kr.webgori.lolien.discord.bot.entity.LolienParticipantStats;
 import kr.webgori.lolien.discord.bot.entity.LolienSummoner;
+import kr.webgori.lolien.discord.bot.entity.LolienTeamBans;
+import kr.webgori.lolien.discord.bot.entity.LolienTeamStats;
 import kr.webgori.lolien.discord.bot.repository.LolienMatchRepository;
 import kr.webgori.lolien.discord.bot.request.CustomGameAddResultRequest;
 import kr.webgori.lolien.discord.bot.response.CustomGameResponse;
-import kr.webgori.lolien.discord.bot.response.CustomGameSummonerResponse;
 import kr.webgori.lolien.discord.bot.response.CustomGamesResponse;
 import kr.webgori.lolien.discord.bot.service.CustomGameService;
 import lombok.RequiredArgsConstructor;
@@ -59,6 +61,8 @@ public class CustomGameServiceImpl implements CustomGameService {
     List<LolienMatch> lolienMatches = lolienMatchRepository.findTop5AllByOrderByGameCreationDesc();
 
     List<CustomGameResponse> customGames = Lists.newArrayList();
+    List<CustomGameTeamDto> teamDtoList = Lists.newArrayList();
+    List<CustomGameTeamBanDto> teamBanDtoList = Lists.newArrayList();
 
     for (LolienMatch lolienMatch : lolienMatches) {
       int idx = lolienMatch.getIdx();
@@ -79,8 +83,8 @@ public class CustomGameServiceImpl implements CustomGameService {
           .sorted(Comparator.comparing(LolienParticipant::getIdx))
           .collect(Collectors.toList());
 
-      List<CustomGameSummonerResponse> blueTeamSummoners = Lists.newArrayList();
-      List<CustomGameSummonerResponse> redTeamSummoners = Lists.newArrayList();
+      List<CustomGameSummonerDto> blueTeamSummoners = Lists.newArrayList();
+      List<CustomGameSummonerDto> redTeamSummoners = Lists.newArrayList();
 
       for (LolienParticipant lolienParticipant : participants) {
         LolienSummoner lolienSummoner = lolienParticipant.getLolienSummoner();
@@ -114,7 +118,7 @@ public class CustomGameServiceImpl implements CustomGameService {
 
         int teamId = lolienParticipant.getTeamId();
 
-        CustomGameSummonerResponse customGameSummonerResponse = CustomGameSummonerResponse
+        CustomGameSummonerDto customGameSummonerDto = CustomGameSummonerDto
             .builder()
             .idx(lolienSummonerIdx)
             .summonerName(summonerName)
@@ -139,10 +143,45 @@ public class CustomGameServiceImpl implements CustomGameService {
             .build();
 
         if (teamId == BLUE_TEAM) {
-          blueTeamSummoners.add(customGameSummonerResponse);
+          blueTeamSummoners.add(customGameSummonerDto);
         } else if (teamId == RED_TEAM) {
-          redTeamSummoners.add(customGameSummonerResponse);
+          redTeamSummoners.add(customGameSummonerDto);
         }
+      }
+
+      List<LolienTeamStats> teams = lolienMatch
+          .getTeams()
+          .stream()
+          .sorted(Comparator.comparing(LolienTeamStats::getIdx))
+          .collect(Collectors.toList());
+
+      for (LolienTeamStats team : teams) {
+        boolean win = isWin(team.getWin());
+        int teamId = team.getTeamId();
+
+        List<LolienTeamBans> bans = team.getBans();
+
+        for (LolienTeamBans ban : bans) {
+          int pickTurn = ban.getPickTurn();
+          int championId = ban.getChampionId();
+
+          CustomGameTeamBanDto teamBanDto = CustomGameTeamBanDto
+              .builder()
+              .pickTurn(pickTurn)
+              .championId(championId)
+              .build();
+
+          teamBanDtoList.add(teamBanDto);
+        }
+
+        CustomGameTeamDto teamDto = CustomGameTeamDto
+            .builder()
+            .win(win)
+            .teamId(teamId)
+            .bans(teamBanDtoList)
+            .build();
+
+        teamDtoList.add(teamDto);
       }
 
       CustomGameResponse customGameResponse = CustomGameResponse
@@ -160,6 +199,7 @@ public class CustomGameServiceImpl implements CustomGameService {
           .seasonId(seasonId)
           .blueTeamSummoners(blueTeamSummoners)
           .redTeamSummoners(redTeamSummoners)
+          .teams(teamDtoList)
           .build();
 
       customGames.add(customGameResponse);
@@ -169,5 +209,9 @@ public class CustomGameServiceImpl implements CustomGameService {
         .builder()
         .customGames(customGames)
         .build();
+  }
+
+  private boolean isWin(String result) {
+    return result.equals("Win");
   }
 }

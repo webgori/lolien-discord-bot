@@ -1,4 +1,4 @@
-package kr.webgori.lolien.discord.bot.response;
+package kr.webgori.lolien.discord.bot.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
@@ -6,7 +6,7 @@ import lombok.Data;
 
 @Builder
 @Data
-public class CustomGameSummonerResponse {
+public class CustomGameSummonerDto {
   private int idx;
 
   private String summonerName;
