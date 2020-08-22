@@ -3,6 +3,7 @@ package kr.webgori.lolien.discord.bot.service.impl;
 import com.google.common.collect.Lists;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import kr.webgori.lolien.discord.bot.component.CustomGameComponent;
 import kr.webgori.lolien.discord.bot.dto.CustomGameSummonerDto;
@@ -69,12 +70,15 @@ public class CustomGameServiceImpl implements CustomGameService {
   public CustomGamesResponse getCustomGamesBySummoner(String targetSummonerName) {
     LolienSummoner bySummonerName = lolienSummonerRepository.findBySummonerName(targetSummonerName);
 
-    List<LolienMatch> lolienMatches = bySummonerName
-        .getParticipants()
-        .stream()
-        .map(LolienParticipant::getMatch)
-        .sorted(Comparator.comparing(LolienMatch::getIdx))
-        .collect(Collectors.toList());
+    List<LolienMatch> lolienMatches = Lists.newArrayList();
+
+    if (Objects.nonNull(bySummonerName)) {
+      lolienMatches = bySummonerName.getParticipants()
+          .stream()
+          .map(LolienParticipant::getMatch)
+          .sorted(Comparator.comparing(LolienMatch::getIdx))
+          .collect(Collectors.toList());
+    }
 
     return getCustomGamesResponse(lolienMatches);
   }
