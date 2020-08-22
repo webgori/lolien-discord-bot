@@ -3,7 +3,6 @@ package kr.webgori.lolien.discord.bot.service.impl;
 import com.google.common.collect.Lists;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import kr.webgori.lolien.discord.bot.component.CustomGameComponent;
 import kr.webgori.lolien.discord.bot.dto.CustomGameSummonerDto;
@@ -118,6 +117,7 @@ public class CustomGameServiceImpl implements CustomGameService {
         int item6 = lolienParticipantStats.getItem6();
 
         int teamId = lolienParticipant.getTeamId();
+        boolean win = lolienParticipantStats.getWin();
 
         CustomGameSummonerDto customGameSummonerDto = CustomGameSummonerDto
             .builder()
@@ -141,6 +141,7 @@ public class CustomGameServiceImpl implements CustomGameService {
             .item6(item6)
             .wardsPlaced(wardsPlaced)
             .teamId(teamId)
+            .win(win)
             .build();
 
         if (teamId == BLUE_TEAM) {
@@ -157,9 +158,6 @@ public class CustomGameServiceImpl implements CustomGameService {
           .collect(Collectors.toList());
 
       for (LolienTeamStats team : teams) {
-        Boolean win = isWin(team.getWin());
-        Integer teamId = team.getTeamId();
-
         List<LolienTeamBans> bans = team.getBans();
 
         for (LolienTeamBans ban : bans) {
@@ -177,8 +175,6 @@ public class CustomGameServiceImpl implements CustomGameService {
 
         CustomGameTeamDto teamDto = CustomGameTeamDto
             .builder()
-            .win(win)
-            .teamId(teamId)
             .bans(teamBanDtoList)
             .build();
 
@@ -210,13 +206,5 @@ public class CustomGameServiceImpl implements CustomGameService {
         .builder()
         .customGames(customGames)
         .build();
-  }
-
-  private Boolean isWin(String result) {
-    if (Objects.isNull(result)) {
-      return null;
-    }
-
-    return result.equals("Win");
   }
 }

@@ -45,6 +45,9 @@ public class CustomGameSummonerDto {
 
   private int wardsPlaced;
 
-  @Schema(description = "100: blue, 200: red")
+  @Schema(description = "팀 (100: blue, 200: red)")
   private int teamId;
+
+  @Schema(description = "승패 여부 (true: 승, false: 패)")
+  private boolean win;
 }
