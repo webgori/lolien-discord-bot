@@ -6,7 +6,7 @@ import kr.webgori.lolien.discord.bot.response.CustomGamesResponse;
 public interface CustomGameService {
   void addResult(CustomGameAddResultRequest customGameAddResultRequest);
 
-  CustomGamesResponse getCustomGames();
+  CustomGamesResponse getCustomGames(int page, int size);
 
-  CustomGamesResponse getCustomGamesBySummoner(String summonerName);
+  CustomGamesResponse getCustomGamesBySummoner(String summonerName, int page, int size);
 }

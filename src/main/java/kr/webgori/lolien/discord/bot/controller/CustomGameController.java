@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -51,8 +52,10 @@ public class CustomGameController {
                   schema = @Schema(implementation = CustomGamesResponse.class)))
       })
   @GetMapping("v1/custom-game")
-  public CustomGamesResponse getCustomGames() {
-    return customGameService.getCustomGames();
+  public CustomGamesResponse getCustomGames(
+      @RequestParam(value = "page", defaultValue = "1") int page,
+      @RequestParam(value = "size", defaultValue = "5") int size) {
+    return customGameService.getCustomGames(page, size);
   }
 
   @Operation(
@@ -68,7 +71,9 @@ public class CustomGameController {
       })
   @GetMapping("v1/custom-game/{summoner-name}")
   public CustomGamesResponse getCustomGamesBySummoner(
-      @PathVariable("summoner-name") String summonerName) {
-    return customGameService.getCustomGamesBySummoner(summonerName);
+      @PathVariable("summoner-name") String summonerName,
+      @RequestParam(value = "page", defaultValue = "1") int page,
+      @RequestParam(value = "size", defaultValue = "5") int size) {
+    return customGameService.getCustomGamesBySummoner(summonerName, page, size);
   }
 }

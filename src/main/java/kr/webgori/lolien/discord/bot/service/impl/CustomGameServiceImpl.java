@@ -24,6 +24,8 @@ import kr.webgori.lolien.discord.bot.response.CustomGamesResponse;
 import kr.webgori.lolien.discord.bot.service.CustomGameService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -61,14 +63,22 @@ public class CustomGameServiceImpl implements CustomGameService {
 
   @Transactional(readOnly = true)
   @Override
-  public CustomGamesResponse getCustomGames() {
-    List<LolienMatch> lolienMatches = lolienMatchRepository.findTop5AllByOrderByGameCreationDesc();
+  public CustomGamesResponse getCustomGames(int page, int size) {
+    PageRequest pageRequest = PageRequest.of(page, size);
 
-    return getCustomGamesResponse(lolienMatches);
+    Page<LolienMatch> lolienMatchePages = lolienMatchRepository.findByOrderByIdxDesc(pageRequest);
+    List<LolienMatch> lolienMatches = lolienMatchePages.getContent();
+
+    int totalPages = lolienMatchePages.getTotalPages();
+
+    return getCustomGamesResponse(lolienMatches, totalPages);
   }
 
+  @Transactional(readOnly = true)
   @Override
-  public CustomGamesResponse getCustomGamesBySummoner(String targetSummonerName) {
+  public CustomGamesResponse getCustomGamesBySummoner(String targetSummonerName,
+                                                      int page, int size) {
+
     LolienSummoner lolienSummoner = lolienSummonerRepository.findBySummonerName(targetSummonerName);
 
     if (Objects.isNull(lolienSummoner)) {
@@ -81,10 +91,22 @@ public class CustomGameServiceImpl implements CustomGameService {
         .sorted(Comparator.comparing(LolienMatch::getIdx))
         .collect(Collectors.toList());
 
-    return getCustomGamesResponse(lolienMatches);
+    int skip = page * size;
+
+    List<LolienMatch> lolienMatchePages = lolienMatches
+        .stream()
+        .skip(skip)
+        .limit(size)
+        .collect(Collectors.toList());
+
+    int totalPages = lolienMatches.size() / size;
+
+    return getCustomGamesResponse(lolienMatchePages, totalPages);
   }
 
-  private CustomGamesResponse getCustomGamesResponse(List<LolienMatch> lolienMatches) {
+  private CustomGamesResponse getCustomGamesResponse(List<LolienMatch> lolienMatches,
+                                                     int totalPages) {
+
     List<CustomGameResponse> customGames = Lists.newArrayList();
     List<CustomGameTeamDto> teamDtoList = Lists.newArrayList();
     List<CustomGameTeamBanDto> teamBanDtoList = Lists.newArrayList();
@@ -230,6 +252,7 @@ public class CustomGameServiceImpl implements CustomGameService {
     return CustomGamesResponse
         .builder()
         .customGames(customGames)
+        .totalPages(totalPages)
         .build();
   }
 }

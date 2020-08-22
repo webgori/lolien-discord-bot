@@ -8,4 +8,5 @@ import lombok.Data;
 @Data
 public class CustomGamesResponse {
   private List<CustomGameResponse> customGames;
+  private int totalPages;
 }
