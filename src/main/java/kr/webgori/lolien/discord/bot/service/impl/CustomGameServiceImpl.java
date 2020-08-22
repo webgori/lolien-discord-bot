@@ -15,6 +15,7 @@ import kr.webgori.lolien.discord.bot.entity.LolienParticipantStats;
 import kr.webgori.lolien.discord.bot.entity.LolienSummoner;
 import kr.webgori.lolien.discord.bot.entity.LolienTeamBans;
 import kr.webgori.lolien.discord.bot.entity.LolienTeamStats;
+import kr.webgori.lolien.discord.bot.exception.SummonerNotFoundException;
 import kr.webgori.lolien.discord.bot.repository.LolienMatchRepository;
 import kr.webgori.lolien.discord.bot.repository.LolienSummonerRepository;
 import kr.webgori.lolien.discord.bot.request.CustomGameAddResultRequest;
@@ -68,17 +69,17 @@ public class CustomGameServiceImpl implements CustomGameService {
 
   @Override
   public CustomGamesResponse getCustomGamesBySummoner(String targetSummonerName) {
-    LolienSummoner bySummonerName = lolienSummonerRepository.findBySummonerName(targetSummonerName);
+    LolienSummoner lolienSummoner = lolienSummonerRepository.findBySummonerName(targetSummonerName);
 
-    List<LolienMatch> lolienMatches = Lists.newArrayList();
-
-    if (Objects.nonNull(bySummonerName)) {
-      lolienMatches = bySummonerName.getParticipants()
-          .stream()
-          .map(LolienParticipant::getMatch)
-          .sorted(Comparator.comparing(LolienMatch::getIdx))
-          .collect(Collectors.toList());
+    if (Objects.isNull(lolienSummoner)) {
+      throw new SummonerNotFoundException("");
     }
+
+    List<LolienMatch> lolienMatches = lolienSummoner.getParticipants()
+        .stream()
+        .map(LolienParticipant::getMatch)
+        .sorted(Comparator.comparing(LolienMatch::getIdx))
+        .collect(Collectors.toList());
 
     return getCustomGamesResponse(lolienMatches);
   }
