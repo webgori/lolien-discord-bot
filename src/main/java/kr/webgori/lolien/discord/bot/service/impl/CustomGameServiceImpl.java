@@ -88,7 +88,7 @@ public class CustomGameServiceImpl implements CustomGameService {
     List<LolienMatch> lolienMatches = lolienSummoner.getParticipants()
         .stream()
         .map(LolienParticipant::getMatch)
-        .sorted(Comparator.comparing(LolienMatch::getIdx))
+        .sorted(Comparator.comparing(LolienMatch::getIdx).reversed())
         .collect(Collectors.toList());
 
     int skip = page * size;
