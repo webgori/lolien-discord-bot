@@ -263,25 +263,16 @@ public class RiotComponent {
   private String getItemImageFilename(String dataDragonVersion, int itemId) {
     JsonObject itemsJsonObject = getItemJsonObject(dataDragonVersion);
     JsonObject data = itemsJsonObject.getAsJsonObject("data");
-    Set<String> itemsName = data.keySet();
+    String key = String.valueOf(itemId);
+    boolean hasKey = data.has(key);
 
-    String itemImageFilename = "";
-
-    for (String itemName : itemsName) {
-      JsonObject itemJsonObject = data.getAsJsonObject(itemName);
-      int key = itemJsonObject.get("key").getAsInt();
-
-      if (itemId == key) {
-        JsonObject image = itemJsonObject.get("image").getAsJsonObject();
-        itemImageFilename = image.get("full").getAsString();
-      }
-    }
-
-    if (itemImageFilename.isEmpty()) {
+    if (!hasKey) {
       throw new IllegalArgumentException();
     }
 
-    return itemImageFilename;
+    JsonObject itemJsonObject = data.get(key).getAsJsonObject();
+    JsonObject image = itemJsonObject.get("image").getAsJsonObject();
+    return image.get("full").getAsString();
   }
 
   private JsonObject getItemJsonObject(String dataDragonVersion) {
