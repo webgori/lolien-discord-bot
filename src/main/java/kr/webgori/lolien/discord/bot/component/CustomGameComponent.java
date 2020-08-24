@@ -60,7 +60,7 @@ public class CustomGameComponent {
   private final LolienMatchRepository lolienMatchRepository;
   private final LolienParticipantRepository lolienParticipantRepository;
   private final RedisTemplate<String, Object> redisTemplate;
-  private final ChampComponent champComponent;
+  private final RiotComponent riotComponent;
   private final CommonComponent commonComponent;
   private final ObjectMapper objectMapper;
 
@@ -269,7 +269,7 @@ public class CustomGameComponent {
 
         for (SummonerMostChampDto mostChamp : mostChampDtoList) {
           int champId = mostChamp.getChampionId();
-          String championName = champComponent.getChampionNameByChampId(champId);
+          String championName = riotComponent.getChampionNameByChampId(champId);
 
           long count = mostChamp.getCount();
           List<LolienParticipant> champs = lolienParticipantRepository

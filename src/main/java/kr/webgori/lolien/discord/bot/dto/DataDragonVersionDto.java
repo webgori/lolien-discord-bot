@@ -7,6 +7,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class ClientVersionDto {
+public class DataDragonVersionDto {
   private String version;
 }

@@ -13,7 +13,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -67,7 +66,7 @@ public class TeamGenerateComponent {
   private final LeagueRepository leagueRepository;
   private final CustomGameComponent customGameComponent;
   private final RedisTemplate<String, Object> redisTemplate;
-  private final ChampComponent champComponent;
+  private final RiotComponent riotComponent;
   private final CommonComponent commonComponent;
 
   /**
@@ -283,7 +282,7 @@ public class TeamGenerateComponent {
 
       for (SummonerMostChampDto mostChampDto : mostChampDtoList) {
         int champId = mostChampDto.getChampionId();
-        String championName = champComponent.getChampionNameByChampId(champId);
+        String championName = riotComponent.getChampionNameByChampId(champId);
         mostChampionsList.add(championName);
       }
 
