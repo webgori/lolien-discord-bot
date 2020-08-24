@@ -24,7 +24,7 @@ public class RiotUnitTest {
     String gameVersion = "10.15.4.5.7";
     String regexVersion = String.format("%s.%s",
         gameVersion.split("\\.")[0],
-        gameVersion.split("\\.")[1]) ;
+        gameVersion.split("\\.")[1]);
 
     Pattern pattern = Pattern.compile("(" + regexVersion + ").+");
     String dataDragonVersion = "";
