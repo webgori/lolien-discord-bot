@@ -254,6 +254,10 @@ public class RiotComponent {
    * @return itemUrl
    */
   public String getItemUrl(String dataDragonVersion, int itemId) {
+    if (itemId == 0) {
+      return "";
+    }
+
     String itemImageFilename = getItemImageFilename(dataDragonVersion, itemId);
     return String
         .format("http://ddragon.leagueoflegends.com/cdn/%s/img/item/%s",
