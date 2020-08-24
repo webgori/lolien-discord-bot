@@ -31,6 +31,10 @@ public class RiotComponent {
   private final ObjectMapper objectMapper;
   private final Gson gson;
 
+  /**
+   * getDataDragonVersions.
+   * @return Data DragonVersion List
+   */
   public List<DataDragonVersionDto> getDataDragonVersions() {
     DataDragonVersionDto[] dataDragonVersionDtoArray = Optional.ofNullable(restTemplate
         .getForObject("https://ddragon.leagueoflegends.com/api/versions.json",
@@ -49,6 +53,12 @@ public class RiotComponent {
     return getDataDragonVersions().get(0);
   }
 
+  /**
+   * getCloseDataDragonVersion.
+   * @param gameVersion gameVersion
+   * @param dataDragonVersionsDto dataDragonVersionsDto
+   * @return closeDataDragonVersion
+   */
   public String getCloseDataDragonVersion(String gameVersion,
                                            List<DataDragonVersionDto> dataDragonVersionsDto) {
     String regexVersion = String.format("%s.%s",
@@ -154,6 +164,12 @@ public class RiotComponent {
     return getChampionNameFromRiotApi(clientVersion, champId);
   }
 
+  /**
+   * getChampionUrl.
+   * @param dataDragonVersion dataDragonVersion
+   * @param championId championId
+   * @return championUrl
+   */
   public String getChampionUrl(String dataDragonVersion, int championId) {
     String championImageFilename = getChampionImageFilename(dataDragonVersion, championId);
     return String
@@ -185,6 +201,12 @@ public class RiotComponent {
     return championImageFilename;
   }
 
+  /**
+   * getSpellUrl.
+   * @param dataDragonVersion dataDragonVersion
+   * @param spellId spellId
+   * @return spellUrl
+   */
   public String getSpellUrl(String dataDragonVersion, int spellId) {
     String spellImageFilename = getSpellImageFilename(dataDragonVersion, spellId);
     return String
@@ -225,6 +247,12 @@ public class RiotComponent {
     return gson.fromJson(responseBody, JsonObject.class);
   }
 
+  /**
+   * getItemUrl.
+   * @param dataDragonVersion dataDragonVersion
+   * @param itemId itemId
+   * @return itemUrl
+   */
   public String getItemUrl(String dataDragonVersion, int itemId) {
     String itemImageFilename = getItemImageFilename(dataDragonVersion, itemId);
     return String
