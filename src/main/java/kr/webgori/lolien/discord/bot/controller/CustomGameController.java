@@ -46,7 +46,7 @@ public class CustomGameController {
       value = {
           @ApiResponse(
               responseCode = "200",
-              description = "No Content",
+              description = "OK",
               content = @Content(
                   mediaType = "application/json",
                   schema = @Schema(implementation = CustomGamesResponse.class)))
@@ -64,7 +64,7 @@ public class CustomGameController {
       value = {
           @ApiResponse(
               responseCode = "200",
-              description = "No Content",
+              description = "OK",
               content = @Content(
                   mediaType = "application/json",
                   schema = @Schema(implementation = CustomGamesResponse.class)))

@@ -59,6 +59,12 @@ public class LeagueServiceImpl implements LeagueService {
 
   @Transactional
   @Override
+  public void deleteLeague(int leagueIdx) {
+    lolienLeagueRepository.deleteById(leagueIdx);
+  }
+
+  @Transactional
+  @Override
   public void addLeagueResult(LeagueAddResultRequest leagueAddResultRequest) {
     long matchId = leagueAddResultRequest.getMatchId();
 

@@ -9,5 +9,7 @@ public interface LeagueService {
 
   void addLeague(LeagueAddRequest leagueAddRequest);
 
+  void deleteLeague(int leagueIdx);
+
   void addLeagueResult(LeagueAddResultRequest leagueAddResultRequest);
 }
