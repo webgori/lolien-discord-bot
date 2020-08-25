@@ -94,7 +94,7 @@ public class RiotComponent {
    */
   public JsonObject getChampionJsonObject(String dataDragonVersion) {
     String responseBody = Optional.ofNullable(restTemplate
-        .getForObject("http://ddragon.leagueoflegends"
+        .getForObject("https://ddragon.leagueoflegends"
                 + ".com/cdn/{data-dragon-version}/data/ko_KR/champion.json",
             String.class, dataDragonVersion))
         .orElseThrow(() -> new IllegalStateException("riot champions api result is empty"));
@@ -184,7 +184,7 @@ public class RiotComponent {
                                int championId) {
     String championImageFilename = getChampionImageFilename(championsJsonObject, championId);
     return String
-        .format("http://ddragon.leagueoflegends.com/cdn/%s/img/champion/%s",
+        .format("https://ddragon.leagueoflegends.com/cdn/%s/img/champion/%s",
             dataDragonVersion, championImageFilename);
   }
 
@@ -221,7 +221,7 @@ public class RiotComponent {
   public String getSpellUrl(JsonObject summonerJsonObject, String dataDragonVersion, int spellId) {
     String spellImageFilename = getSpellImageFilename(summonerJsonObject, spellId);
     return String
-        .format("http://ddragon.leagueoflegends.com/cdn/%s/img/spell/%s",
+        .format("https://ddragon.leagueoflegends.com/cdn/%s/img/spell/%s",
             dataDragonVersion, spellImageFilename);
   }
 
@@ -256,7 +256,7 @@ public class RiotComponent {
    */
   public JsonObject getSummonerJsonObject(String dataDragonVersion) {
     String responseBody = Optional.ofNullable(restTemplate
-        .getForObject("http://ddragon.leagueoflegends"
+        .getForObject("https://ddragon.leagueoflegends"
                 + ".com/cdn/{data-dragon-version}/data/ko_KR/summoner.json",
             String.class, dataDragonVersion))
         .orElseThrow(() -> new IllegalStateException("riot champions api result is empty"));
@@ -278,7 +278,7 @@ public class RiotComponent {
 
     String itemImageFilename = getItemImageFilename(itemsJsonObject, dataDragonVersion, itemId);
     return String
-        .format("http://ddragon.leagueoflegends.com/cdn/%s/img/item/%s",
+        .format("https://ddragon.leagueoflegends.com/cdn/%s/img/item/%s",
             dataDragonVersion, itemImageFilename);
   }
 
@@ -305,7 +305,7 @@ public class RiotComponent {
    */
   public JsonObject getItemJsonObject(String dataDragonVersion) {
     String responseBody = Optional.ofNullable(restTemplate
-        .getForObject("http://ddragon.leagueoflegends"
+        .getForObject("https://ddragon.leagueoflegends"
                 + ".com/cdn/{data-dragon-version}/data/ko_KR/item.json",
             String.class, dataDragonVersion))
         .orElseThrow(() -> new IllegalStateException("riot champions api result is empty"));
