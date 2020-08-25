@@ -33,6 +33,7 @@ public class RiotComponent {
 
   /**
    * getDataDragonVersions.
+   *
    * @return Data DragonVersion List
    */
   public List<DataDragonVersionDto> getDataDragonVersions() {
@@ -55,12 +56,13 @@ public class RiotComponent {
 
   /**
    * getCloseDataDragonVersion.
-   * @param gameVersion gameVersion
+   *
+   * @param gameVersion           gameVersion
    * @param dataDragonVersionsDto dataDragonVersionsDto
    * @return closeDataDragonVersion
    */
   public String getCloseDataDragonVersion(String gameVersion,
-                                           List<DataDragonVersionDto> dataDragonVersionsDto) {
+                                          List<DataDragonVersionDto> dataDragonVersionsDto) {
     String regexVersion = String.format("%s.%s",
         gameVersion.split("\\.")[0],
         gameVersion.split("\\.")[1]);
@@ -84,10 +86,17 @@ public class RiotComponent {
     return dataDragonVersion;
   }
 
-  private JsonObject getChampionJsonObject(String clientVersion) {
+  /**
+   * getChampionJsonObject.
+   *
+   * @param dataDragonVersion dataDragonVersion
+   * @return championJsonObject
+   */
+  public JsonObject getChampionJsonObject(String dataDragonVersion) {
     String responseBody = Optional.ofNullable(restTemplate
-        .getForObject("http://ddragon.leagueoflegends.com/cdn/{client-version}/data/ko_KR/champion.json",
-            String.class, clientVersion))
+        .getForObject("http://ddragon.leagueoflegends"
+                + ".com/cdn/{data-dragon-version}/data/ko_KR/champion.json",
+            String.class, dataDragonVersion))
         .orElseThrow(() -> new IllegalStateException("riot champions api result is empty"));
 
     return gson.fromJson(responseBody, JsonObject.class);
@@ -166,19 +175,20 @@ public class RiotComponent {
 
   /**
    * getChampionUrl.
+   *
    * @param dataDragonVersion dataDragonVersion
-   * @param championId championId
+   * @param championId        championId
    * @return championUrl
    */
-  public String getChampionUrl(String dataDragonVersion, int championId) {
-    String championImageFilename = getChampionImageFilename(dataDragonVersion, championId);
+  public String getChampionUrl(JsonObject championsJsonObject, String dataDragonVersion,
+                               int championId) {
+    String championImageFilename = getChampionImageFilename(championsJsonObject, championId);
     return String
         .format("http://ddragon.leagueoflegends.com/cdn/%s/img/champion/%s",
             dataDragonVersion, championImageFilename);
   }
 
-  private String getChampionImageFilename(String dataDragonVersion, int championId) {
-    JsonObject championsJsonObject = getChampionJsonObject(dataDragonVersion);
+  private String getChampionImageFilename(JsonObject championsJsonObject, int championId) {
     JsonObject data = championsJsonObject.getAsJsonObject("data");
     Set<String> championsName = data.keySet();
 
@@ -203,19 +213,19 @@ public class RiotComponent {
 
   /**
    * getSpellUrl.
+   *
    * @param dataDragonVersion dataDragonVersion
-   * @param spellId spellId
+   * @param spellId           spellId
    * @return spellUrl
    */
-  public String getSpellUrl(String dataDragonVersion, int spellId) {
-    String spellImageFilename = getSpellImageFilename(dataDragonVersion, spellId);
+  public String getSpellUrl(JsonObject summonerJsonObject, String dataDragonVersion, int spellId) {
+    String spellImageFilename = getSpellImageFilename(summonerJsonObject, spellId);
     return String
         .format("http://ddragon.leagueoflegends.com/cdn/%s/img/spell/%s",
             dataDragonVersion, spellImageFilename);
   }
 
-  private String getSpellImageFilename(String dataDragonVersion, int spellId) {
-    JsonObject summonerJsonObject = getSummonerJsonObject(dataDragonVersion);
+  private String getSpellImageFilename(JsonObject summonerJsonObject, int spellId) {
     JsonObject data = summonerJsonObject.getAsJsonObject("data");
     Set<String> spellsName = data.keySet();
 
@@ -238,9 +248,16 @@ public class RiotComponent {
     return spellImageFilename;
   }
 
-  private JsonObject getSummonerJsonObject(String dataDragonVersion) {
+  /**
+   * getSummonerJsonObject.
+   *
+   * @param dataDragonVersion dataDragonVersion
+   * @return summonerJsonObject
+   */
+  public JsonObject getSummonerJsonObject(String dataDragonVersion) {
     String responseBody = Optional.ofNullable(restTemplate
-        .getForObject("http://ddragon.leagueoflegends.com/cdn/{data-dragon-version}/data/ko_KR/summoner.json",
+        .getForObject("http://ddragon.leagueoflegends"
+                + ".com/cdn/{data-dragon-version}/data/ko_KR/summoner.json",
             String.class, dataDragonVersion))
         .orElseThrow(() -> new IllegalStateException("riot champions api result is empty"));
 
@@ -249,23 +266,24 @@ public class RiotComponent {
 
   /**
    * getItemUrl.
+   *
    * @param dataDragonVersion dataDragonVersion
-   * @param itemId itemId
+   * @param itemId            itemId
    * @return itemUrl
    */
-  public String getItemUrl(String dataDragonVersion, int itemId) {
+  public String getItemUrl(JsonObject itemsJsonObject, String dataDragonVersion, int itemId) {
     if (itemId == 0) {
       return "";
     }
 
-    String itemImageFilename = getItemImageFilename(dataDragonVersion, itemId);
+    String itemImageFilename = getItemImageFilename(itemsJsonObject, dataDragonVersion, itemId);
     return String
         .format("http://ddragon.leagueoflegends.com/cdn/%s/img/item/%s",
             dataDragonVersion, itemImageFilename);
   }
 
-  private String getItemImageFilename(String dataDragonVersion, int itemId) {
-    JsonObject itemsJsonObject = getItemJsonObject(dataDragonVersion);
+  private String getItemImageFilename(JsonObject itemsJsonObject, String dataDragonVersion,
+                                      int itemId) {
     JsonObject data = itemsJsonObject.getAsJsonObject("data");
     String key = String.valueOf(itemId);
     boolean hasKey = data.has(key);
@@ -279,9 +297,16 @@ public class RiotComponent {
     return image.get("full").getAsString();
   }
 
-  private JsonObject getItemJsonObject(String dataDragonVersion) {
+  /**
+   * getItemJsonObject.
+   *
+   * @param dataDragonVersion dataDragonVersion
+   * @return itemJsonObject
+   */
+  public JsonObject getItemJsonObject(String dataDragonVersion) {
     String responseBody = Optional.ofNullable(restTemplate
-        .getForObject("http://ddragon.leagueoflegends.com/cdn/{data-dragon-version}/data/ko_KR/item.json",
+        .getForObject("http://ddragon.leagueoflegends"
+                + ".com/cdn/{data-dragon-version}/data/ko_KR/item.json",
             String.class, dataDragonVersion))
         .orElseThrow(() -> new IllegalStateException("riot champions api result is empty"));
 

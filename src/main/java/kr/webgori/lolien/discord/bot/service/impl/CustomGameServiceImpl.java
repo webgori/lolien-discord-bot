@@ -1,8 +1,11 @@
 package kr.webgori.lolien.discord.bot.service.impl;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.gson.JsonObject;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import kr.webgori.lolien.discord.bot.component.CustomGameComponent;
@@ -115,6 +118,9 @@ public class CustomGameServiceImpl implements CustomGameService {
     List<CustomGameTeamBanDto> teamBanDtoList = Lists.newArrayList();
 
     List<DataDragonVersionDto> dataDragonVersions = riotComponent.getDataDragonVersions();
+    Map<String, JsonObject> summonerJsonObjectMap = Maps.newHashMap();
+    Map<String, JsonObject> championsJsonObjectMap = Maps.newHashMap();
+    Map<String, JsonObject> itemsJsonObjectMap = Maps.newHashMap();
 
     for (LolienMatch lolienMatch : lolienMatches) {
       int idx = lolienMatch.getIdx();
@@ -143,17 +149,39 @@ public class CustomGameServiceImpl implements CustomGameService {
             dataDragonVersions);
 
         LolienSummoner lolienSummoner = lolienParticipant.getLolienSummoner();
+
+        JsonObject summonerJsonObject;
+
+        if (summonerJsonObjectMap.containsKey(closeDataDragonVersion)) {
+          summonerJsonObject = summonerJsonObjectMap.get(closeDataDragonVersion);
+        } else {
+          summonerJsonObject = riotComponent.getSummonerJsonObject(closeDataDragonVersion);
+          summonerJsonObjectMap.put(closeDataDragonVersion, summonerJsonObject);
+        }
+
         int spell1Id = lolienParticipant.getSpell1Id();
-        String spell1Url = riotComponent.getSpellUrl(closeDataDragonVersion, spell1Id);
+        String spell1Url = riotComponent.getSpellUrl(summonerJsonObject, closeDataDragonVersion,
+            spell1Id);
 
         int spell2Id = lolienParticipant.getSpell2Id();
-        String spell2Url = riotComponent.getSpellUrl(closeDataDragonVersion, spell2Id);
+        String spell2Url = riotComponent.getSpellUrl(summonerJsonObject, closeDataDragonVersion,
+            spell2Id);
 
         int lolienSummonerIdx = lolienSummoner.getIdx();
         String summonerName = lolienSummoner.getSummonerName();
 
+        JsonObject championsJsonObject;
+
+        if (summonerJsonObjectMap.containsKey(closeDataDragonVersion)) {
+          championsJsonObject = championsJsonObjectMap.get(closeDataDragonVersion);
+        } else {
+          championsJsonObject = riotComponent.getChampionJsonObject(closeDataDragonVersion);
+          championsJsonObjectMap.put(closeDataDragonVersion, championsJsonObject);
+        }
+
         int championId = lolienParticipant.getChampionId();
-        String championUrl = riotComponent.getChampionUrl(closeDataDragonVersion, championId);
+        String championUrl = riotComponent.getChampionUrl(championsJsonObject,
+            closeDataDragonVersion, championId);
 
         LolienParticipantStats lolienParticipantStats = lolienParticipant.getStats();
 
@@ -167,26 +195,35 @@ public class CustomGameServiceImpl implements CustomGameService {
         int champLevel = lolienParticipantStats.getChampLevel();
         int totalMinionsKilled = lolienParticipantStats.getTotalMinionsKilled();
 
+        JsonObject itemsJsonObject;
+
+        if (summonerJsonObjectMap.containsKey(closeDataDragonVersion)) {
+          itemsJsonObject = itemsJsonObjectMap.get(closeDataDragonVersion);
+        } else {
+          itemsJsonObject = riotComponent.getItemJsonObject(closeDataDragonVersion);
+          itemsJsonObjectMap.put(closeDataDragonVersion, itemsJsonObject);
+        }
+
         int item0 = lolienParticipantStats.getItem0();
-        String item0Url = riotComponent.getItemUrl(closeDataDragonVersion, item0);
+        String item0Url = riotComponent.getItemUrl(itemsJsonObject, closeDataDragonVersion, item0);
 
         int item1 = lolienParticipantStats.getItem1();
-        String item1Url = riotComponent.getItemUrl(closeDataDragonVersion, item1);
+        String item1Url = riotComponent.getItemUrl(itemsJsonObject, closeDataDragonVersion, item1);
 
         int item2 = lolienParticipantStats.getItem2();
-        String item2Url = riotComponent.getItemUrl(closeDataDragonVersion, item2);
+        String item2Url = riotComponent.getItemUrl(itemsJsonObject, closeDataDragonVersion, item2);
 
         int item3 = lolienParticipantStats.getItem3();
-        String item3Url = riotComponent.getItemUrl(closeDataDragonVersion, item3);
+        String item3Url = riotComponent.getItemUrl(itemsJsonObject, closeDataDragonVersion, item3);
 
         int item4 = lolienParticipantStats.getItem4();
-        String item4Url = riotComponent.getItemUrl(closeDataDragonVersion, item4);
+        String item4Url = riotComponent.getItemUrl(itemsJsonObject, closeDataDragonVersion, item4);
 
         int item5 = lolienParticipantStats.getItem5();
-        String item5Url = riotComponent.getItemUrl(closeDataDragonVersion, item5);
+        String item5Url = riotComponent.getItemUrl(itemsJsonObject, closeDataDragonVersion, item5);
 
         int item6 = lolienParticipantStats.getItem6();
-        String item6Url = riotComponent.getItemUrl(closeDataDragonVersion, item6);
+        String item6Url = riotComponent.getItemUrl(itemsJsonObject, closeDataDragonVersion, item6);
 
         int teamId = lolienParticipant.getTeamId();
         boolean win = lolienParticipantStats.getWin();
