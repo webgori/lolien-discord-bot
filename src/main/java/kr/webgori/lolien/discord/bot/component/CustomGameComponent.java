@@ -426,10 +426,41 @@ public class CustomGameComponent {
     List<LolienTeamBans> lolienTeamBansList = Lists.newArrayList();
 
     for (TeamStats teamStats : teams) {
+      int baronKills = teamStats.getBaronKills();
+      int dominionVictoryScore = teamStats.getDominionVictoryScore();
+      int dragonKills = teamStats.getDragonKills();
+      boolean firstBaron = teamStats.isFirstBaron();
+      boolean firstBlood = teamStats.isFirstBlood();
+      boolean firstDragon = teamStats.isFirstDragon();
+      boolean firstInhibitor = teamStats.isFirstInhibitor();
+      boolean firstRiftHerald = teamStats.isFirstRiftHerald();
+      boolean firstTower = teamStats.isFirstTower();
+      int inhibitorKills = teamStats.getInhibitorKills();
+      int riftHeraldKills = teamStats.getRiftHeraldKills();
+      int teamId = teamStats.getTeamId();
+      int towerKills = teamStats.getTowerKills();
+      int vilemawKills = teamStats.getVilemawKills();
+      String win = teamStats.getWin();
+
       LolienTeamStats lolienTeamStats = LolienTeamStats
           .builder()
           .match(lolienMatch)
           .bans(lolienTeamBansList)
+          .baronKills(baronKills)
+          .dominionVictoryScore(dominionVictoryScore)
+          .dragonKills(dragonKills)
+          .firstBaron(firstBaron)
+          .firstBlood(firstBlood)
+          .firstDragon(firstDragon)
+          .firstInhibitor(firstInhibitor)
+          .firstRiftHerald(firstRiftHerald)
+          .firstTower(firstTower)
+          .inhibitorKills(inhibitorKills)
+          .riftHeraldKills(riftHeraldKills)
+          .teamId(teamId)
+          .towerKills(towerKills)
+          .vilemawKills(vilemawKills)
+          .win(win)
           .build();
 
       List<TeamBans> bans = teamStats.getBans();
