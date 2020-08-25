@@ -172,7 +172,7 @@ public class CustomGameServiceImpl implements CustomGameService {
 
         JsonObject championsJsonObject;
 
-        if (summonerJsonObjectMap.containsKey(closeDataDragonVersion)) {
+        if (championsJsonObjectMap.containsKey(closeDataDragonVersion)) {
           championsJsonObject = championsJsonObjectMap.get(closeDataDragonVersion);
         } else {
           championsJsonObject = riotComponent.getChampionJsonObject(closeDataDragonVersion);
@@ -197,7 +197,7 @@ public class CustomGameServiceImpl implements CustomGameService {
 
         JsonObject itemsJsonObject;
 
-        if (summonerJsonObjectMap.containsKey(closeDataDragonVersion)) {
+        if (itemsJsonObjectMap.containsKey(closeDataDragonVersion)) {
           itemsJsonObject = itemsJsonObjectMap.get(closeDataDragonVersion);
         } else {
           itemsJsonObject = riotComponent.getItemJsonObject(closeDataDragonVersion);
