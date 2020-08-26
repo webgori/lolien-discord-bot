@@ -386,6 +386,10 @@ public class RiotComponent {
    * @return itemName
    */
   public String getItemName(JsonObject itemsJsonObject, String dataDragonVersion, int itemId) {
+    if (itemId == 0) {
+      return "";
+    }
+
     JsonObject itemJsonObject = getItemJsonObject(itemsJsonObject, itemId);
     return itemJsonObject.get("name").getAsString();
   }
@@ -399,6 +403,10 @@ public class RiotComponent {
    */
   public String getItemDescription(JsonObject itemsJsonObject, String dataDragonVersion,
                                    int itemId) {
+    if (itemId == 0) {
+      return "";
+    }
+
     JsonObject itemJsonObject = getItemJsonObject(itemsJsonObject, itemId);
     return itemJsonObject.get("description").getAsString();
   }
