@@ -11,7 +11,7 @@ public interface LolienMatchRepository extends JpaRepository<LolienMatch, Intege
 
   List<LolienMatch> findTop5AllByOrderByGameCreationDesc();
 
-  Page<LolienMatch> findByOrderByIdxDesc(Pageable pageable);
+  Page<LolienMatch> findByOrderByGameCreationDesc(Pageable pageable);
 
   void deleteByGameId(long gameId);
 }

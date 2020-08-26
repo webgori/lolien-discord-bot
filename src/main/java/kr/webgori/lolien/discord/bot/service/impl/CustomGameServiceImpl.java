@@ -72,7 +72,8 @@ public class CustomGameServiceImpl implements CustomGameService {
   public CustomGamesResponse getCustomGames(int page, int size) {
     PageRequest pageRequest = PageRequest.of(page, size);
 
-    Page<LolienMatch> lolienMatchePages = lolienMatchRepository.findByOrderByIdxDesc(pageRequest);
+    Page<LolienMatch> lolienMatchePages = lolienMatchRepository
+        .findByOrderByGameCreationDesc(pageRequest);
     List<LolienMatch> lolienMatches = lolienMatchePages.getContent();
 
     int totalPages = lolienMatchePages.getTotalPages();
@@ -94,7 +95,7 @@ public class CustomGameServiceImpl implements CustomGameService {
     List<LolienMatch> lolienMatches = lolienSummoner.getParticipants()
         .stream()
         .map(LolienParticipant::getMatch)
-        .sorted(Comparator.comparing(LolienMatch::getIdx).reversed())
+        .sorted(Comparator.comparing(LolienMatch::getGameCreation).reversed())
         .collect(Collectors.toList());
 
     int skip = page * size;
