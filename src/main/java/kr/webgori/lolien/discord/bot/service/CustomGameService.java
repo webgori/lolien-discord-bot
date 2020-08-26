@@ -9,4 +9,6 @@ public interface CustomGameService {
   CustomGamesResponse getCustomGames(int page, int size);
 
   CustomGamesResponse getCustomGamesBySummoner(String summonerName, int page, int size);
+
+  void existSummonerBySummonerName(String summonerName);
 }
