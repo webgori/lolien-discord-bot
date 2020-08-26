@@ -15,6 +15,8 @@ public class CustomGameSummonerDto {
 
   private String championUrl;
 
+  private String championName;
+
   private long totalDamageDealtToChampions;
 
   private int spell1Id;
@@ -24,6 +26,14 @@ public class CustomGameSummonerDto {
   private String spell1Url;
 
   private String spell2Url;
+
+  private String spell1Name;
+
+  private String spell2Name;
+
+  private String spell1Description;
+
+  private String spell2Description;
 
   private int kills;
 
@@ -62,6 +72,34 @@ public class CustomGameSummonerDto {
   private String item5Url;
 
   private String item6Url;
+
+  private String item0Name;
+
+  private String item1Name;
+
+  private String item2Name;
+
+  private String item3Name;
+
+  private String item4Name;
+
+  private String item5Name;
+
+  private String item6Name;
+
+  private String item0Description;
+
+  private String item1Description;
+
+  private String item2Description;
+
+  private String item3Description;
+
+  private String item4Description;
+
+  private String item5Description;
+
+  private String item6Description;
 
   private int wardsPlaced;
 

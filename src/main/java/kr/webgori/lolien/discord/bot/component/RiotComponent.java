@@ -212,6 +212,36 @@ public class RiotComponent {
   }
 
   /**
+   * getChampionName.
+   *
+   * @param dataDragonVersion dataDragonVersion
+   * @param championId        championId
+   * @return championName
+   */
+  public String getChampionName(JsonObject championsJsonObject, String dataDragonVersion,
+                               int championId) {
+    JsonObject data = championsJsonObject.getAsJsonObject("data");
+    Set<String> championsName = data.keySet();
+
+    String championKoreanName = "";
+
+    for (String championName : championsName) {
+      JsonObject championJsonObject = data.getAsJsonObject(championName);
+      int key = championJsonObject.get("key").getAsInt();
+
+      if (championId == key) {
+        championKoreanName = championJsonObject.get("name").getAsString();
+      }
+    }
+
+    if (championKoreanName.isEmpty()) {
+      throw new IllegalArgumentException();
+    }
+
+    return championKoreanName;
+  }
+
+  /**
    * getSpellUrl.
    *
    * @param dataDragonVersion dataDragonVersion
@@ -246,6 +276,65 @@ public class RiotComponent {
     }
 
     return spellImageFilename;
+  }
+
+  /**
+   * getSpellName.
+   *
+   * @param dataDragonVersion dataDragonVersion
+   * @param spellId           spellId
+   * @return spellName
+   */
+  public String getSpellName(JsonObject summonerJsonObject, String dataDragonVersion, int spellId) {
+    JsonObject data = summonerJsonObject.getAsJsonObject("data");
+    Set<String> spellsName = data.keySet();
+
+    String spellKoreanName = "";
+
+    for (String spellName : spellsName) {
+      JsonObject spellJsonObject = data.getAsJsonObject(spellName);
+      int key = spellJsonObject.get("key").getAsInt();
+
+      if (spellId == key) {
+        spellKoreanName = spellJsonObject.get("name").getAsString();
+      }
+    }
+
+    if (spellKoreanName.isEmpty()) {
+      throw new IllegalArgumentException();
+    }
+
+    return spellKoreanName;
+  }
+
+  /**
+   * getSpellDescription.
+   *
+   * @param dataDragonVersion dataDragonVersion
+   * @param spellId           spellId
+   * @return spellDescription
+   */
+  public String getSpellDescription(JsonObject summonerJsonObject, String dataDragonVersion,
+                                    int spellId) {
+    JsonObject data = summonerJsonObject.getAsJsonObject("data");
+    Set<String> spellsName = data.keySet();
+
+    String spellKoreanDescription = "";
+
+    for (String spellName : spellsName) {
+      JsonObject spellJsonObject = data.getAsJsonObject(spellName);
+      int key = spellJsonObject.get("key").getAsInt();
+
+      if (spellId == key) {
+        spellKoreanDescription = spellJsonObject.get("description").getAsString();
+      }
+    }
+
+    if (spellKoreanDescription.isEmpty()) {
+      throw new IllegalArgumentException();
+    }
+
+    return spellKoreanDescription;
   }
 
   /**
@@ -284,6 +373,37 @@ public class RiotComponent {
 
   private String getItemImageFilename(JsonObject itemsJsonObject, String dataDragonVersion,
                                       int itemId) {
+    JsonObject itemJsonObject = getItemJsonObject(itemsJsonObject, itemId);
+    JsonObject image = itemJsonObject.get("image").getAsJsonObject();
+    return image.get("full").getAsString();
+  }
+
+  /**
+   * getItemName.
+   *
+   * @param dataDragonVersion dataDragonVersion
+   * @param itemId            itemId
+   * @return itemName
+   */
+  public String getItemName(JsonObject itemsJsonObject, String dataDragonVersion, int itemId) {
+    JsonObject itemJsonObject = getItemJsonObject(itemsJsonObject, itemId);
+    return itemJsonObject.get("name").getAsString();
+  }
+
+  /**
+   * getItemDescription.
+   *
+   * @param dataDragonVersion dataDragonVersion
+   * @param itemId            itemId
+   * @return itemDescription
+   */
+  public String getItemDescription(JsonObject itemsJsonObject, String dataDragonVersion,
+                                   int itemId) {
+    JsonObject itemJsonObject = getItemJsonObject(itemsJsonObject, itemId);
+    return itemJsonObject.get("description").getAsString();
+  }
+
+  private JsonObject getItemJsonObject(JsonObject itemsJsonObject, int itemId) {
     JsonObject data = itemsJsonObject.getAsJsonObject("data");
     String key = String.valueOf(itemId);
     boolean hasKey = data.has(key);
@@ -292,9 +412,7 @@ public class RiotComponent {
       throw new IllegalArgumentException();
     }
 
-    JsonObject itemJsonObject = data.get(key).getAsJsonObject();
-    JsonObject image = itemJsonObject.get("image").getAsJsonObject();
-    return image.get("full").getAsString();
+    return data.get(key).getAsJsonObject();
   }
 
   /**
