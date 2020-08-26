@@ -67,7 +67,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     web
         .ignoring()
         .antMatchers("/v3/api-docs/**", "/swagger-ui/**")
-        .antMatchers("/**/custom-game/**", "/**/leagues/**");
+        .antMatchers("/v*/summoners/**", "/v*/custom-game/**", "/v*/leagues/**");
   }
 
   @Override
