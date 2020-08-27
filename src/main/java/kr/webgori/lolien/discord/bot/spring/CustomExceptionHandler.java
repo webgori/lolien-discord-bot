@@ -39,6 +39,11 @@ public class CustomExceptionHandler {
     return new ResponseEntity<>(httpStatus);
   }
 
+  /**
+   * illegalArgumentException.
+   * @param exception IllegalArgumentException
+   * @return ResponseEntity
+   */
   @ExceptionHandler(value = IllegalArgumentException.class)
   public ResponseEntity<ExceptionResponse> illegalArgumentException(
       IllegalArgumentException exception) {
