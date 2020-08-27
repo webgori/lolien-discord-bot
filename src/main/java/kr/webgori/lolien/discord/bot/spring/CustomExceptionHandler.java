@@ -33,6 +33,12 @@ public class CustomExceptionHandler {
     return new ResponseEntity<>(httpStatus);
   }
 
+  @ExceptionHandler(value = IllegalArgumentException.class)
+  public ResponseEntity<Void> illegalArgumentException() {
+    HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
+    return new ResponseEntity<>(httpStatus);
+  }
+
   @ExceptionHandler(value = AccessDeniedException.class)
   public ResponseEntity accessDeniedException(AccessDeniedException exception) {
     HttpStatus httpStatus = HttpStatus.FORBIDDEN;
