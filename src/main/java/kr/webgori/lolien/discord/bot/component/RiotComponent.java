@@ -534,7 +534,7 @@ public class RiotComponent {
   private String getRuneImageFilename(JsonArray runesJsonArray, String dataDragonVersion,
                                       int runeId) {
     JsonObject runeJsonObject = getRuneJsonArray(runesJsonArray, runeId);
-    return runeJsonObject.get("icon").getAsJsonObject().getAsString();
+    return runeJsonObject.get("icon").getAsString();
   }
 
   /**
