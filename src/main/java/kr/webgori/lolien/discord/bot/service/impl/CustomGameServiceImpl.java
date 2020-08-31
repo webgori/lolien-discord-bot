@@ -254,21 +254,21 @@ public class CustomGameServiceImpl implements CustomGameService {
           runesJsonArrayMap.put(closeDataDragonVersion, runesJsonArray);
         }
 
-        int perkPrimaryStyle = lolienParticipantStats.getPerkPrimaryStyle();
+        int primaryRunId = lolienParticipantStats.getPerk0();
         String primaryRuneUrl = riotComponent.getRuneUrl(runesJsonArray, closeDataDragonVersion,
-            perkPrimaryStyle);
+            primaryRunId);
         String primaryRuneName = riotComponent.getRuneName(runesJsonArray, closeDataDragonVersion,
-            perkPrimaryStyle);
+            primaryRunId);
         String primaryRuneDescription = riotComponent
-            .getRuneDescription(runesJsonArray, closeDataDragonVersion, perkPrimaryStyle);
+            .getRuneDescription(runesJsonArray, closeDataDragonVersion, primaryRunId);
 
-        int perkSubStyle = lolienParticipantStats.getPerkSubStyle();
+        int subRunId = lolienParticipantStats.getPerkSubStyle();
         String subRuneUrl = riotComponent.getRuneUrl(runesJsonArray, closeDataDragonVersion,
-            perkSubStyle);
+            subRunId);
         String subRuneName = riotComponent.getRuneName(runesJsonArray, closeDataDragonVersion,
-            perkSubStyle);
+            subRunId);
         String subRuneDescription = riotComponent
-            .getRuneDescription(runesJsonArray, closeDataDragonVersion, perkSubStyle);
+            .getRuneDescription(runesJsonArray, closeDataDragonVersion, subRunId);
 
         int teamId = lolienParticipant.getTeamId();
         boolean win = lolienParticipantStats.getWin();

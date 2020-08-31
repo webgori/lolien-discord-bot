@@ -447,7 +447,23 @@ public class RiotComponent {
       int id = jsonObject.get("id").getAsInt();
 
       if (id == runeId) {
-        return jsonObject;
+        return getPrimaryRuneJsonObject(jsonObject, runeId);
+      }
+
+      JsonArray slots = jsonObject.get("slots").getAsJsonArray();
+
+      for (JsonElement slot : slots) {
+        JsonObject slotJsonObject = slot.getAsJsonObject();
+        JsonArray runes = slotJsonObject.get("runes").getAsJsonArray();
+
+        for (JsonElement run : runes) {
+          JsonObject runJsonObject = run.getAsJsonObject();
+          int slotId = runJsonObject.get("id").getAsInt();
+
+          if (slotId == runeId) {
+            return runJsonObject;
+          }
+        }
       }
     }
 
@@ -470,6 +486,34 @@ public class RiotComponent {
     return gson.fromJson(responseBody, JsonArray.class);
   }
 
+  private JsonObject getPrimaryRuneJsonObject(JsonObject jsonObject, int runeId) {
+    String primaryRuneDescription = getPrimaryRuneDescription(runeId);
+    jsonObject.addProperty("longDesc", primaryRuneDescription);
+
+    return jsonObject;
+  }
+
+  private String getPrimaryRuneDescription(int runeId) {
+    switch (runeId) {
+      case 8000:
+        return "전설이 되어라!<br>정밀은 기본 공격이나 지속적인 피해를 강화할 수 있는 빌드입니다.";
+      case 8100:
+        return "먹잇감을 사냥하고 처치하라!"
+            + "<br>지배는 강력한 피해를 주거나 대상으로 접근을 용이하게 해줄 수 있는 빌드입니다.";
+      case 8200:
+        return "파괴여, 오라!"
+            + "<br>마법은 스킬을 강화하거나 자원을 효율적으로 관리할 수 있는 빌드입니다.";
+      case 8300:
+        return "가소로운 필멸자들은 물렀거라!"
+            + "<br>영감은 정해진 규칙에서 벗어나 창의적으로 플레이할 수 있는 빌드입니다.";
+      case 8400:
+        return "끝까지 살아있어라!"
+            + "<br>결의는 내구력과 군중 제어에 대한 빌드입니다.";
+      default:
+        return "";
+    }
+  }
+
   /**
    * getRuneUrl.
    *
@@ -490,8 +534,7 @@ public class RiotComponent {
   private String getRuneImageFilename(JsonArray runesJsonArray, String dataDragonVersion,
                                       int runeId) {
     JsonObject runeJsonObject = getRuneJsonArray(runesJsonArray, runeId);
-    JsonObject image = runeJsonObject.get("image").getAsJsonObject();
-    return image.get("full").getAsString();
+    return runeJsonObject.get("icon").getAsJsonObject().getAsString();
   }
 
   /**
