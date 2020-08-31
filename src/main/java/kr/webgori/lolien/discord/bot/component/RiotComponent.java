@@ -567,6 +567,6 @@ public class RiotComponent {
     }
 
     JsonObject runeJsonObject = getRuneJsonArray(itemsJsonArray, runeId);
-    return runeJsonObject.get("description").getAsString();
+    return runeJsonObject.get("longDesc").getAsString();
   }
 }
