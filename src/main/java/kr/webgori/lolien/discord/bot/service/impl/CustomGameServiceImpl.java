@@ -2,6 +2,7 @@ package kr.webgori.lolien.discord.bot.service.impl;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import java.util.Comparator;
 import java.util.List;
@@ -122,6 +123,7 @@ public class CustomGameServiceImpl implements CustomGameService {
     Map<String, JsonObject> summonerJsonObjectMap = Maps.newHashMap();
     Map<String, JsonObject> championsJsonObjectMap = Maps.newHashMap();
     Map<String, JsonObject> itemsJsonObjectMap = Maps.newHashMap();
+    Map<String, JsonArray> runesJsonArrayMap = Maps.newHashMap();
 
     for (LolienMatch lolienMatch : lolienMatches) {
       int idx = lolienMatch.getIdx();
@@ -149,8 +151,6 @@ public class CustomGameServiceImpl implements CustomGameService {
         String closeDataDragonVersion = riotComponent.getCloseDataDragonVersion(gameVersion,
             dataDragonVersions);
 
-        LolienSummoner lolienSummoner = lolienParticipant.getLolienSummoner();
-
         JsonObject summonerJsonObject;
 
         if (summonerJsonObjectMap.containsKey(closeDataDragonVersion)) {
@@ -159,25 +159,6 @@ public class CustomGameServiceImpl implements CustomGameService {
           summonerJsonObject = riotComponent.getSummonerJsonObject(closeDataDragonVersion);
           summonerJsonObjectMap.put(closeDataDragonVersion, summonerJsonObject);
         }
-
-        int spell1Id = lolienParticipant.getSpell1Id();
-        String spell1Url = riotComponent.getSpellUrl(summonerJsonObject, closeDataDragonVersion,
-            spell1Id);
-        String spell1Name = riotComponent.getSpellName(summonerJsonObject, closeDataDragonVersion,
-            spell1Id);
-        String spell1Description = riotComponent.getSpellDescription(summonerJsonObject,
-            closeDataDragonVersion, spell1Id);
-
-        int spell2Id = lolienParticipant.getSpell2Id();
-        String spell2Url = riotComponent.getSpellUrl(summonerJsonObject, closeDataDragonVersion,
-            spell2Id);
-        String spell2Name = riotComponent.getSpellName(summonerJsonObject, closeDataDragonVersion,
-            spell2Id);
-        String spell2Description = riotComponent.getSpellDescription(summonerJsonObject,
-            closeDataDragonVersion, spell2Id);
-
-        int lolienSummonerIdx = lolienSummoner.getIdx();
-        String summonerName = lolienSummoner.getSummonerName();
 
         JsonObject championsJsonObject;
 
@@ -264,8 +245,53 @@ public class CustomGameServiceImpl implements CustomGameService {
         String item6Description = riotComponent
             .getItemDescription(itemsJsonObject, closeDataDragonVersion, item6);
 
+        JsonArray runesJsonArray;
+
+        if (runesJsonArrayMap.containsKey(closeDataDragonVersion)) {
+          runesJsonArray = runesJsonArrayMap.get(closeDataDragonVersion);
+        } else {
+          runesJsonArray = riotComponent.getRuneJsonArray(closeDataDragonVersion);
+          runesJsonArrayMap.put(closeDataDragonVersion, runesJsonArray);
+        }
+
+        int perkPrimaryStyle = lolienParticipantStats.getPerkPrimaryStyle();
+        String primaryRuneUrl = riotComponent.getRuneUrl(runesJsonArray, closeDataDragonVersion,
+            perkPrimaryStyle);
+        String primaryRuneName = riotComponent.getRuneName(runesJsonArray, closeDataDragonVersion,
+            perkPrimaryStyle);
+        String primaryRuneDescription = riotComponent
+            .getRuneDescription(runesJsonArray, closeDataDragonVersion, perkPrimaryStyle);
+
+        int perkSubStyle = lolienParticipantStats.getPerkSubStyle();
+        String subRuneUrl = riotComponent.getRuneUrl(runesJsonArray, closeDataDragonVersion,
+            perkSubStyle);
+        String subRuneName = riotComponent.getRuneName(runesJsonArray, closeDataDragonVersion,
+            perkSubStyle);
+        String subRuneDescription = riotComponent
+            .getRuneDescription(runesJsonArray, closeDataDragonVersion, perkSubStyle);
+
         int teamId = lolienParticipant.getTeamId();
         boolean win = lolienParticipantStats.getWin();
+
+        LolienSummoner lolienSummoner = lolienParticipant.getLolienSummoner();
+        int lolienSummonerIdx = lolienSummoner.getIdx();
+        String summonerName = lolienSummoner.getSummonerName();
+
+        int spell1Id = lolienParticipant.getSpell1Id();
+        String spell1Url = riotComponent.getSpellUrl(summonerJsonObject, closeDataDragonVersion,
+            spell1Id);
+        String spell1Name = riotComponent.getSpellName(summonerJsonObject, closeDataDragonVersion,
+            spell1Id);
+        String spell1Description = riotComponent.getSpellDescription(summonerJsonObject,
+            closeDataDragonVersion, spell1Id);
+
+        int spell2Id = lolienParticipant.getSpell2Id();
+        String spell2Url = riotComponent.getSpellUrl(summonerJsonObject, closeDataDragonVersion,
+            spell2Id);
+        String spell2Name = riotComponent.getSpellName(summonerJsonObject, closeDataDragonVersion,
+            spell2Id);
+        String spell2Description = riotComponent.getSpellDescription(summonerJsonObject,
+            closeDataDragonVersion, spell2Id);
 
         CustomGameSummonerDto customGameSummonerDto = CustomGameSummonerDto
             .builder()
@@ -275,8 +301,6 @@ public class CustomGameServiceImpl implements CustomGameService {
             .championUrl(championUrl)
             .championName(championName)
             .totalDamageDealtToChampions(totalDamageDealtToChampions)
-            .spell1Id(spell1Id)
-            .spell2Id(spell2Id)
             .spell1Url(spell1Url)
             .spell2Url(spell2Url)
             .spell1Name(spell1Name)
@@ -288,13 +312,6 @@ public class CustomGameServiceImpl implements CustomGameService {
             .assists(assists)
             .champLevel(champLevel)
             .totalMinionsKilled(totalMinionsKilled)
-            .item0(item0)
-            .item1(item1)
-            .item2(item2)
-            .item3(item3)
-            .item4(item4)
-            .item5(item5)
-            .item6(item6)
             .item0Url(item0Url)
             .item1Url(item1Url)
             .item2Url(item2Url)
@@ -316,6 +333,12 @@ public class CustomGameServiceImpl implements CustomGameService {
             .item4Description(item4Description)
             .item5Description(item5Description)
             .item6Description(item6Description)
+            .primaryRuneUrl(primaryRuneUrl)
+            .primaryRuneName(primaryRuneName)
+            .primaryRuneDescription(primaryRuneDescription)
+            .subRuneUrl(subRuneUrl)
+            .subRuneName(subRuneName)
+            .subRuneDescription(subRuneDescription)
             .wardsPlaced(wardsPlaced)
             .teamId(teamId)
             .win(win)

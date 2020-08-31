@@ -19,20 +19,12 @@ public class CustomGameSummonerDto {
 
   private long totalDamageDealtToChampions;
 
-  private int spell1Id;
-
-  private int spell2Id;
-
   private String spell1Url;
-
-  private String spell2Url;
-
   private String spell1Name;
-
-  private String spell2Name;
-
   private String spell1Description;
 
+  private String spell2Url;
+  private String spell2Name;
   private String spell2Description;
 
   private int kills;
@@ -45,61 +37,51 @@ public class CustomGameSummonerDto {
 
   private int totalMinionsKilled;
 
-  private int item0;
-
-  private int item1;
-
-  private int item2;
-
-  private int item3;
-
-  private int item4;
-
-  private int item5;
-
-  private int item6;
-
   private String item0Url;
-
-  private String item1Url;
-
-  private String item2Url;
-
-  private String item3Url;
-
-  private String item4Url;
-
-  private String item5Url;
-
-  private String item6Url;
-
   private String item0Name;
-
-  private String item1Name;
-
-  private String item2Name;
-
-  private String item3Name;
-
-  private String item4Name;
-
-  private String item5Name;
-
-  private String item6Name;
-
   private String item0Description;
 
+  private String item1Url;
+  private String item1Name;
   private String item1Description;
 
+  private String item2Url;
+  private String item2Name;
   private String item2Description;
 
+  private String item3Url;
+  private String item3Name;
   private String item3Description;
 
+  private String item4Url;
+  private String item4Name;
   private String item4Description;
 
+  private String item5Url;
+  private String item5Name;
   private String item5Description;
 
+  private String item6Url;
+  private String item6Name;
   private String item6Description;
+
+  @Schema(description = "메인 룬 URL")
+  private String primaryRuneUrl;
+
+  @Schema(description = "메인 룬 이름")
+  private String primaryRuneName;
+
+  @Schema(description = "메인 룬 설명")
+  private String primaryRuneDescription;
+
+  @Schema(description = "보조 룬 URL")
+  private String subRuneUrl;
+
+  @Schema(description = "보조 룬 이름")
+  private String subRuneName;
+
+  @Schema(description = "보조 룬 설명")
+  private String subRuneDescription;
 
   private int wardsPlaced;
 

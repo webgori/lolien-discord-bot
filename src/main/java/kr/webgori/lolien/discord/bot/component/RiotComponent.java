@@ -3,6 +3,8 @@ package kr.webgori.lolien.discord.bot.component;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import java.util.Arrays;
 import java.util.List;
@@ -437,5 +439,91 @@ public class RiotComponent {
         .orElseThrow(() -> new IllegalStateException("riot champions api result is empty"));
 
     return gson.fromJson(responseBody, JsonObject.class);
+  }
+
+  private JsonObject getRuneJsonArray(JsonArray runesJsonArray, int runeId) {
+    for (JsonElement jsonElement : runesJsonArray) {
+      JsonObject jsonObject = jsonElement.getAsJsonObject();
+      int id = jsonObject.get("id").getAsInt();
+
+      if (id == runeId) {
+        return jsonObject;
+      }
+    }
+
+    throw new IllegalArgumentException("존재하지 않는 룬 정보입니다.");
+  }
+
+  /**
+   * getRuneJsonObject.
+   *
+   * @param dataDragonVersion dataDragonVersion
+   * @return runeJsonObject
+   */
+  public JsonArray getRuneJsonArray(String dataDragonVersion) {
+    String responseBody = Optional.ofNullable(restTemplate
+        .getForObject("https://ddragon.leagueoflegends"
+                + ".com/cdn/{data-dragon-version}/data/ko_KR/runesReforged.json",
+            String.class, dataDragonVersion))
+        .orElseThrow(() -> new IllegalStateException("riot champions api result is empty"));
+
+    return gson.fromJson(responseBody, JsonArray.class);
+  }
+
+  /**
+   * getRuneUrl.
+   *
+   * @param dataDragonVersion dataDragonVersion
+   * @param runeId            runeId
+   * @return runeUrl
+   */
+  public String getRuneUrl(JsonArray runesJsonArray, String dataDragonVersion, int runeId) {
+    if (runeId == 0) {
+      return "";
+    }
+
+    String runeImageFilename = getRuneImageFilename(runesJsonArray, dataDragonVersion, runeId);
+    return String
+        .format("https://ddragon.leagueoflegends.com/cdn/img/%s", runeImageFilename);
+  }
+
+  private String getRuneImageFilename(JsonArray runesJsonArray, String dataDragonVersion,
+                                      int runeId) {
+    JsonObject runeJsonObject = getRuneJsonArray(runesJsonArray, runeId);
+    JsonObject image = runeJsonObject.get("image").getAsJsonObject();
+    return image.get("full").getAsString();
+  }
+
+  /**
+   * getRuneName.
+   *
+   * @param dataDragonVersion dataDragonVersion
+   * @param runeId            runeId
+   * @return runeName
+   */
+  public String getRuneName(JsonArray runesJsonArray, String dataDragonVersion, int runeId) {
+    if (runeId == 0) {
+      return "";
+    }
+
+    JsonObject runeJsonObject = getRuneJsonArray(runesJsonArray, runeId);
+    return runeJsonObject.get("name").getAsString();
+  }
+
+  /**
+   * getRuneDescription.
+   *
+   * @param dataDragonVersion dataDragonVersion
+   * @param runeId            runeId
+   * @return runeDescription
+   */
+  public String getRuneDescription(JsonArray itemsJsonArray, String dataDragonVersion,
+                                   int runeId) {
+    if (runeId == 0) {
+      return "";
+    }
+
+    JsonObject runeJsonObject = getRuneJsonArray(itemsJsonArray, runeId);
+    return runeJsonObject.get("description").getAsString();
   }
 }
