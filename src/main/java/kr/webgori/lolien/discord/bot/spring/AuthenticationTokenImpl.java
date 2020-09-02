@@ -1,6 +1,6 @@
 package kr.webgori.lolien.discord.bot.spring;
 
-import static kr.webgori.lolien.discord.bot.util.CommonUtil.getTimestamp;
+import static kr.webgori.lolien.discord.bot.util.CommonUtil.localDateTimeToTimestamp;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Objects;
 import kr.webgori.lolien.discord.bot.dto.SessionUserDto;
+import kr.webgori.lolien.discord.bot.util.CommonUtil;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
@@ -63,7 +64,7 @@ public class AuthenticationTokenImpl extends AbstractAuthenticationToken {
   public String getHash() {
     SessionUserDto sessionUserDto = (SessionUserDto) getDetails();
     LocalDateTime createdAt = sessionUserDto.getCreatedAt();
-    long timestamp = getTimestamp(createdAt);
+    long timestamp = CommonUtil.localDateTimeToTimestamp(createdAt);
 
     String hashString = String.format("%s_%d", username, timestamp);
     byte[] hashBytes = hashString.getBytes(DEFAULT_CHARSET);

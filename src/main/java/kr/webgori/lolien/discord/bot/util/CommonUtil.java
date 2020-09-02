@@ -194,7 +194,7 @@ public class CommonUtil {
    * @param localDateTime localDateTime
    * @return timestamp
    */
-  public static long getTimestamp(LocalDateTime localDateTime) {
+  public static long localDateTimeToTimestamp(LocalDateTime localDateTime) {
     return Timestamp.valueOf(localDateTime).getTime();
   }
 
@@ -202,9 +202,18 @@ public class CommonUtil {
    * getTimestamp.
    * @return timestamp
    */
-  public static long getTimestamp() {
+  public static long localDateTimeToTimestamp() {
     LocalDateTime now = LocalDateTime.now();
-    return getTimestamp(now);
+    return localDateTimeToTimestamp(now);
+  }
+
+  /**
+   * localDateToTimestamp.
+   * @param localDate localDate
+   * @return timestamp
+   */
+  public static long localDateToTimestamp(LocalDate localDate) {
+    return Timestamp.valueOf(localDate.atStartOfDay()).getTime();
   }
 
   /**
@@ -215,5 +224,21 @@ public class CommonUtil {
   public static LocalDateTime timestampToLocalDateTime(long timestamp) {
     return LocalDateTime
         .ofInstant(Instant.ofEpochMilli(timestamp), TimeZone.getDefault().toZoneId());
+  }
+
+  /**
+   * getStartDateOfMonth.
+   * @return LocalDate
+   */
+  public static LocalDate getStartDateOfMonth() {
+    return LocalDate.now().withDayOfMonth(1);
+  }
+
+  /**
+   * getEndDateOfMonth.
+   * @return LocalDate
+   */
+  public static LocalDate getEndDateOfMonth() {
+    return LocalDate.now().plusMonths(1).withDayOfMonth(1).minusDays(1);
   }
 }

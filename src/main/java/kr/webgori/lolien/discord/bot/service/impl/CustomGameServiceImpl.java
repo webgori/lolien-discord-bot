@@ -1,11 +1,16 @@
 package kr.webgori.lolien.discord.bot.service.impl;
 
+import static kr.webgori.lolien.discord.bot.util.CommonUtil.getEndDateOfMonth;
+import static kr.webgori.lolien.discord.bot.util.CommonUtil.getStartDateOfMonth;
+import static kr.webgori.lolien.discord.bot.util.CommonUtil.localDateTimeToTimestamp;
+import static kr.webgori.lolien.discord.bot.util.CommonUtil.localDateToTimestamp;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.timestampToLocalDateTime;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -424,8 +429,15 @@ public class CustomGameServiceImpl implements CustomGameService {
   }
 
   private List<CustomGamesStatisticsMatchDto> getStatisticsMatchesDto() {
+    LocalDate startDateOfMonth = getStartDateOfMonth();
+    long startTimestamp = localDateToTimestamp(startDateOfMonth);
+
+    LocalDate endDateOfMonth = getEndDateOfMonth();
+    long endTimestamp = localDateToTimestamp(endDateOfMonth);
+
     List<LolienMatch> lolienMatches = lolienMatchRepository
-        .findByGameCreationGreaterThanEqualAndGameCreationLessThanEqual(1, 1);
+        .findByGameCreationGreaterThanEqualAndGameCreationLessThanEqual(startTimestamp,
+            endTimestamp);
 
     return lolienMatches
         .stream()
