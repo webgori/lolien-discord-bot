@@ -443,12 +443,14 @@ public class CustomGameServiceImpl implements CustomGameService {
         .stream()
         .collect(Collectors
             .groupingBy(lm -> timestampToLocalDateTime(lm.getGameCreation()).toLocalDate()))
-        .entrySet().stream()
+        .entrySet()
+        .stream()
         .map(entry -> CustomGamesStatisticsMatchDto
             .builder()
             .gameCreation(entry.getKey())
             .matchCount(entry.getValue().size())
             .build())
+        .sorted(Comparator.comparing(CustomGamesStatisticsMatchDto::getGameCreation))
         .collect(Collectors.toList());
   }
 }
