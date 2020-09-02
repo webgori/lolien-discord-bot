@@ -231,7 +231,7 @@ public class CommonUtil {
    * @return LocalDate
    */
   public static LocalDate getStartDateOfMonth() {
-    return LocalDate.now().withDayOfMonth(1);
+    return LocalDate.now().minusMonths(1).withDayOfMonth(1);
   }
 
   /**
@@ -239,6 +239,6 @@ public class CommonUtil {
    * @return LocalDate
    */
   public static LocalDate getEndDateOfMonth() {
-    return LocalDate.now().plusMonths(1).withDayOfMonth(1).minusDays(1);
+    return LocalDate.now().minusMonths(1).plusMonths(1).withDayOfMonth(1).minusDays(1);
   }
 }
