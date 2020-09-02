@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import kr.webgori.lolien.discord.bot.request.CustomGameAddResultRequest;
 import kr.webgori.lolien.discord.bot.response.CustomGamesResponse;
+import kr.webgori.lolien.discord.bot.response.CustomGamesStatisticsResponse;
 import kr.webgori.lolien.discord.bot.service.CustomGameService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -75,5 +76,21 @@ public class CustomGameController {
       @RequestParam(value = "page", defaultValue = "1") int page,
       @RequestParam(value = "size", defaultValue = "5") int size) {
     return customGameService.getCustomGamesBySummoner(summonerName, page, size);
+  }
+
+  @Operation(
+      summary = "통계 조회")
+  @ApiResponses(
+      value = {
+          @ApiResponse(
+              responseCode = "200",
+              description = "OK",
+              content = @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = CustomGamesResponse.class)))
+      })
+  @GetMapping("v1/custom-game/statistics")
+  public CustomGamesStatisticsResponse getStatistics() {
+    return customGameService.getStatistics();
   }
 }

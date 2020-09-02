@@ -6,11 +6,13 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.awt.Color;
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import kr.webgori.lolien.discord.bot.component.ConfigComponent;
@@ -203,5 +205,10 @@ public class CommonUtil {
   public static long getTimestamp() {
     LocalDateTime now = LocalDateTime.now();
     return getTimestamp(now);
+  }
+
+  public static LocalDateTime timestampToLocalDateTime(long timestamp) {
+    return LocalDateTime
+        .ofInstant(Instant.ofEpochMilli(timestamp), TimeZone.getDefault().toZoneId());
   }
 }

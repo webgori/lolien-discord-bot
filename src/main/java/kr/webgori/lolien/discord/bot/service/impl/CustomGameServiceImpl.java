@@ -1,9 +1,12 @@
 package kr.webgori.lolien.discord.bot.service.impl;
 
+import static kr.webgori.lolien.discord.bot.util.CommonUtil.timestampToLocalDateTime;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +30,8 @@ import kr.webgori.lolien.discord.bot.repository.LolienSummonerRepository;
 import kr.webgori.lolien.discord.bot.request.CustomGameAddResultRequest;
 import kr.webgori.lolien.discord.bot.response.CustomGameResponse;
 import kr.webgori.lolien.discord.bot.response.CustomGamesResponse;
+import kr.webgori.lolien.discord.bot.dto.CustomGamesStatisticsMatchDto;
+import kr.webgori.lolien.discord.bot.response.CustomGamesStatisticsResponse;
 import kr.webgori.lolien.discord.bot.service.CustomGameService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -407,5 +412,32 @@ public class CustomGameServiceImpl implements CustomGameService {
         .customGames(customGames)
         .totalPages(totalPages)
         .build();
+  }
+
+  @Override
+  public CustomGamesStatisticsResponse getStatistics() {
+    List<CustomGamesStatisticsMatchDto> statisticsMatchesDto = getStatisticsMatchesDto();
+
+    return CustomGamesStatisticsResponse
+        .builder()
+        .matches(statisticsMatchesDto)
+        .build();
+  }
+
+  private List<CustomGamesStatisticsMatchDto> getStatisticsMatchesDto() {
+    List<LolienMatch> lolienMatches = lolienMatchRepository
+        .findByGameCreationGreaterThanEqualAndGameCreationLessThanEqual(1, 1);
+
+    return lolienMatches
+        .stream()
+        .collect(Collectors
+            .groupingBy(lm -> timestampToLocalDateTime(lm.getGameCreation()).toLocalDate()))
+        .entrySet().stream()
+        .map(entry -> CustomGamesStatisticsMatchDto
+            .builder()
+            .gameCreation(entry.getKey())
+            .matchCount(entry.getValue().size())
+            .build())
+        .collect(Collectors.toList());
   }
 }
