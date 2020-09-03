@@ -15,6 +15,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import kr.webgori.lolien.discord.bot.component.CustomGameComponent;
 import kr.webgori.lolien.discord.bot.component.RiotComponent;
@@ -22,6 +23,9 @@ import kr.webgori.lolien.discord.bot.dto.CustomGameSummonerDto;
 import kr.webgori.lolien.discord.bot.dto.CustomGameTeamBanDto;
 import kr.webgori.lolien.discord.bot.dto.CustomGameTeamDto;
 import kr.webgori.lolien.discord.bot.dto.CustomGamesStatisticsMatchDto;
+import kr.webgori.lolien.discord.bot.dto.CustomGamesStatisticsMostBannedDto;
+import kr.webgori.lolien.discord.bot.dto.CustomGamesStatisticsMostPlayedDto;
+import kr.webgori.lolien.discord.bot.dto.CustomGamesStatisticsMostWinningDto;
 import kr.webgori.lolien.discord.bot.dto.DataDragonVersionDto;
 import kr.webgori.lolien.discord.bot.entity.LolienMatch;
 import kr.webgori.lolien.discord.bot.entity.LolienParticipant;
@@ -420,25 +424,25 @@ public class CustomGameServiceImpl implements CustomGameService {
 
   @Override
   public CustomGamesStatisticsResponse getStatistics() {
-    List<CustomGamesStatisticsMatchDto> statisticsMatchesDto = getStatisticsMatchesDto();
+    List<LolienMatch> lolienMatches = getLolienMatches();
+
+    List<CustomGamesStatisticsMatchDto> matchesDto = getStatisticsMatchesDto(
+        lolienMatches);
+    List<CustomGamesStatisticsMostBannedDto> mostBannedDto = getStatisticsMostBannedDto(
+        lolienMatches);
+    List<CustomGamesStatisticsMostPlayedDto> mostPlayedDto = getStatisticsMostPlayedDto(
+        lolienMatches);
 
     return CustomGamesStatisticsResponse
         .builder()
-        .matches(statisticsMatchesDto)
+        .matches(matchesDto)
+        .mostBannedDto(mostBannedDto)
+        .mostPlayedDto(mostPlayedDto)
         .build();
   }
 
-  private List<CustomGamesStatisticsMatchDto> getStatisticsMatchesDto() {
-    LocalDate startDateOfMonth = getStartDateOfMonth();
-    long startTimestamp = localDateToTimestamp(startDateOfMonth);
-
-    LocalDate endDateOfMonth = getEndDateOfMonth();
-    long endTimestamp = localDateToTimestamp(endDateOfMonth);
-
-    List<LolienMatch> lolienMatches = lolienMatchRepository
-        .findByGameCreationGreaterThanEqualAndGameCreationLessThanEqual(startTimestamp,
-            endTimestamp);
-
+  private List<CustomGamesStatisticsMatchDto> getStatisticsMatchesDto(
+      List<LolienMatch> lolienMatches) {
     return lolienMatches
         .stream()
         .collect(Collectors
@@ -452,5 +456,123 @@ public class CustomGameServiceImpl implements CustomGameService {
             .build())
         .sorted(Comparator.comparing(CustomGamesStatisticsMatchDto::getGameCreation))
         .collect(Collectors.toList());
+  }
+
+  private List<LolienMatch> getLolienMatches() {
+    LocalDate startDateOfMonth = getStartDateOfMonth();
+    long startTimestamp = localDateToTimestamp(startDateOfMonth);
+
+    LocalDate endDateOfMonth = getEndDateOfMonth();
+    long endTimestamp = localDateToTimestamp(endDateOfMonth);
+
+    return lolienMatchRepository
+        .findByGameCreationGreaterThanEqualAndGameCreationLessThanEqual(startTimestamp,
+            endTimestamp);
+  }
+
+  private List<CustomGamesStatisticsMostBannedDto> getStatisticsMostBannedDto(
+      List<LolienMatch> lolienMatches) {
+    List<CustomGamesStatisticsMostBannedDto> mostBannedDtoList = Lists.newArrayList();
+
+    for (LolienMatch lolienMatch : lolienMatches) {
+      Set<LolienTeamStats> teams = lolienMatch.getTeams();
+
+      for (LolienTeamStats team : teams) {
+        List<LolienTeamBans> bans = team.getBans();
+
+        for (LolienTeamBans ban : bans) {
+          int championId =  ban.getChampionId();
+          String championName = riotComponent.getChampionNameByChampId(championId);
+
+          CustomGamesStatisticsMostBannedDto mostBannedDto = mostBannedDtoList
+              .stream()
+              .filter(mb -> mb.getChampionName().equals(championName))
+              .findFirst()
+              .orElse(null);
+
+          if (Objects.isNull(mostBannedDto)) {
+            mostBannedDto = CustomGamesStatisticsMostBannedDto
+                .builder()
+                .championName(championName)
+                .count(1)
+                .build();
+
+            mostBannedDtoList.add(mostBannedDto);
+          } else {
+            mostBannedDto.increaseCount();
+          }
+        }
+      }
+    }
+
+    return mostBannedDtoList;
+  }
+
+  private List<CustomGamesStatisticsMostPlayedDto> getStatisticsMostPlayedDto(
+      List<LolienMatch> lolienMatches) {
+    List<CustomGamesStatisticsMostPlayedDto> mostPlayedDtoList = Lists.newArrayList();
+
+    for (LolienMatch lolienMatch : lolienMatches) {
+      Set<LolienParticipant> participants = lolienMatch.getParticipants();
+
+      for (LolienParticipant participant : participants) {
+        int championId =  participant.getChampionId();
+        String championName = riotComponent.getChampionNameByChampId(championId);
+
+        CustomGamesStatisticsMostPlayedDto mostPlayedDto = mostPlayedDtoList
+            .stream()
+            .filter(mb -> mb.getChampionName().equals(championName))
+            .findFirst()
+            .orElse(null);
+
+        if (Objects.isNull(mostPlayedDto)) {
+          mostPlayedDto = CustomGamesStatisticsMostPlayedDto
+              .builder()
+              .championName(championName)
+              .count(1)
+              .build();
+
+          mostPlayedDtoList.add(mostPlayedDto);
+        } else {
+          mostPlayedDto.increaseCount();
+        }
+      }
+    }
+
+    return mostPlayedDtoList;
+  }
+
+  private List<CustomGamesStatisticsMostWinningDto> getStatisticsMostWinningDto(
+      List<LolienMatch> lolienMatches) {
+    List<CustomGamesStatisticsMostWinningDto> mostWinningDtoList = Lists.newArrayList();
+
+    for (LolienMatch lolienMatch : lolienMatches) {
+      Set<LolienParticipant> participants = lolienMatch.getParticipants();
+
+      for (LolienParticipant participant : participants) {
+        int championId =  participant.getChampionId();
+        String championName = riotComponent.getChampionNameByChampId(championId);
+
+        CustomGamesStatisticsMostWinningDto mostWinningDto = mostWinningDtoList
+            .stream()
+            .filter(mb -> mb.getChampionName().equals(championName))
+            .findFirst()
+            .orElse(null);
+
+        if (Objects.isNull(mostWinningDto)) {
+          mostWinningDto = CustomGamesStatisticsMostWinningDto
+              .builder()
+              .championName(championName)
+              .count(1)
+              .build();
+
+          mostWinningDtoList.add(mostWinningDto);
+        } else {
+          mostWinningDto.increaseCount();
+        }
+      }
+    }
+
+    return mostWinningDtoList;
   }
 }
