@@ -82,7 +82,11 @@ public class RiotComponent {
     }
 
     if (dataDragonVersion.isEmpty()) {
-      throw new IllegalArgumentException();
+      dataDragonVersion = dataDragonVersionsDto
+          .stream()
+          .findFirst()
+          .orElseThrow(() -> new IllegalArgumentException("not found data dragon version"))
+          .getVersion();
     }
 
     return dataDragonVersion;
