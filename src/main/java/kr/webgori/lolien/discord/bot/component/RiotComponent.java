@@ -156,7 +156,7 @@ public class RiotComponent {
         .getName();
   }
 
-  public String getChampionNameByChampId(int champId) {
+  String getChampionNameByChampId(int champId) {
     DataDragonVersionDto latestDataDragonVersionDto = getLatestDataDragonVersion();
     String clientVersion = latestDataDragonVersionDto.getVersion();
 
@@ -173,6 +173,65 @@ public class RiotComponent {
     }
 
     return getChampionNameFromRiotApi(clientVersion, champId);
+  }
+
+  public String getChampionNameByChampId(List<ChampDto> champs, int champId) {
+    return champs
+        .stream()
+        .filter(c -> c.getKey() == champId)
+        .findFirst().orElseThrow(IllegalStateException::new)
+        .getName();
+  }
+
+  public List<ChampDto> getChampionNames() {
+    DataDragonVersionDto latestDataDragonVersionDto = getLatestDataDragonVersion();
+    String clientVersion = latestDataDragonVersionDto.getVersion();
+
+    String redisChampClientVersionKey = String.format(REDIS_CHAMP_CLIENT_VERSION_KEY,
+        clientVersion);
+
+    ValueOperations<String, Object> opsForValue = redisTemplate.opsForValue();
+    boolean hasKey = Optional
+        .ofNullable(opsForValue.getOperations().hasKey(redisChampClientVersionKey))
+        .orElse(false);
+
+    if (hasKey) {
+      return getChampionNamesFromCache(clientVersion);
+    }
+
+    return getChampionNamesFromRiotApi(clientVersion);
+  }
+
+  private List<ChampDto> getChampionNamesFromCache(String clientVersion) {
+    String redisChampClientVersionKey = String.format(REDIS_CHAMP_CLIENT_VERSION_KEY,
+        clientVersion);
+
+    Object obj = redisTemplate.opsForValue().get(redisChampClientVersionKey);
+    ChampsDto champsDto = objectMapper.convertValue(obj, ChampsDto.class);
+    return champsDto.getChamps();
+  }
+
+  private List<ChampDto> getChampionNamesFromRiotApi(String clientVersion) {
+    JsonObject championsJsonObject = getChampionJsonObject(clientVersion);
+    JsonObject data = championsJsonObject.getAsJsonObject("data");
+    Set<String> championsName = data.keySet();
+    List<ChampDto> champDtoList = Lists.newArrayList();
+
+    for (String championName : championsName) {
+      JsonObject championJsonObject = data.getAsJsonObject(championName);
+      int championId = championJsonObject.get("key").getAsInt();
+      String championKoreanName = championJsonObject.get("name").getAsString();
+
+      ChampDto champDto = ChampDto
+          .builder()
+          .key(championId)
+          .name(championKoreanName)
+          .build();
+
+      champDtoList.add(champDto);
+    }
+
+    return champDtoList;
   }
 
   /**
@@ -216,12 +275,10 @@ public class RiotComponent {
   /**
    * getChampionName.
    *
-   * @param dataDragonVersion dataDragonVersion
    * @param championId        championId
    * @return championName
    */
-  public String getChampionName(JsonObject championsJsonObject, String dataDragonVersion,
-                               int championId) {
+  public String getChampionName(JsonObject championsJsonObject, int championId) {
     JsonObject data = championsJsonObject.getAsJsonObject("data");
     Set<String> championsName = data.keySet();
 
@@ -283,11 +340,10 @@ public class RiotComponent {
   /**
    * getSpellName.
    *
-   * @param dataDragonVersion dataDragonVersion
    * @param spellId           spellId
    * @return spellName
    */
-  public String getSpellName(JsonObject summonerJsonObject, String dataDragonVersion, int spellId) {
+  public String getSpellName(JsonObject summonerJsonObject, int spellId) {
     JsonObject data = summonerJsonObject.getAsJsonObject("data");
     Set<String> spellsName = data.keySet();
 
@@ -312,12 +368,10 @@ public class RiotComponent {
   /**
    * getSpellDescription.
    *
-   * @param dataDragonVersion dataDragonVersion
    * @param spellId           spellId
    * @return spellDescription
    */
-  public String getSpellDescription(JsonObject summonerJsonObject, String dataDragonVersion,
-                                    int spellId) {
+  public String getSpellDescription(JsonObject summonerJsonObject, int spellId) {
     JsonObject data = summonerJsonObject.getAsJsonObject("data");
     Set<String> spellsName = data.keySet();
 
@@ -367,14 +421,13 @@ public class RiotComponent {
       return "";
     }
 
-    String itemImageFilename = getItemImageFilename(itemsJsonObject, dataDragonVersion, itemId);
+    String itemImageFilename = getItemImageFilename(itemsJsonObject, itemId);
     return String
         .format("https://ddragon.leagueoflegends.com/cdn/%s/img/item/%s",
             dataDragonVersion, itemImageFilename);
   }
 
-  private String getItemImageFilename(JsonObject itemsJsonObject, String dataDragonVersion,
-                                      int itemId) {
+  private String getItemImageFilename(JsonObject itemsJsonObject, int itemId) {
     JsonObject itemJsonObject = getItemJsonObject(itemsJsonObject, itemId);
     JsonObject image = itemJsonObject.get("image").getAsJsonObject();
     return image.get("full").getAsString();
@@ -383,11 +436,10 @@ public class RiotComponent {
   /**
    * getItemName.
    *
-   * @param dataDragonVersion dataDragonVersion
    * @param itemId            itemId
    * @return itemName
    */
-  public String getItemName(JsonObject itemsJsonObject, String dataDragonVersion, int itemId) {
+  public String getItemName(JsonObject itemsJsonObject, int itemId) {
     if (itemId == 0) {
       return "";
     }
@@ -399,12 +451,10 @@ public class RiotComponent {
   /**
    * getItemDescription.
    *
-   * @param dataDragonVersion dataDragonVersion
    * @param itemId            itemId
    * @return itemDescription
    */
-  public String getItemDescription(JsonObject itemsJsonObject, String dataDragonVersion,
-                                   int itemId) {
+  public String getItemDescription(JsonObject itemsJsonObject, int itemId) {
     if (itemId == 0) {
       return "";
     }
@@ -517,22 +567,20 @@ public class RiotComponent {
   /**
    * getRuneUrl.
    *
-   * @param dataDragonVersion dataDragonVersion
    * @param runeId            runeId
    * @return runeUrl
    */
-  public String getRuneUrl(JsonArray runesJsonArray, String dataDragonVersion, int runeId) {
+  public String getRuneUrl(JsonArray runesJsonArray, int runeId) {
     if (runeId == 0) {
       return "";
     }
 
-    String runeImageFilename = getRuneImageFilename(runesJsonArray, dataDragonVersion, runeId);
+    String runeImageFilename = getRuneImageFilename(runesJsonArray, runeId);
     return String
         .format("https://ddragon.leagueoflegends.com/cdn/img/%s", runeImageFilename);
   }
 
-  private String getRuneImageFilename(JsonArray runesJsonArray, String dataDragonVersion,
-                                      int runeId) {
+  private String getRuneImageFilename(JsonArray runesJsonArray, int runeId) {
     JsonObject runeJsonObject = getRuneJsonArray(runesJsonArray, runeId);
     return runeJsonObject.get("icon").getAsString();
   }
@@ -540,11 +588,10 @@ public class RiotComponent {
   /**
    * getRuneName.
    *
-   * @param dataDragonVersion dataDragonVersion
    * @param runeId            runeId
    * @return runeName
    */
-  public String getRuneName(JsonArray runesJsonArray, String dataDragonVersion, int runeId) {
+  public String getRuneName(JsonArray runesJsonArray, int runeId) {
     if (runeId == 0) {
       return "";
     }
@@ -556,11 +603,10 @@ public class RiotComponent {
   /**
    * getRuneDescription.
    *
-   * @param dataDragonVersion dataDragonVersion
    * @param runeId            runeId
    * @return runeDescription
    */
-  public String getRuneDescription(JsonArray itemsJsonArray, String dataDragonVersion,
+  public String getRuneDescription(JsonArray itemsJsonArray,
                                    int runeId) {
     if (runeId == 0) {
       return "";

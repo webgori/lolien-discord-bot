@@ -1,8 +1,8 @@
 package kr.webgori.lolien.discord.bot.service.impl;
 
+import static java.util.Collections.reverseOrder;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.getEndDateOfMonth;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.getStartDateOfMonth;
-import static kr.webgori.lolien.discord.bot.util.CommonUtil.localDateTimeToTimestamp;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.localDateToTimestamp;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.timestampToLocalDateTime;
 
@@ -19,12 +19,14 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import kr.webgori.lolien.discord.bot.component.CustomGameComponent;
 import kr.webgori.lolien.discord.bot.component.RiotComponent;
+import kr.webgori.lolien.discord.bot.dto.ChampDto;
 import kr.webgori.lolien.discord.bot.dto.CustomGameSummonerDto;
 import kr.webgori.lolien.discord.bot.dto.CustomGameTeamBanDto;
 import kr.webgori.lolien.discord.bot.dto.CustomGameTeamDto;
 import kr.webgori.lolien.discord.bot.dto.CustomGamesStatisticsMatchDto;
 import kr.webgori.lolien.discord.bot.dto.CustomGamesStatisticsMostBannedDto;
 import kr.webgori.lolien.discord.bot.dto.CustomGamesStatisticsMostPlayedDto;
+import kr.webgori.lolien.discord.bot.dto.CustomGamesStatisticsMostWinningChampionDto;
 import kr.webgori.lolien.discord.bot.dto.CustomGamesStatisticsMostWinningDto;
 import kr.webgori.lolien.discord.bot.dto.DataDragonVersionDto;
 import kr.webgori.lolien.discord.bot.entity.LolienMatch;
@@ -43,6 +45,7 @@ import kr.webgori.lolien.discord.bot.response.CustomGamesStatisticsResponse;
 import kr.webgori.lolien.discord.bot.service.CustomGameService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -185,8 +188,7 @@ public class CustomGameServiceImpl implements CustomGameService {
         int championId = lolienParticipant.getChampionId();
         String championUrl = riotComponent.getChampionUrl(championsJsonObject,
             closeDataDragonVersion, championId);
-        String championName = riotComponent.getChampionName(championsJsonObject,
-            closeDataDragonVersion, championId);
+        String championName = riotComponent.getChampionName(championsJsonObject, championId);
 
         LolienParticipantStats lolienParticipantStats = lolienParticipant.getStats();
 
@@ -211,52 +213,45 @@ public class CustomGameServiceImpl implements CustomGameService {
 
         int item0 = lolienParticipantStats.getItem0();
         String item0Url = riotComponent.getItemUrl(itemsJsonObject, closeDataDragonVersion, item0);
-        String item0Name = riotComponent.getItemName(itemsJsonObject, closeDataDragonVersion,
-            item0);
+        String item0Name = riotComponent.getItemName(itemsJsonObject, item0);
         String item0Description = riotComponent
-            .getItemDescription(itemsJsonObject, closeDataDragonVersion, item0);
+            .getItemDescription(itemsJsonObject, item0);
 
         int item1 = lolienParticipantStats.getItem1();
         String item1Url = riotComponent.getItemUrl(itemsJsonObject, closeDataDragonVersion, item1);
-        String item1Name = riotComponent.getItemName(itemsJsonObject, closeDataDragonVersion,
-            item1);
+        String item1Name = riotComponent.getItemName(itemsJsonObject, item1);
         String item1Description = riotComponent
-            .getItemDescription(itemsJsonObject, closeDataDragonVersion, item1);
+            .getItemDescription(itemsJsonObject, item1);
 
         int item2 = lolienParticipantStats.getItem2();
         String item2Url = riotComponent.getItemUrl(itemsJsonObject, closeDataDragonVersion, item2);
-        String item2Name = riotComponent.getItemName(itemsJsonObject, closeDataDragonVersion,
-            item2);
+        String item2Name = riotComponent.getItemName(itemsJsonObject, item2);
         String item2Description = riotComponent
-            .getItemDescription(itemsJsonObject, closeDataDragonVersion, item2);
+            .getItemDescription(itemsJsonObject, item2);
 
         int item3 = lolienParticipantStats.getItem3();
         String item3Url = riotComponent.getItemUrl(itemsJsonObject, closeDataDragonVersion, item3);
-        String item3Name = riotComponent.getItemName(itemsJsonObject, closeDataDragonVersion,
-            item3);
+        String item3Name = riotComponent.getItemName(itemsJsonObject, item3);
         String item3Description = riotComponent
-            .getItemDescription(itemsJsonObject, closeDataDragonVersion, item3);
+            .getItemDescription(itemsJsonObject, item3);
 
         int item4 = lolienParticipantStats.getItem4();
         String item4Url = riotComponent.getItemUrl(itemsJsonObject, closeDataDragonVersion, item4);
-        String item4Name = riotComponent.getItemName(itemsJsonObject, closeDataDragonVersion,
-            item4);
+        String item4Name = riotComponent.getItemName(itemsJsonObject, item4);
         String item4Description = riotComponent
-            .getItemDescription(itemsJsonObject, closeDataDragonVersion, item4);
+            .getItemDescription(itemsJsonObject, item4);
 
         int item5 = lolienParticipantStats.getItem5();
         String item5Url = riotComponent.getItemUrl(itemsJsonObject, closeDataDragonVersion, item5);
-        String item5Name = riotComponent.getItemName(itemsJsonObject, closeDataDragonVersion,
-            item5);
+        String item5Name = riotComponent.getItemName(itemsJsonObject, item5);
         String item5Description = riotComponent
-            .getItemDescription(itemsJsonObject, closeDataDragonVersion, item5);
+            .getItemDescription(itemsJsonObject, item5);
 
         int item6 = lolienParticipantStats.getItem6();
         String item6Url = riotComponent.getItemUrl(itemsJsonObject, closeDataDragonVersion, item6);
-        String item6Name = riotComponent.getItemName(itemsJsonObject, closeDataDragonVersion,
-            item6);
+        String item6Name = riotComponent.getItemName(itemsJsonObject, item6);
         String item6Description = riotComponent
-            .getItemDescription(itemsJsonObject, closeDataDragonVersion, item6);
+            .getItemDescription(itemsJsonObject, item6);
 
         JsonArray runesJsonArray;
 
@@ -268,20 +263,16 @@ public class CustomGameServiceImpl implements CustomGameService {
         }
 
         int primaryRunId = lolienParticipantStats.getPerk0();
-        String primaryRuneUrl = riotComponent.getRuneUrl(runesJsonArray, closeDataDragonVersion,
-            primaryRunId);
-        String primaryRuneName = riotComponent.getRuneName(runesJsonArray, closeDataDragonVersion,
-            primaryRunId);
+        String primaryRuneUrl = riotComponent.getRuneUrl(runesJsonArray, primaryRunId);
+        String primaryRuneName = riotComponent.getRuneName(runesJsonArray, primaryRunId);
         String primaryRuneDescription = riotComponent
-            .getRuneDescription(runesJsonArray, closeDataDragonVersion, primaryRunId);
+            .getRuneDescription(runesJsonArray, primaryRunId);
 
         int subRunId = lolienParticipantStats.getPerkSubStyle();
-        String subRuneUrl = riotComponent.getRuneUrl(runesJsonArray, closeDataDragonVersion,
-            subRunId);
-        String subRuneName = riotComponent.getRuneName(runesJsonArray, closeDataDragonVersion,
-            subRunId);
+        String subRuneUrl = riotComponent.getRuneUrl(runesJsonArray, subRunId);
+        String subRuneName = riotComponent.getRuneName(runesJsonArray, subRunId);
         String subRuneDescription = riotComponent
-            .getRuneDescription(runesJsonArray, closeDataDragonVersion, subRunId);
+            .getRuneDescription(runesJsonArray, subRunId);
 
         int teamId = lolienParticipant.getTeamId();
         boolean win = lolienParticipantStats.getWin();
@@ -293,18 +284,14 @@ public class CustomGameServiceImpl implements CustomGameService {
         int spell1Id = lolienParticipant.getSpell1Id();
         String spell1Url = riotComponent.getSpellUrl(summonerJsonObject, closeDataDragonVersion,
             spell1Id);
-        String spell1Name = riotComponent.getSpellName(summonerJsonObject, closeDataDragonVersion,
-            spell1Id);
-        String spell1Description = riotComponent.getSpellDescription(summonerJsonObject,
-            closeDataDragonVersion, spell1Id);
+        String spell1Name = riotComponent.getSpellName(summonerJsonObject, spell1Id);
+        String spell1Description = riotComponent.getSpellDescription(summonerJsonObject, spell1Id);
 
         int spell2Id = lolienParticipant.getSpell2Id();
         String spell2Url = riotComponent.getSpellUrl(summonerJsonObject, closeDataDragonVersion,
             spell2Id);
-        String spell2Name = riotComponent.getSpellName(summonerJsonObject, closeDataDragonVersion,
-            spell2Id);
-        String spell2Description = riotComponent.getSpellDescription(summonerJsonObject,
-            closeDataDragonVersion, spell2Id);
+        String spell2Name = riotComponent.getSpellName(summonerJsonObject, spell2Id);
+        String spell2Description = riotComponent.getSpellDescription(summonerJsonObject, spell2Id);
 
         CustomGameSummonerDto customGameSummonerDto = CustomGameSummonerDto
             .builder()
@@ -425,19 +412,24 @@ public class CustomGameServiceImpl implements CustomGameService {
   @Override
   public CustomGamesStatisticsResponse getStatistics() {
     List<LolienMatch> lolienMatches = getLolienMatches();
+    List<ChampDto> championNames = riotComponent.getChampionNames();
 
     List<CustomGamesStatisticsMatchDto> matchesDto = getStatisticsMatchesDto(
         lolienMatches);
     List<CustomGamesStatisticsMostBannedDto> mostBannedDto = getStatisticsMostBannedDto(
-        lolienMatches);
+        lolienMatches, championNames);
     List<CustomGamesStatisticsMostPlayedDto> mostPlayedDto = getStatisticsMostPlayedDto(
-        lolienMatches);
+        lolienMatches, championNames);
+
+    List<CustomGamesStatisticsMostWinningDto> mostWinningDto = getStatisticsMostWinningDto(
+        lolienMatches, championNames);
 
     return CustomGamesStatisticsResponse
         .builder()
         .matches(matchesDto)
         .mostBannedDto(mostBannedDto)
         .mostPlayedDto(mostPlayedDto)
+        .mostWinningDto(mostWinningDto)
         .build();
   }
 
@@ -471,7 +463,7 @@ public class CustomGameServiceImpl implements CustomGameService {
   }
 
   private List<CustomGamesStatisticsMostBannedDto> getStatisticsMostBannedDto(
-      List<LolienMatch> lolienMatches) {
+      List<LolienMatch> lolienMatches, List<ChampDto> championNames) {
     List<CustomGamesStatisticsMostBannedDto> mostBannedDtoList = Lists.newArrayList();
 
     for (LolienMatch lolienMatch : lolienMatches) {
@@ -482,7 +474,7 @@ public class CustomGameServiceImpl implements CustomGameService {
 
         for (LolienTeamBans ban : bans) {
           int championId =  ban.getChampionId();
-          String championName = riotComponent.getChampionNameByChampId(championId);
+          String championName = riotComponent.getChampionNameByChampId(championNames, championId);
 
           CustomGamesStatisticsMostBannedDto mostBannedDto = mostBannedDtoList
               .stream()
@@ -505,11 +497,15 @@ public class CustomGameServiceImpl implements CustomGameService {
       }
     }
 
-    return mostBannedDtoList;
+    return mostBannedDtoList
+        .stream()
+        .sorted(Comparator.comparing(CustomGamesStatisticsMostBannedDto::getCount).reversed())
+        .limit(3)
+        .collect(Collectors.toList());
   }
 
   private List<CustomGamesStatisticsMostPlayedDto> getStatisticsMostPlayedDto(
-      List<LolienMatch> lolienMatches) {
+      List<LolienMatch> lolienMatches, List<ChampDto> championNames) {
     List<CustomGamesStatisticsMostPlayedDto> mostPlayedDtoList = Lists.newArrayList();
 
     for (LolienMatch lolienMatch : lolienMatches) {
@@ -517,7 +513,7 @@ public class CustomGameServiceImpl implements CustomGameService {
 
       for (LolienParticipant participant : participants) {
         int championId =  participant.getChampionId();
-        String championName = riotComponent.getChampionNameByChampId(championId);
+        String championName = riotComponent.getChampionNameByChampId(championNames, championId);
 
         CustomGamesStatisticsMostPlayedDto mostPlayedDto = mostPlayedDtoList
             .stream()
@@ -539,40 +535,92 @@ public class CustomGameServiceImpl implements CustomGameService {
       }
     }
 
-    return mostPlayedDtoList;
+    return mostPlayedDtoList
+        .stream()
+        .sorted(Comparator.comparing(CustomGamesStatisticsMostPlayedDto::getCount).reversed())
+        .limit(3)
+        .collect(Collectors.toList());
   }
 
   private List<CustomGamesStatisticsMostWinningDto> getStatisticsMostWinningDto(
-      List<LolienMatch> lolienMatches) {
+      List<LolienMatch> lolienMatches, List<ChampDto> championNames) {
+    List<CustomGamesStatisticsMostWinningChampionDto> mostWinningChampionDtoList =
+        getMostWinningChampionDtoList(lolienMatches, championNames);
+
+    Map<String, List<CustomGamesStatisticsMostWinningChampionDto>> groupingBy =
+        mostWinningChampionDtoList
+        .stream()
+        .collect(Collectors
+            .groupingBy(CustomGamesStatisticsMostWinningChampionDto::getChampionName));
+
     List<CustomGamesStatisticsMostWinningDto> mostWinningDtoList = Lists.newArrayList();
+
+    for (Map.Entry<String, List<CustomGamesStatisticsMostWinningChampionDto>> entry : groupingBy
+        .entrySet()) {
+      String championName = entry.getKey();
+      List<CustomGamesStatisticsMostWinningChampionDto> championDtoList = entry.getValue();
+
+      long totalPlayedCount = championDtoList.size();
+
+      long winCount = championDtoList
+          .stream()
+          .filter(CustomGamesStatisticsMostWinningChampionDto::isWin)
+          .count();
+
+      float winRate = (float) Math.floor(((float) winCount / totalPlayedCount) * 100 * 100.0)
+          / 100.0f;
+
+      CustomGamesStatisticsMostWinningDto mostWinningDto = CustomGamesStatisticsMostWinningDto
+          .builder()
+          .championName(championName)
+          .winRate(winRate)
+          .totalPlayedCount(totalPlayedCount)
+          .build();
+
+      mostWinningDtoList.add(mostWinningDto);
+    }
+
+    Comparator<CustomGamesStatisticsMostWinningDto> compareCondition = Comparator
+        .comparing(CustomGamesStatisticsMostWinningDto::getWinRate, reverseOrder())
+        .thenComparing(CustomGamesStatisticsMostWinningDto::getTotalPlayedCount, reverseOrder());
+
+    return mostWinningDtoList
+        .stream()
+        .sorted(compareCondition)
+        .limit(3)
+        .collect(Collectors.toList());
+  }
+
+  /**
+   * 챔피언별로 승패여부를 조회 (승률을 계산하려면 몇판중에 몇판 이겼는지를 알아야 함).
+   * @param lolienMatches lolienMatches
+   * @return 챔피언별 승패여부
+   */
+  @NotNull
+  private List<CustomGamesStatisticsMostWinningChampionDto> getMostWinningChampionDtoList(
+      List<LolienMatch> lolienMatches, List<ChampDto> championNames) {
+    List<CustomGamesStatisticsMostWinningChampionDto> mostWinningChampionDtoList = Lists
+        .newArrayList();
 
     for (LolienMatch lolienMatch : lolienMatches) {
       Set<LolienParticipant> participants = lolienMatch.getParticipants();
 
       for (LolienParticipant participant : participants) {
         int championId =  participant.getChampionId();
-        String championName = riotComponent.getChampionNameByChampId(championId);
+        String championName = riotComponent.getChampionNameByChampId(championNames, championId);
+        LolienParticipantStats stats = participant.getStats();
+        boolean win = stats.getWin();
 
-        CustomGamesStatisticsMostWinningDto mostWinningDto = mostWinningDtoList
-            .stream()
-            .filter(mb -> mb.getChampionName().equals(championName))
-            .findFirst()
-            .orElse(null);
+        CustomGamesStatisticsMostWinningChampionDto mostWinningChampionDto =
+            CustomGamesStatisticsMostWinningChampionDto
+            .builder()
+            .championName(championName)
+            .win(win)
+            .build();
 
-        if (Objects.isNull(mostWinningDto)) {
-          mostWinningDto = CustomGamesStatisticsMostWinningDto
-              .builder()
-              .championName(championName)
-              .count(1)
-              .build();
-
-          mostWinningDtoList.add(mostWinningDto);
-        } else {
-          mostWinningDto.increaseCount();
-        }
+        mostWinningChampionDtoList.add(mostWinningChampionDto);
       }
     }
-
-    return mostWinningDtoList;
+    return mostWinningChampionDtoList;
   }
 }

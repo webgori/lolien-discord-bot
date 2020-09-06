@@ -5,8 +5,7 @@ import lombok.Data;
 
 @Builder
 @Data
-public class CustomGamesStatisticsMostWinningDto {
+public class CustomGamesStatisticsMostWinningChampionDto {
   private String championName;
-  private float winRate;
-  private long totalPlayedCount;
+  private boolean win;
 }
