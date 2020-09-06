@@ -175,6 +175,12 @@ public class RiotComponent {
     return getChampionNameFromRiotApi(clientVersion, champId);
   }
 
+  /**
+   * getChampionNameByChampId.
+   * @param champs champs
+   * @param champId champId
+   * @return 챔피언 이름
+   */
   public String getChampionNameByChampId(List<ChampDto> champs, int champId) {
     return champs
         .stream()
@@ -183,6 +189,10 @@ public class RiotComponent {
         .getName();
   }
 
+  /**
+   * getChampionNames.
+   * @return 챔피언 이름 목록
+   */
   public List<ChampDto> getChampionNames() {
     DataDragonVersionDto latestDataDragonVersionDto = getLatestDataDragonVersion();
     String clientVersion = latestDataDragonVersionDto.getVersion();
