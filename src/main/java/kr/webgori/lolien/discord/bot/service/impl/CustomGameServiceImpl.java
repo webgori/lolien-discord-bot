@@ -427,9 +427,9 @@ public class CustomGameServiceImpl implements CustomGameService {
     return CustomGamesStatisticsResponse
         .builder()
         .matches(matchesDto)
-        .mostBannedDto(mostBannedDto)
-        .mostPlayedDto(mostPlayedDto)
-        .mostWinningDto(mostWinningDto)
+        .mostBannedList(mostBannedDto)
+        .mostPlayedList(mostPlayedDto)
+        .mostWinningList(mostWinningDto)
         .build();
   }
 

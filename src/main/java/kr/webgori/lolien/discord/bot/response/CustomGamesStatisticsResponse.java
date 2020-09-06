@@ -12,7 +12,7 @@ import lombok.Data;
 @Data
 public class CustomGamesStatisticsResponse {
   private List<CustomGamesStatisticsMatchDto> matches;
-  private List<CustomGamesStatisticsMostBannedDto> mostBannedDto;
-  private List<CustomGamesStatisticsMostPlayedDto> mostPlayedDto;
-  private List<CustomGamesStatisticsMostWinningDto> mostWinningDto;
+  private List<CustomGamesStatisticsMostBannedDto> mostBannedList;
+  private List<CustomGamesStatisticsMostPlayedDto> mostPlayedList;
+  private List<CustomGamesStatisticsMostWinningDto> mostWinningList;
 }
