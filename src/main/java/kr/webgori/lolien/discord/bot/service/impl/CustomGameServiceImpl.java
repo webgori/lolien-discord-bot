@@ -25,7 +25,8 @@ import kr.webgori.lolien.discord.bot.dto.CustomGameTeamBanDto;
 import kr.webgori.lolien.discord.bot.dto.CustomGameTeamDto;
 import kr.webgori.lolien.discord.bot.dto.CustomGamesStatisticsMatchDto;
 import kr.webgori.lolien.discord.bot.dto.CustomGamesStatisticsMostBannedDto;
-import kr.webgori.lolien.discord.bot.dto.CustomGamesStatisticsMostPlayedDto;
+import kr.webgori.lolien.discord.bot.dto.CustomGamesStatisticsMostPlayedChampionDto;
+import kr.webgori.lolien.discord.bot.dto.CustomGamesStatisticsMostPlayedSummonerDto;
 import kr.webgori.lolien.discord.bot.dto.CustomGamesStatisticsMostWinningChampionDto;
 import kr.webgori.lolien.discord.bot.dto.CustomGamesStatisticsMostWinningDto;
 import kr.webgori.lolien.discord.bot.dto.DataDragonVersionDto;
@@ -417,20 +418,25 @@ public class CustomGameServiceImpl implements CustomGameService {
 
     List<CustomGamesStatisticsMatchDto> matchesDto = getStatisticsMatchesDto(
         lolienMatches);
-    List<CustomGamesStatisticsMostBannedDto> mostBannedDto = getStatisticsMostBannedDto(
-        lolienMatches, championNames, championJsonObject);
-    List<CustomGamesStatisticsMostPlayedDto> mostPlayedDto = getStatisticsMostPlayedDto(
+    List<CustomGamesStatisticsMostBannedDto> mostBannedDtoList = getStatisticsMostBannedDto(
         lolienMatches, championNames, championJsonObject);
 
-    List<CustomGamesStatisticsMostWinningDto> mostWinningDto = getStatisticsMostWinningDto(
+    List<CustomGamesStatisticsMostPlayedChampionDto> mostPlayedChampionDtoList =
+        getStatisticsMostPlayedChampionDto(lolienMatches, championNames, championJsonObject);
+
+    List<CustomGamesStatisticsMostWinningDto> mostWinningDtoList = getStatisticsMostWinningDto(
         lolienMatches, championNames, championJsonObject);
+
+    List<CustomGamesStatisticsMostPlayedSummonerDto> mostPlayedSummonerDtoList =
+        getStatisticsMostPlayedSummonerDto(lolienMatches, championNames, championJsonObject);
 
     return CustomGamesStatisticsResponse
         .builder()
         .matches(matchesDto)
-        .mostBannedList(mostBannedDto)
-        .mostPlayedList(mostPlayedDto)
-        .mostWinningList(mostWinningDto)
+        .mostBannedList(mostBannedDtoList)
+        .mostPlayedChampionList(mostPlayedChampionDtoList)
+        .mostWinningList(mostWinningDtoList)
+        .mostPlayedSummonerList(mostPlayedSummonerDtoList)
         .build();
   }
 
@@ -508,10 +514,11 @@ public class CustomGameServiceImpl implements CustomGameService {
         .collect(Collectors.toList());
   }
 
-  private List<CustomGamesStatisticsMostPlayedDto> getStatisticsMostPlayedDto(
+  private List<CustomGamesStatisticsMostPlayedChampionDto> getStatisticsMostPlayedChampionDto(
       List<LolienMatch> lolienMatches, List<ChampDto> championNames,
       JsonObject championJsonObject) {
-    List<CustomGamesStatisticsMostPlayedDto> mostPlayedDtoList = Lists.newArrayList();
+    List<CustomGamesStatisticsMostPlayedChampionDto> mostPlayedChampionDtoList = Lists
+        .newArrayList();
 
     for (LolienMatch lolienMatch : lolienMatches) {
       Set<LolienParticipant> participants = lolienMatch.getParticipants();
@@ -521,30 +528,31 @@ public class CustomGameServiceImpl implements CustomGameService {
         String championName = riotComponent.getChampionNameByChampId(championNames, championId);
         String championUrl = riotComponent.getChampionUrl(championJsonObject, championId);
 
-        CustomGamesStatisticsMostPlayedDto mostPlayedDto = mostPlayedDtoList
+        CustomGamesStatisticsMostPlayedChampionDto mostPlayedChampionDto = mostPlayedChampionDtoList
             .stream()
             .filter(mb -> mb.getChampionName().equals(championName))
             .findFirst()
             .orElse(null);
 
-        if (Objects.isNull(mostPlayedDto)) {
-          mostPlayedDto = CustomGamesStatisticsMostPlayedDto
+        if (Objects.isNull(mostPlayedChampionDto)) {
+          mostPlayedChampionDto = CustomGamesStatisticsMostPlayedChampionDto
               .builder()
               .championName(championName)
               .championUrl(championUrl)
               .count(1)
               .build();
 
-          mostPlayedDtoList.add(mostPlayedDto);
+          mostPlayedChampionDtoList.add(mostPlayedChampionDto);
         } else {
-          mostPlayedDto.increaseCount();
+          mostPlayedChampionDto.increaseCount();
         }
       }
     }
 
-    return mostPlayedDtoList
+    return mostPlayedChampionDtoList
         .stream()
-        .sorted(Comparator.comparing(CustomGamesStatisticsMostPlayedDto::getCount).reversed())
+        .sorted(Comparator.comparing(CustomGamesStatisticsMostPlayedChampionDto::getCount)
+            .reversed())
         .limit(3)
         .collect(Collectors.toList());
   }
@@ -635,5 +643,45 @@ public class CustomGameServiceImpl implements CustomGameService {
       }
     }
     return mostWinningChampionDtoList;
+  }
+
+  private List<CustomGamesStatisticsMostPlayedSummonerDto> getStatisticsMostPlayedSummonerDto(
+      List<LolienMatch> lolienMatches, List<ChampDto> championNames,
+      JsonObject championJsonObject) {
+    List<CustomGamesStatisticsMostPlayedSummonerDto> mostPlayedSummonerDtoList = Lists
+        .newArrayList();
+
+    for (LolienMatch lolienMatch : lolienMatches) {
+      Set<LolienParticipant> participants = lolienMatch.getParticipants();
+
+      for (LolienParticipant participant : participants) {
+        String summonerName = participant.getLolienSummoner().getSummonerName();
+
+        CustomGamesStatisticsMostPlayedSummonerDto mostPlayedSummonerDto = mostPlayedSummonerDtoList
+            .stream()
+            .filter(mb -> mb.getSummonerName().equals(summonerName))
+            .findFirst()
+            .orElse(null);
+
+        if (Objects.isNull(mostPlayedSummonerDto)) {
+          mostPlayedSummonerDto = CustomGamesStatisticsMostPlayedSummonerDto
+              .builder()
+              .summonerName(summonerName)
+              .count(1)
+              .build();
+
+          mostPlayedSummonerDtoList.add(mostPlayedSummonerDto);
+        } else {
+          mostPlayedSummonerDto.increaseCount();
+        }
+      }
+    }
+
+    return mostPlayedSummonerDtoList
+        .stream()
+        .sorted(Comparator.comparing(CustomGamesStatisticsMostPlayedSummonerDto::getCount)
+            .reversed())
+        .limit(3)
+        .collect(Collectors.toList());
   }
 }

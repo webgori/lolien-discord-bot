@@ -5,9 +5,8 @@ import lombok.Data;
 
 @Builder
 @Data
-public class CustomGamesStatisticsMostPlayedDto {
-  private String championName;
-  private String championUrl;
+public class CustomGamesStatisticsMostPlayedSummonerDto {
+  private String summonerName;
   private int count;
 
   public void increaseCount() {
