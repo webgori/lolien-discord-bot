@@ -7,6 +7,7 @@ import lombok.Data;
 @Data
 public class CustomGamesStatisticsMostBannedDto {
   private String championName;
+  private String championUrl;
   private int count;
 
   public void increaseCount() {

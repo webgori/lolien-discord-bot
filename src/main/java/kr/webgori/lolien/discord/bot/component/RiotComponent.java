@@ -108,6 +108,22 @@ public class RiotComponent {
     return gson.fromJson(responseBody, JsonObject.class);
   }
 
+  /**
+   * getChampionJsonObject.
+   *
+   * @return championJsonObject
+   */
+  public JsonObject getChampionJsonObject() {
+    String dataDragonVersion = getLatestDataDragonVersion().getVersion();
+    String responseBody = Optional.ofNullable(restTemplate
+        .getForObject("https://ddragon.leagueoflegends"
+                + ".com/cdn/{data-dragon-version}/data/ko_KR/champion.json",
+            String.class, dataDragonVersion))
+        .orElseThrow(() -> new IllegalStateException("riot champions api result is empty"));
+
+    return gson.fromJson(responseBody, JsonObject.class);
+  }
+
   private void cachingChampionName(String clientVersion, ChampsDto champsDto) {
     String redisChampClientVersionKey = String.format(REDIS_CHAMP_CLIENT_VERSION_KEY,
         clientVersion);
@@ -257,6 +273,20 @@ public class RiotComponent {
    */
   public String getChampionUrl(JsonObject championsJsonObject, String dataDragonVersion,
                                int championId) {
+    String championImageFilename = getChampionImageFilename(championsJsonObject, championId);
+    return String
+        .format("https://ddragon.leagueoflegends.com/cdn/%s/img/champion/%s",
+            dataDragonVersion, championImageFilename);
+  }
+
+  /**
+   * getChampionUrl.
+   *
+   * @param championId        championId
+   * @return championUrl
+   */
+  public String getChampionUrl(JsonObject championsJsonObject, int championId) {
+    String dataDragonVersion = getLatestDataDragonVersion().getVersion();
     String championImageFilename = getChampionImageFilename(championsJsonObject, championId);
     return String
         .format("https://ddragon.leagueoflegends.com/cdn/%s/img/champion/%s",

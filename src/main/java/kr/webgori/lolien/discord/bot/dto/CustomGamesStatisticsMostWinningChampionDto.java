@@ -6,6 +6,6 @@ import lombok.Data;
 @Builder
 @Data
 public class CustomGamesStatisticsMostWinningChampionDto {
-  private String championName;
+  private int championId;
   private boolean win;
 }
