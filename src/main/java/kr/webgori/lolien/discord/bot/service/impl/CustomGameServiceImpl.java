@@ -28,12 +28,14 @@ import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMatchDt
 import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostAssistDto;
 import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostBannedDto;
 import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostDeathDto;
+import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostGoldEarnedDto;
 import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostKillDeathAssistDto;
 import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostKillDeathAssistInfoDto;
 import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostKillDto;
 import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostPlayedChampionDto;
 import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostPlayedSummonerDto;
 import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostTotalDamageDealtDto;
+import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostTotalDamageTakenDto;
 import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostVisionScoreDto;
 import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostWinningChampionDto;
 import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostWinningDto;
@@ -447,6 +449,11 @@ public class CustomGameServiceImpl implements CustomGameService {
     CustomGamesStatisticsMostTotalDamageDealtDto mostTotalDamageDealtDto =
         getMostTotalDamageDealtDto(lolienMatches);
 
+    CustomGamesStatisticsMostTotalDamageTakenDto mostTotalDamageTakenDto =
+        getMostTotalDamageTakenDto(lolienMatches);
+
+    CustomGamesStatisticsMostGoldEarnedDto mostGoldEarnedDto = getMostGoldEarnedDto(lolienMatches);
+
     return CustomGamesStatisticsResponse
         .builder()
         .matches(matchesDto)
@@ -460,6 +467,8 @@ public class CustomGameServiceImpl implements CustomGameService {
         .mostAssist(mostAssistDto)
         .mostVisionScore(mostVisionScoreDto)
         .mostTotalDamageDealt(mostTotalDamageDealtDto)
+        .mostTotalDamageTaken(mostTotalDamageTakenDto)
+        .mostGoldEarned(mostGoldEarnedDto)
         .build();
   }
 
@@ -947,7 +956,7 @@ public class CustomGameServiceImpl implements CustomGameService {
   /**
    * 총 가한 피해량이 가장 높은 소환사 조회.
    * @param lolienMatches lolienMatches
-   * @return 총 가한 피해량
+   * @return 총 가한 피해량이 가장 높은 소환사
    */
   private CustomGamesStatisticsMostTotalDamageDealtDto getMostTotalDamageDealtDto(
       List<LolienMatch> lolienMatches) {
@@ -976,6 +985,76 @@ public class CustomGameServiceImpl implements CustomGameService {
         .gameId(gameId)
         .summonerName(summonerName)
         .totalDamageDealt(mostTotalDamageDealt)
+        .build();
+  }
+
+  /**
+   * 총 받은 피해량이 가장 높은 소환사 조회.
+   * @param lolienMatches lolienMatches
+   * @return 총 받은 피해량이 가장 높은 소환사
+   */
+  private CustomGamesStatisticsMostTotalDamageTakenDto getMostTotalDamageTakenDto(
+      List<LolienMatch> lolienMatches) {
+
+    long gameId = 0;
+    String summonerName = "";
+    long mostTotalDamageTaken = 0;
+
+    for (LolienMatch lolienMatch : lolienMatches) {
+      Set<LolienParticipant> participants = lolienMatch.getParticipants();
+
+      for (LolienParticipant participant : participants) {
+        LolienParticipantStats stats = participant.getStats();
+        long totalDamageTaken = stats.getTotalDamageTaken();
+
+        if (mostTotalDamageTaken < totalDamageTaken) {
+          gameId = lolienMatch.getGameId();
+          summonerName = participant.getLolienSummoner().getSummonerName();
+          mostTotalDamageTaken = totalDamageTaken;
+        }
+      }
+    }
+
+    return CustomGamesStatisticsMostTotalDamageTakenDto
+        .builder()
+        .gameId(gameId)
+        .summonerName(summonerName)
+        .totalDamageTaken(mostTotalDamageTaken)
+        .build();
+  }
+
+  /**
+   * 획득한 골드가 가장 높은 소환사 조회.
+   * @param lolienMatches lolienMatches
+   * @return 획득한 골드가 가장 높은 소환사
+   */
+  private CustomGamesStatisticsMostGoldEarnedDto getMostGoldEarnedDto(
+      List<LolienMatch> lolienMatches) {
+
+    long gameId = 0;
+    String summonerName = "";
+    int mostGoldEarned = 0;
+
+    for (LolienMatch lolienMatch : lolienMatches) {
+      Set<LolienParticipant> participants = lolienMatch.getParticipants();
+
+      for (LolienParticipant participant : participants) {
+        LolienParticipantStats stats = participant.getStats();
+        int goldEarned = stats.getGoldEarned();
+
+        if (mostGoldEarned < goldEarned) {
+          gameId = lolienMatch.getGameId();
+          summonerName = participant.getLolienSummoner().getSummonerName();
+          mostGoldEarned = goldEarned;
+        }
+      }
+    }
+
+    return CustomGamesStatisticsMostGoldEarnedDto
+        .builder()
+        .gameId(gameId)
+        .summonerName(summonerName)
+        .goldEarned(mostGoldEarned)
         .build();
   }
 }

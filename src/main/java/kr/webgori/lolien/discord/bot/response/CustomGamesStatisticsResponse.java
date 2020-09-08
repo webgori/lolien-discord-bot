@@ -5,11 +5,13 @@ import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMatchDt
 import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostAssistDto;
 import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostBannedDto;
 import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostDeathDto;
+import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostGoldEarnedDto;
 import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostKillDeathAssistDto;
 import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostKillDto;
 import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostPlayedChampionDto;
 import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostPlayedSummonerDto;
 import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostTotalDamageDealtDto;
+import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostTotalDamageTakenDto;
 import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostVisionScoreDto;
 import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostWinningDto;
 import lombok.Builder;
@@ -29,4 +31,6 @@ public class CustomGamesStatisticsResponse {
   private CustomGamesStatisticsMostAssistDto mostAssist;
   private CustomGamesStatisticsMostVisionScoreDto mostVisionScore;
   private CustomGamesStatisticsMostTotalDamageDealtDto mostTotalDamageDealt;
+  private CustomGamesStatisticsMostTotalDamageTakenDto mostTotalDamageTaken;
+  private CustomGamesStatisticsMostGoldEarnedDto mostGoldEarned;
 }
