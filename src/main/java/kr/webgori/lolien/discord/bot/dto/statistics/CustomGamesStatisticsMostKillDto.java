@@ -6,10 +6,7 @@ import lombok.Data;
 @Builder
 @Data
 public class CustomGamesStatisticsMostKillDto {
+  private long gameId;
   private String summonerName;
   private int kills;
-
-  public void plusKills(int kill) {
-    this.kills += kill;
-  }
 }
