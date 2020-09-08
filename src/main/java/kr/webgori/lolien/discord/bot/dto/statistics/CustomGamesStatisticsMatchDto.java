@@ -1,4 +1,4 @@
-package kr.webgori.lolien.discord.bot.dto;
+package kr.webgori.lolien.discord.bot.dto.statistics;
 
 import java.time.LocalDate;
 import lombok.Builder;
