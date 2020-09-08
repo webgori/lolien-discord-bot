@@ -33,6 +33,7 @@ import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostKil
 import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostKillDto;
 import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostPlayedChampionDto;
 import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostPlayedSummonerDto;
+import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostTotalDamageDealtDto;
 import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostVisionScoreDto;
 import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostWinningChampionDto;
 import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostWinningDto;
@@ -443,6 +444,8 @@ public class CustomGameServiceImpl implements CustomGameService {
     CustomGamesStatisticsMostAssistDto mostAssistDto = getMostAssistDto(lolienMatches);
     CustomGamesStatisticsMostVisionScoreDto mostVisionScoreDto = getMostVisionScoreDto(
         lolienMatches);
+    CustomGamesStatisticsMostTotalDamageDealtDto mostTotalDamageDealtDto =
+        getMostTotalDamageDealtDto(lolienMatches);
 
     return CustomGamesStatisticsResponse
         .builder()
@@ -456,6 +459,7 @@ public class CustomGameServiceImpl implements CustomGameService {
         .mostDeath(mostDeathDto)
         .mostAssist(mostAssistDto)
         .mostVisionScore(mostVisionScoreDto)
+        .mostTotalDamageDealt(mostTotalDamageDealtDto)
         .build();
   }
 
@@ -908,7 +912,7 @@ public class CustomGameServiceImpl implements CustomGameService {
   /**
    * 시야 점수가 가장 높은 소환사 조회.
    * @param lolienMatches lolienMatches
-   * @return 가장 많이 처치 기여한 소환사
+   * @return 시야 점수가 가장 높은 소환사
    */
   private CustomGamesStatisticsMostVisionScoreDto getMostVisionScoreDto(
       List<LolienMatch> lolienMatches) {
@@ -937,6 +941,41 @@ public class CustomGameServiceImpl implements CustomGameService {
         .gameId(gameId)
         .summonerName(summonerName)
         .visionScore(mostVisionScore)
+        .build();
+  }
+
+  /**
+   * 총 가한 피해량이 가장 높은 소환사 조회.
+   * @param lolienMatches lolienMatches
+   * @return 총 가한 피해량
+   */
+  private CustomGamesStatisticsMostTotalDamageDealtDto getMostTotalDamageDealtDto(
+      List<LolienMatch> lolienMatches) {
+
+    long gameId = 0;
+    String summonerName = "";
+    long mostTotalDamageDealt = 0;
+
+    for (LolienMatch lolienMatch : lolienMatches) {
+      Set<LolienParticipant> participants = lolienMatch.getParticipants();
+
+      for (LolienParticipant participant : participants) {
+        LolienParticipantStats stats = participant.getStats();
+        long totalDamageDealt = stats.getTotalDamageDealt();
+
+        if (mostTotalDamageDealt < totalDamageDealt) {
+          gameId = lolienMatch.getGameId();
+          summonerName = participant.getLolienSummoner().getSummonerName();
+          mostTotalDamageDealt = totalDamageDealt;
+        }
+      }
+    }
+
+    return CustomGamesStatisticsMostTotalDamageDealtDto
+        .builder()
+        .gameId(gameId)
+        .summonerName(summonerName)
+        .totalDamageDealt(mostTotalDamageDealt)
         .build();
   }
 }
