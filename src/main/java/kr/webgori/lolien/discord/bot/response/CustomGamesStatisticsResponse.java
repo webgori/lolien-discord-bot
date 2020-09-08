@@ -23,6 +23,6 @@ public class CustomGamesStatisticsResponse {
   private List<CustomGamesStatisticsMostPlayedSummonerDto> mostPlayedSummonerList;
   private List<CustomGamesStatisticsMostKillDeathAssistDto> mostKillDeathAssistList;
   private CustomGamesStatisticsMostKillDto mostKill;
-  private List<CustomGamesStatisticsMostDeathDto> mostDeathList;
-  private List<CustomGamesStatisticsMostAssistDto> mostAssistList;
+  private CustomGamesStatisticsMostDeathDto mostDeath;
+  private CustomGamesStatisticsMostAssistDto mostAssist;
 }

@@ -438,9 +438,8 @@ public class CustomGameServiceImpl implements CustomGameService {
         getMostKillDeathAssistDtoList(lolienMatches);
 
     CustomGamesStatisticsMostKillDto mostKillDto = getMostKillDto(lolienMatches);
-    List<CustomGamesStatisticsMostDeathDto> mostDeathDtoList = getMostDeathDtoList(lolienMatches);
-    List<CustomGamesStatisticsMostAssistDto> mostAssistDtoList = getMostAssistDtoList(
-        lolienMatches);
+    CustomGamesStatisticsMostDeathDto mostDeathDto = getMostDeathDto(lolienMatches);
+    CustomGamesStatisticsMostAssistDto mostAssistDto = getMostAssistDto(lolienMatches);
 
     return CustomGamesStatisticsResponse
         .builder()
@@ -451,8 +450,8 @@ public class CustomGameServiceImpl implements CustomGameService {
         .mostPlayedSummonerList(mostPlayedSummonerDtoList)
         .mostKillDeathAssistList(mostKillDeathAssistDtoList)
         .mostKill(mostKillDto)
-        .mostDeathList(mostDeathDtoList)
-        .mostAssistList(mostAssistDtoList)
+        .mostDeath(mostDeathDto)
+        .mostAssist(mostAssistDto)
         .build();
   }
 
@@ -804,9 +803,9 @@ public class CustomGameServiceImpl implements CustomGameService {
   }
 
   /**
-   * 소환사별 Kill 조회.
+   * 가장 많이 처치한 소환사 조회.
    * @param lolienMatches lolienMatches
-   * @return 소환사별 Kill
+   * @return 가장 많이 처치한 소환사
    */
   private CustomGamesStatisticsMostKillDto getMostKillDto(List<LolienMatch> lolienMatches) {
     long gameId = 0;
@@ -837,94 +836,68 @@ public class CustomGameServiceImpl implements CustomGameService {
   }
 
   /**
-   * 소환사별 Death 조회.
+   * 가장 많이 죽은 소환사 조회.
    * @param lolienMatches lolienMatches
-   * @return 소환사별 Death
+   * @return 가장 많이 죽은 소환사
    */
-  private List<CustomGamesStatisticsMostDeathDto> getMostDeathDtoList(
-      List<LolienMatch> lolienMatches) {
-
-    List<CustomGamesStatisticsMostDeathDto> mostDeathDtoList = Lists.newArrayList();
+  private CustomGamesStatisticsMostDeathDto getMostDeathDto(List<LolienMatch> lolienMatches) {
+    long gameId = 0;
+    String summonerName = "";
+    int mostDeaths = 0;
 
     for (LolienMatch lolienMatch : lolienMatches) {
       Set<LolienParticipant> participants = lolienMatch.getParticipants();
 
       for (LolienParticipant participant : participants) {
-        String summonerName = participant.getLolienSummoner().getSummonerName();
-
         LolienParticipantStats stats = participant.getStats();
         int deaths = stats.getDeaths();
 
-        CustomGamesStatisticsMostDeathDto mostDeathDto = mostDeathDtoList
-            .stream()
-            .filter(mb -> mb.getSummonerName().equals(summonerName))
-            .findFirst()
-            .orElse(null);
-
-        if (Objects.isNull(mostDeathDto)) {
-          mostDeathDto = CustomGamesStatisticsMostDeathDto
-              .builder()
-              .summonerName(summonerName)
-              .deaths(deaths)
-              .build();
-
-          mostDeathDtoList.add(mostDeathDto);
-        } else {
-          mostDeathDto.plusDeaths(deaths);
+        if (mostDeaths < deaths) {
+          gameId = lolienMatch.getGameId();
+          summonerName = participant.getLolienSummoner().getSummonerName();
+          mostDeaths = deaths;
         }
       }
     }
 
-    return mostDeathDtoList
-        .stream()
-        .sorted(Comparator.comparing(CustomGamesStatisticsMostDeathDto::getDeaths).reversed())
-        .limit(3)
-        .collect(Collectors.toList());
+    return CustomGamesStatisticsMostDeathDto
+        .builder()
+        .gameId(gameId)
+        .summonerName(summonerName)
+        .deaths(mostDeaths)
+        .build();
   }
 
   /**
-   * 소환사별 Assist 조회.
+   * 가장 많이 처치 기여한 소환사 조회.
    * @param lolienMatches lolienMatches
-   * @return 소환사별 Assist
+   * @return 가장 많이 처치 기여한 소환사
    */
-  private List<CustomGamesStatisticsMostAssistDto> getMostAssistDtoList(
-      List<LolienMatch> lolienMatches) {
-
-    List<CustomGamesStatisticsMostAssistDto> mostAssistDtoList = Lists.newArrayList();
+  private CustomGamesStatisticsMostAssistDto getMostAssistDto(List<LolienMatch> lolienMatches) {
+    long gameId = 0;
+    String summonerName = "";
+    int mostAssists = 0;
 
     for (LolienMatch lolienMatch : lolienMatches) {
       Set<LolienParticipant> participants = lolienMatch.getParticipants();
 
       for (LolienParticipant participant : participants) {
-        String summonerName = participant.getLolienSummoner().getSummonerName();
-
         LolienParticipantStats stats = participant.getStats();
         int assists = stats.getAssists();
 
-        CustomGamesStatisticsMostAssistDto mostAssistDto = mostAssistDtoList
-            .stream()
-            .filter(mb -> mb.getSummonerName().equals(summonerName))
-            .findFirst()
-            .orElse(null);
-
-        if (Objects.isNull(mostAssistDto)) {
-          mostAssistDto = CustomGamesStatisticsMostAssistDto
-              .builder()
-              .summonerName(summonerName)
-              .assists(assists)
-              .build();
-
-          mostAssistDtoList.add(mostAssistDto);
-        } else {
-          mostAssistDto.plusAssists(assists);
+        if (mostAssists < assists) {
+          gameId = lolienMatch.getGameId();
+          summonerName = participant.getLolienSummoner().getSummonerName();
+          mostAssists = assists;
         }
       }
     }
 
-    return mostAssistDtoList
-        .stream()
-        .sorted(Comparator.comparing(CustomGamesStatisticsMostAssistDto::getAssists).reversed())
-        .limit(3)
-        .collect(Collectors.toList());
+    return CustomGamesStatisticsMostAssistDto
+        .builder()
+        .gameId(gameId)
+        .summonerName(summonerName)
+        .assists(mostAssists)
+        .build();
   }
 }

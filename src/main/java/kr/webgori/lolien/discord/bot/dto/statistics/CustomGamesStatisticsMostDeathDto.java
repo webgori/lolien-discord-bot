@@ -6,10 +6,7 @@ import lombok.Data;
 @Builder
 @Data
 public class CustomGamesStatisticsMostDeathDto {
+  private long gameId;
   private String summonerName;
   private int deaths;
-
-  public void plusDeaths(int deaths) {
-    this.deaths += deaths;
-  }
 }
