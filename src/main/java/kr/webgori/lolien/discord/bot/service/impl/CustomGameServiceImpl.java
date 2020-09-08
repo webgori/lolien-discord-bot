@@ -33,6 +33,7 @@ import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostKil
 import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostKillDto;
 import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostPlayedChampionDto;
 import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostPlayedSummonerDto;
+import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostVisionScoreDto;
 import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostWinningChampionDto;
 import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostWinningDto;
 import kr.webgori.lolien.discord.bot.entity.LolienMatch;
@@ -440,6 +441,8 @@ public class CustomGameServiceImpl implements CustomGameService {
     CustomGamesStatisticsMostKillDto mostKillDto = getMostKillDto(lolienMatches);
     CustomGamesStatisticsMostDeathDto mostDeathDto = getMostDeathDto(lolienMatches);
     CustomGamesStatisticsMostAssistDto mostAssistDto = getMostAssistDto(lolienMatches);
+    CustomGamesStatisticsMostVisionScoreDto mostVisionScoreDto = getMostVisionScoreDto(
+        lolienMatches);
 
     return CustomGamesStatisticsResponse
         .builder()
@@ -452,6 +455,7 @@ public class CustomGameServiceImpl implements CustomGameService {
         .mostKill(mostKillDto)
         .mostDeath(mostDeathDto)
         .mostAssist(mostAssistDto)
+        .mostVisionScore(mostVisionScoreDto)
         .build();
   }
 
@@ -898,6 +902,41 @@ public class CustomGameServiceImpl implements CustomGameService {
         .gameId(gameId)
         .summonerName(summonerName)
         .assists(mostAssists)
+        .build();
+  }
+
+  /**
+   * 시야 점수가 가장 높은 소환사 조회.
+   * @param lolienMatches lolienMatches
+   * @return 가장 많이 처치 기여한 소환사
+   */
+  private CustomGamesStatisticsMostVisionScoreDto getMostVisionScoreDto(
+      List<LolienMatch> lolienMatches) {
+
+    long gameId = 0;
+    String summonerName = "";
+    long mostVisionScore = 0;
+
+    for (LolienMatch lolienMatch : lolienMatches) {
+      Set<LolienParticipant> participants = lolienMatch.getParticipants();
+
+      for (LolienParticipant participant : participants) {
+        LolienParticipantStats stats = participant.getStats();
+        long visionScore = stats.getVisionScore();
+
+        if (mostVisionScore < visionScore) {
+          gameId = lolienMatch.getGameId();
+          summonerName = participant.getLolienSummoner().getSummonerName();
+          mostVisionScore = visionScore;
+        }
+      }
+    }
+
+    return CustomGamesStatisticsMostVisionScoreDto
+        .builder()
+        .gameId(gameId)
+        .summonerName(summonerName)
+        .visionScore(mostVisionScore)
         .build();
   }
 }

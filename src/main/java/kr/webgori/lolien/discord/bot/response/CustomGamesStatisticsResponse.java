@@ -9,6 +9,7 @@ import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostKil
 import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostKillDto;
 import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostPlayedChampionDto;
 import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostPlayedSummonerDto;
+import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostVisionScoreDto;
 import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostWinningDto;
 import lombok.Builder;
 import lombok.Data;
@@ -25,4 +26,5 @@ public class CustomGamesStatisticsResponse {
   private CustomGamesStatisticsMostKillDto mostKill;
   private CustomGamesStatisticsMostDeathDto mostDeath;
   private CustomGamesStatisticsMostAssistDto mostAssist;
+  private CustomGamesStatisticsMostVisionScoreDto mostVisionScore;
 }
