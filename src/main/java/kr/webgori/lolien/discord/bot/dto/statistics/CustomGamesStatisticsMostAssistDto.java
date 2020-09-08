@@ -9,7 +9,7 @@ public class CustomGamesStatisticsMostAssistDto {
   private String summonerName;
   private int assists;
 
-  public void plusAssists(int kill) {
+  public void plusAssists(int assists) {
     this.assists += assists;
   }
 }

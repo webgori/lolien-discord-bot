@@ -9,7 +9,7 @@ public class CustomGamesStatisticsMostDeathDto {
   private String summonerName;
   private int deaths;
 
-  public void plusDeaths(int kill) {
+  public void plusDeaths(int deaths) {
     this.deaths += deaths;
   }
 }
