@@ -28,6 +28,7 @@ import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MatchDto;
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostAssistDto;
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostBannedDto;
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostDeathDto;
+import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostFirstBloodKillDto;
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostFirstTowerKillDto;
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostGoldEarnedDto;
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostKillDeathAssistDto;
@@ -474,6 +475,7 @@ public class CustomGameService {
     MostNeutralMinionsKilledDto mostNeutralMinionsKilledDto = getMostNeutralMinionsKilledDto(
         lolienMatches);
     MostFirstTowerKillDto mostFirstTowerKillDto = getMostFirstTowerKillDto(lolienMatches);
+    MostFirstBloodKillDto mostFirstBloodKillDto = getMostFirstBloodKillDto(lolienMatches);
 
     return CustomGamesStatisticsResponse
         .builder()
@@ -494,6 +496,7 @@ public class CustomGameService {
         .mostGoldEarned(mostGoldEarnedDto)
         .mostNeutralMinionsKilled(mostNeutralMinionsKilledDto)
         .mostFirstTowerKill(mostFirstTowerKillDto)
+        .mostFirstBloodKill(mostFirstBloodKillDto)
         .build();
   }
 
@@ -1110,13 +1113,63 @@ public class CustomGameService {
   }
 
   /**
+   * FIRST BLOOD가 가장 많은 소환사 조회.
+   * @param lolienMatches lolienMatches
+   * @return FIRST BLOOD가 가장 많은 소환사
+   */
+  private MostFirstBloodKillDto getMostFirstBloodKillDto(List<LolienMatch> lolienMatches) {
+    List<MostFirstBloodKillDto> mostFirstBloodKillDtoList = Lists.newArrayList();
+
+    for (LolienMatch lolienMatch : lolienMatches) {
+      Set<LolienParticipant> participants = lolienMatch.getParticipants();
+
+      for (LolienParticipant participant : participants) {
+        String summonerName = participant.getLolienSummoner().getSummonerName();
+        LolienParticipantStats stats = participant.getStats();
+        boolean firstBloodKill = stats.getFirstBloodKill();
+
+        if (firstBloodKill) {
+          MostFirstBloodKillDto mostFirstBloodKillDto = mostFirstBloodKillDtoList
+              .stream()
+              .filter(mb -> mb.getSummonerName().equals(summonerName))
+              .findFirst()
+              .orElse(null);
+
+          if (Objects.isNull(mostFirstBloodKillDto)) {
+            mostFirstBloodKillDto = MostFirstBloodKillDto
+                .builder()
+                .summonerName(summonerName)
+                .count(1)
+                .build();
+
+            mostFirstBloodKillDtoList.add(mostFirstBloodKillDto);
+          } else {
+            mostFirstBloodKillDto.increaseCount();
+          }
+        }
+      }
+    }
+
+    return mostFirstBloodKillDtoList
+        .stream()
+        .sorted(Comparator.comparing(MostFirstBloodKillDto::getCount)
+            .reversed())
+        .limit(1)
+        .findFirst()
+        .orElseGet(() -> MostFirstBloodKillDto
+            .builder()
+            .summonerName("")
+            .count(0)
+            .build());
+  }
+
+  /**
    * 첫 포탑을 가장 많이 파괴한 소환사 조회.
    * @param lolienMatches lolienMatches
    * @return 첫 포탑을 가장 많이 파괴한 소환사
    */
   private MostFirstTowerKillDto getMostFirstTowerKillDto(List<LolienMatch> lolienMatches) {
-    List<MostFirstTowerKillDto> mostFirstTowerKillDtoList = Lists
-        .newArrayList();
+    List<MostFirstTowerKillDto> mostFirstTowerKillDtoList = Lists.newArrayList();
 
     for (LolienMatch lolienMatch : lolienMatches) {
       Set<LolienParticipant> participants = lolienMatch.getParticipants();
