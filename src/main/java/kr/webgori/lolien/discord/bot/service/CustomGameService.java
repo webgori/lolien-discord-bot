@@ -71,6 +71,10 @@ public class CustomGameService {
   private final LolienSummonerRepository lolienSummonerRepository;
   private final RiotComponent riotComponent;
 
+  /**
+   * addResult.
+   * @param customGameAddResultRequest customGameAddResultRequest
+   */
   @Transactional
   public void addResult(CustomGameAddResultRequest customGameAddResultRequest) {
     long matchId = customGameAddResultRequest.getMatchId();
@@ -91,6 +95,12 @@ public class CustomGameService {
     customGameComponent.addResult(matchId, entries);
   }
 
+  /**
+   * getCustomGames.
+   * @param page page
+   * @param size size
+   * @return CustomGamesResponse
+   */
   @Transactional(readOnly = true)
   public CustomGamesResponse getCustomGames(int page, int size) {
     PageRequest pageRequest = PageRequest.of(page, size);
@@ -104,6 +114,13 @@ public class CustomGameService {
     return getCustomGamesResponse(lolienMatches, totalPages);
   }
 
+  /**
+   * getCustomGamesBySummoner.
+   * @param targetSummonerName targetSummonerName
+   * @param page page
+   * @param  size size
+   * @return CustomGamesResponse
+   */
   @Transactional(readOnly = true)
   public CustomGamesResponse getCustomGamesBySummoner(String targetSummonerName,
                                                       int page, int size) {
@@ -414,6 +431,10 @@ public class CustomGameService {
         .build();
   }
 
+  /**
+   * getStatistics.
+   * @return CustomGamesStatisticsResponse
+   */
   public CustomGamesStatisticsResponse getStatistics() {
     LocalDate startDateOfMonth = getStartDateOfMonth();
     LocalDate endDateOfMonth = getEndDateOfMonth();
