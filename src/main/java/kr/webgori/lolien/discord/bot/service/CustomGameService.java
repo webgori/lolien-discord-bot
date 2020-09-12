@@ -28,6 +28,7 @@ import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MatchDto;
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostAssistDto;
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostBannedDto;
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostDeathDto;
+import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostFirstTowerKillDto;
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostGoldEarnedDto;
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostKillDeathAssistDto;
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostKillDeathAssistInfoDto;
@@ -472,6 +473,7 @@ public class CustomGameService {
     MostGoldEarnedDto mostGoldEarnedDto = getMostGoldEarnedDto(lolienMatches);
     MostNeutralMinionsKilledDto mostNeutralMinionsKilledDto = getMostNeutralMinionsKilledDto(
         lolienMatches);
+    MostFirstTowerKillDto firstTowerKillDto = getFirstTowerKillDto(lolienMatches);
 
     return CustomGamesStatisticsResponse
         .builder()
@@ -491,6 +493,7 @@ public class CustomGameService {
         .mostTotalDamageTaken(mostTotalDamageTakenDto)
         .mostGoldEarned(mostGoldEarnedDto)
         .mostNeutralMinionsKilled(mostNeutralMinionsKilledDto)
+        .firstTowerKill(firstTowerKillDto)
         .build();
   }
 
@@ -1104,5 +1107,57 @@ public class CustomGameService {
         .summonerName(summonerName)
         .neutralMinionsKilled(mostNeutralMinionsKilled)
         .build();
+  }
+
+  /**
+   * 첫 포탑을 가장 많이 파괴한 소환사 조회.
+   * @param lolienMatches lolienMatches
+   * @return 첫 포탑을 가장 많이 파괴한 소환사
+   */
+  private MostFirstTowerKillDto getFirstTowerKillDto(List<LolienMatch> lolienMatches) {
+    List<MostFirstTowerKillDto> mostFirstTowerKillDtoList = Lists
+        .newArrayList();
+
+    for (LolienMatch lolienMatch : lolienMatches) {
+      Set<LolienParticipant> participants = lolienMatch.getParticipants();
+
+      for (LolienParticipant participant : participants) {
+        String summonerName = participant.getLolienSummoner().getSummonerName();
+        LolienParticipantStats stats = participant.getStats();
+        boolean firstTowerKill = stats.getFirstTowerKill();
+
+        if (firstTowerKill) {
+          MostFirstTowerKillDto mostFirstTowerKillDto = mostFirstTowerKillDtoList
+              .stream()
+              .filter(mb -> mb.getSummonerName().equals(summonerName))
+              .findFirst()
+              .orElse(null);
+
+          if (Objects.isNull(mostFirstTowerKillDto)) {
+            mostFirstTowerKillDto = MostFirstTowerKillDto
+                .builder()
+                .summonerName(summonerName)
+                .count(1)
+                .build();
+
+            mostFirstTowerKillDtoList.add(mostFirstTowerKillDto);
+          } else {
+            mostFirstTowerKillDto.increaseCount();
+          }
+        }
+      }
+    }
+
+    return mostFirstTowerKillDtoList
+        .stream()
+        .sorted(Comparator.comparing(MostFirstTowerKillDto::getCount)
+            .reversed())
+        .limit(1)
+        .findFirst()
+        .orElseGet(() -> MostFirstTowerKillDto
+            .builder()
+            .summonerName("")
+            .count(0)
+            .build());
   }
 }
