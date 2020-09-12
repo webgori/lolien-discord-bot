@@ -1,11 +1,11 @@
-package kr.webgori.lolien.discord.bot.dto.statistics;
+package kr.webgori.lolien.discord.bot.dto.customgame.statistics;
 
 import lombok.Builder;
 import lombok.Data;
 
 @Builder
 @Data
-public class CustomGamesStatisticsMostKillDeathAssistInfoDto {
+public class MostKillDeathAssistInfoDto {
   private String summonerName;
   private int kills;
   private int deaths;

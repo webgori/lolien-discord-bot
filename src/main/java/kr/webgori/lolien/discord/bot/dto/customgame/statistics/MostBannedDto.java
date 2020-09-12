@@ -1,11 +1,11 @@
-package kr.webgori.lolien.discord.bot.dto.statistics;
+package kr.webgori.lolien.discord.bot.dto.customgame.statistics;
 
 import lombok.Builder;
 import lombok.Data;
 
 @Builder
 @Data
-public class CustomGamesStatisticsMostPlayedChampionDto {
+public class MostBannedDto {
   private String championName;
   private String championUrl;
   private int count;

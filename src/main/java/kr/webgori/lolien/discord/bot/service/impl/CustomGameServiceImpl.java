@@ -24,21 +24,21 @@ import kr.webgori.lolien.discord.bot.dto.CustomGameSummonerDto;
 import kr.webgori.lolien.discord.bot.dto.CustomGameTeamBanDto;
 import kr.webgori.lolien.discord.bot.dto.CustomGameTeamDto;
 import kr.webgori.lolien.discord.bot.dto.DataDragonVersionDto;
-import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMatchDto;
-import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostAssistDto;
-import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostBannedDto;
-import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostDeathDto;
-import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostGoldEarnedDto;
-import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostKillDeathAssistDto;
-import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostKillDeathAssistInfoDto;
-import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostKillDto;
-import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostPlayedChampionDto;
-import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostPlayedSummonerDto;
-import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostTotalDamageDealtDto;
-import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostTotalDamageTakenDto;
-import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostVisionScoreDto;
-import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostWinningChampionDto;
-import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostWinningDto;
+import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MatchDto;
+import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostAssistDto;
+import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostBannedDto;
+import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostDeathDto;
+import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostGoldEarnedDto;
+import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostKillDeathAssistDto;
+import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostKillDeathAssistInfoDto;
+import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostKillDto;
+import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostPlayedChampionDto;
+import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostPlayedSummonerDto;
+import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostTotalDamageDealtToChampionsDto;
+import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostTotalDamageTakenDto;
+import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostVisionScoreDto;
+import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostWinningChampionDto;
+import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostWinningDto;
 import kr.webgori.lolien.discord.bot.entity.LolienMatch;
 import kr.webgori.lolien.discord.bot.entity.LolienParticipant;
 import kr.webgori.lolien.discord.bot.entity.LolienParticipantStats;
@@ -424,35 +424,32 @@ public class CustomGameServiceImpl implements CustomGameService {
     List<ChampDto> championNames = riotComponent.getChampionNames();
     JsonObject championJsonObject = riotComponent.getChampionJsonObject();
 
-    List<CustomGamesStatisticsMatchDto> matchesDto = getStatisticsMatchesDto(
+    List<MatchDto> matchesDto = getStatisticsMatchesDto(
         lolienMatches);
-    List<CustomGamesStatisticsMostBannedDto> mostBannedDtoList = getStatisticsMostBannedDto(
+    List<MostBannedDto> mostBannedDtoList = getStatisticsMostBannedDto(
         lolienMatches, championNames, championJsonObject);
 
-    List<CustomGamesStatisticsMostPlayedChampionDto> mostPlayedChampionDtoList =
+    List<MostPlayedChampionDto> mostPlayedChampionDtoList =
         getStatisticsMostPlayedChampionDto(lolienMatches, championNames, championJsonObject);
 
-    List<CustomGamesStatisticsMostWinningDto> mostWinningDtoList = getStatisticsMostWinningDto(
+    List<MostWinningDto> mostWinningDtoList = getStatisticsMostWinningDto(
         lolienMatches, championNames, championJsonObject);
 
-    List<CustomGamesStatisticsMostPlayedSummonerDto> mostPlayedSummonerDtoList =
+    List<MostPlayedSummonerDto> mostPlayedSummonerDtoList =
         getStatisticsMostPlayedSummonerDto(lolienMatches);
 
-    List<CustomGamesStatisticsMostKillDeathAssistDto> mostKillDeathAssistDtoList =
+    List<MostKillDeathAssistDto> mostKillDeathAssistDtoList =
         getMostKillDeathAssistDtoList(lolienMatches);
 
-    CustomGamesStatisticsMostKillDto mostKillDto = getMostKillDto(lolienMatches);
-    CustomGamesStatisticsMostDeathDto mostDeathDto = getMostDeathDto(lolienMatches);
-    CustomGamesStatisticsMostAssistDto mostAssistDto = getMostAssistDto(lolienMatches);
-    CustomGamesStatisticsMostVisionScoreDto mostVisionScoreDto = getMostVisionScoreDto(
-        lolienMatches);
-    CustomGamesStatisticsMostTotalDamageDealtDto mostTotalDamageDealtDto =
-        getMostTotalDamageDealtDto(lolienMatches);
+    MostKillDto mostKillDto = getMostKillDto(lolienMatches);
+    MostDeathDto mostDeathDto = getMostDeathDto(lolienMatches);
+    MostAssistDto mostAssistDto = getMostAssistDto(lolienMatches);
+    MostVisionScoreDto mostVisionScoreDto = getMostVisionScoreDto(lolienMatches);
+    MostTotalDamageDealtToChampionsDto mostTotalDamageDealtToChampions =
+        getMostTotalDamageDealtToChampions(lolienMatches);
 
-    CustomGamesStatisticsMostTotalDamageTakenDto mostTotalDamageTakenDto =
-        getMostTotalDamageTakenDto(lolienMatches);
-
-    CustomGamesStatisticsMostGoldEarnedDto mostGoldEarnedDto = getMostGoldEarnedDto(lolienMatches);
+    MostTotalDamageTakenDto mostTotalDamageTakenDto = getMostTotalDamageTakenDto(lolienMatches);
+    MostGoldEarnedDto mostGoldEarnedDto = getMostGoldEarnedDto(lolienMatches);
 
     return CustomGamesStatisticsResponse
         .builder()
@@ -466,13 +463,13 @@ public class CustomGameServiceImpl implements CustomGameService {
         .mostDeath(mostDeathDto)
         .mostAssist(mostAssistDto)
         .mostVisionScore(mostVisionScoreDto)
-        .mostTotalDamageDealt(mostTotalDamageDealtDto)
+        .mostTotalDamageDealtToChampions(mostTotalDamageDealtToChampions)
         .mostTotalDamageTaken(mostTotalDamageTakenDto)
         .mostGoldEarned(mostGoldEarnedDto)
         .build();
   }
 
-  private List<CustomGamesStatisticsMatchDto> getStatisticsMatchesDto(
+  private List<MatchDto> getStatisticsMatchesDto(
       List<LolienMatch> lolienMatches) {
 
     return lolienMatches
@@ -481,12 +478,12 @@ public class CustomGameServiceImpl implements CustomGameService {
             .groupingBy(lm -> timestampToLocalDateTime(lm.getGameCreation()).toLocalDate()))
         .entrySet()
         .stream()
-        .map(entry -> CustomGamesStatisticsMatchDto
+        .map(entry -> MatchDto
             .builder()
             .gameCreation(entry.getKey())
             .matchCount(entry.getValue().size())
             .build())
-        .sorted(Comparator.comparing(CustomGamesStatisticsMatchDto::getGameCreation))
+        .sorted(Comparator.comparing(MatchDto::getGameCreation))
         .collect(Collectors.toList());
   }
 
@@ -502,11 +499,11 @@ public class CustomGameServiceImpl implements CustomGameService {
             endTimestamp);
   }
 
-  private List<CustomGamesStatisticsMostBannedDto> getStatisticsMostBannedDto(
+  private List<MostBannedDto> getStatisticsMostBannedDto(
       List<LolienMatch> lolienMatches, List<ChampDto> championNames,
       JsonObject championJsonObject) {
 
-    List<CustomGamesStatisticsMostBannedDto> mostBannedDtoList = Lists.newArrayList();
+    List<MostBannedDto> mostBannedDtoList = Lists.newArrayList();
 
     for (LolienMatch lolienMatch : lolienMatches) {
       Set<LolienTeamStats> teams = lolienMatch.getTeams();
@@ -519,14 +516,14 @@ public class CustomGameServiceImpl implements CustomGameService {
           String championName = riotComponent.getChampionNameByChampId(championNames, championId);
           String championUrl = riotComponent.getChampionUrl(championJsonObject, championId);
 
-          CustomGamesStatisticsMostBannedDto mostBannedDto = mostBannedDtoList
+          MostBannedDto mostBannedDto = mostBannedDtoList
               .stream()
               .filter(mb -> mb.getChampionName().equals(championName))
               .findFirst()
               .orElse(null);
 
           if (Objects.isNull(mostBannedDto)) {
-            mostBannedDto = CustomGamesStatisticsMostBannedDto
+            mostBannedDto = MostBannedDto
                 .builder()
                 .championName(championName)
                 .championUrl(championUrl)
@@ -543,16 +540,16 @@ public class CustomGameServiceImpl implements CustomGameService {
 
     return mostBannedDtoList
         .stream()
-        .sorted(Comparator.comparing(CustomGamesStatisticsMostBannedDto::getCount).reversed())
+        .sorted(Comparator.comparing(MostBannedDto::getCount).reversed())
         .limit(3)
         .collect(Collectors.toList());
   }
 
-  private List<CustomGamesStatisticsMostPlayedChampionDto> getStatisticsMostPlayedChampionDto(
+  private List<MostPlayedChampionDto> getStatisticsMostPlayedChampionDto(
       List<LolienMatch> lolienMatches, List<ChampDto> championNames,
       JsonObject championJsonObject) {
 
-    List<CustomGamesStatisticsMostPlayedChampionDto> mostPlayedChampionDtoList = Lists
+    List<MostPlayedChampionDto> mostPlayedChampionDtoList = Lists
         .newArrayList();
 
     for (LolienMatch lolienMatch : lolienMatches) {
@@ -563,14 +560,14 @@ public class CustomGameServiceImpl implements CustomGameService {
         String championName = riotComponent.getChampionNameByChampId(championNames, championId);
         String championUrl = riotComponent.getChampionUrl(championJsonObject, championId);
 
-        CustomGamesStatisticsMostPlayedChampionDto mostPlayedChampionDto = mostPlayedChampionDtoList
+        MostPlayedChampionDto mostPlayedChampionDto = mostPlayedChampionDtoList
             .stream()
             .filter(mb -> mb.getChampionName().equals(championName))
             .findFirst()
             .orElse(null);
 
         if (Objects.isNull(mostPlayedChampionDto)) {
-          mostPlayedChampionDto = CustomGamesStatisticsMostPlayedChampionDto
+          mostPlayedChampionDto = MostPlayedChampionDto
               .builder()
               .championName(championName)
               .championUrl(championUrl)
@@ -586,43 +583,43 @@ public class CustomGameServiceImpl implements CustomGameService {
 
     return mostPlayedChampionDtoList
         .stream()
-        .sorted(Comparator.comparing(CustomGamesStatisticsMostPlayedChampionDto::getCount)
+        .sorted(Comparator.comparing(MostPlayedChampionDto::getCount)
             .reversed())
         .limit(3)
         .collect(Collectors.toList());
   }
 
-  private List<CustomGamesStatisticsMostWinningDto> getStatisticsMostWinningDto(
+  private List<MostWinningDto> getStatisticsMostWinningDto(
       List<LolienMatch> lolienMatches, List<ChampDto> championNames,
       JsonObject championJsonObject) {
 
-    List<CustomGamesStatisticsMostWinningChampionDto> mostWinningChampionDtoList =
+    List<MostWinningChampionDto> mostWinningChampionDtoList =
         getMostWinningChampionDtoList(lolienMatches);
 
-    Map<Integer, List<CustomGamesStatisticsMostWinningChampionDto>> groupingBy =
+    Map<Integer, List<MostWinningChampionDto>> groupingBy =
         mostWinningChampionDtoList
         .stream()
         .collect(Collectors
-            .groupingBy(CustomGamesStatisticsMostWinningChampionDto::getChampionId));
+            .groupingBy(MostWinningChampionDto::getChampionId));
 
-    List<CustomGamesStatisticsMostWinningDto> mostWinningDtoList = Lists.newArrayList();
+    List<MostWinningDto> mostWinningDtoList = Lists.newArrayList();
 
-    for (Map.Entry<Integer, List<CustomGamesStatisticsMostWinningChampionDto>> entry : groupingBy
+    for (Map.Entry<Integer, List<MostWinningChampionDto>> entry : groupingBy
         .entrySet()) {
       int championId = entry.getKey();
       String championName = riotComponent.getChampionNameByChampId(championNames, championId);
       String championUrl = riotComponent.getChampionUrl(championJsonObject, championId);
 
-      List<CustomGamesStatisticsMostWinningChampionDto> championDtoList = entry.getValue();
+      List<MostWinningChampionDto> championDtoList = entry.getValue();
 
       long totalPlayedCount = championDtoList.size();
       long winCount = championDtoList
           .stream()
-          .filter(CustomGamesStatisticsMostWinningChampionDto::isWin)
+          .filter(MostWinningChampionDto::isWin)
           .count();
       float winRate = getWinRate(totalPlayedCount, winCount);
 
-      CustomGamesStatisticsMostWinningDto mostWinningDto = CustomGamesStatisticsMostWinningDto
+      MostWinningDto mostWinningDto = MostWinningDto
           .builder()
           .championName(championName)
           .championUrl(championUrl)
@@ -633,9 +630,9 @@ public class CustomGameServiceImpl implements CustomGameService {
       mostWinningDtoList.add(mostWinningDto);
     }
 
-    Comparator<CustomGamesStatisticsMostWinningDto> compareCondition = Comparator
-        .comparing(CustomGamesStatisticsMostWinningDto::getWinRate, reverseOrder())
-        .thenComparing(CustomGamesStatisticsMostWinningDto::getTotalPlayedCount, reverseOrder());
+    Comparator<MostWinningDto> compareCondition = Comparator
+        .comparing(MostWinningDto::getWinRate, reverseOrder())
+        .thenComparing(MostWinningDto::getTotalPlayedCount, reverseOrder());
 
     return mostWinningDtoList
         .stream()
@@ -654,10 +651,10 @@ public class CustomGameServiceImpl implements CustomGameService {
    * @param lolienMatches lolienMatches
    * @return 챔피언별 승패여부
    */
-  private List<CustomGamesStatisticsMostWinningChampionDto> getMostWinningChampionDtoList(
+  private List<MostWinningChampionDto> getMostWinningChampionDtoList(
       List<LolienMatch> lolienMatches) {
 
-    List<CustomGamesStatisticsMostWinningChampionDto> mostWinningChampionDtoList = Lists
+    List<MostWinningChampionDto> mostWinningChampionDtoList = Lists
         .newArrayList();
 
     for (LolienMatch lolienMatch : lolienMatches) {
@@ -668,8 +665,8 @@ public class CustomGameServiceImpl implements CustomGameService {
         LolienParticipantStats stats = participant.getStats();
         boolean win = stats.getWin();
 
-        CustomGamesStatisticsMostWinningChampionDto mostWinningChampionDto =
-            CustomGamesStatisticsMostWinningChampionDto
+        MostWinningChampionDto mostWinningChampionDto =
+            MostWinningChampionDto
             .builder()
             .championId(championId)
             .win(win)
@@ -681,10 +678,10 @@ public class CustomGameServiceImpl implements CustomGameService {
     return mostWinningChampionDtoList;
   }
 
-  private List<CustomGamesStatisticsMostPlayedSummonerDto> getStatisticsMostPlayedSummonerDto(
+  private List<MostPlayedSummonerDto> getStatisticsMostPlayedSummonerDto(
       List<LolienMatch> lolienMatches) {
 
-    List<CustomGamesStatisticsMostPlayedSummonerDto> mostPlayedSummonerDtoList = Lists
+    List<MostPlayedSummonerDto> mostPlayedSummonerDtoList = Lists
         .newArrayList();
 
     for (LolienMatch lolienMatch : lolienMatches) {
@@ -693,14 +690,14 @@ public class CustomGameServiceImpl implements CustomGameService {
       for (LolienParticipant participant : participants) {
         String summonerName = participant.getLolienSummoner().getSummonerName();
 
-        CustomGamesStatisticsMostPlayedSummonerDto mostPlayedSummonerDto = mostPlayedSummonerDtoList
+        MostPlayedSummonerDto mostPlayedSummonerDto = mostPlayedSummonerDtoList
             .stream()
             .filter(mb -> mb.getSummonerName().equals(summonerName))
             .findFirst()
             .orElse(null);
 
         if (Objects.isNull(mostPlayedSummonerDto)) {
-          mostPlayedSummonerDto = CustomGamesStatisticsMostPlayedSummonerDto
+          mostPlayedSummonerDto = MostPlayedSummonerDto
               .builder()
               .summonerName(summonerName)
               .count(1)
@@ -715,7 +712,7 @@ public class CustomGameServiceImpl implements CustomGameService {
 
     return mostPlayedSummonerDtoList
         .stream()
-        .sorted(Comparator.comparing(CustomGamesStatisticsMostPlayedSummonerDto::getCount)
+        .sorted(Comparator.comparing(MostPlayedSummonerDto::getCount)
             .reversed())
         .limit(3)
         .collect(Collectors.toList());
@@ -726,16 +723,16 @@ public class CustomGameServiceImpl implements CustomGameService {
    * @param lolienMatches lolienMatches
    * @return 소환사별 KDA
    */
-  private List<CustomGamesStatisticsMostKillDeathAssistDto> getMostKillDeathAssistDtoList(
+  private List<MostKillDeathAssistDto> getMostKillDeathAssistDtoList(
       List<LolienMatch> lolienMatches) {
 
-    List<CustomGamesStatisticsMostKillDeathAssistDto> mostKillDeathAssistDtoList = Lists
+    List<MostKillDeathAssistDto> mostKillDeathAssistDtoList = Lists
         .newArrayList();
 
-    List<CustomGamesStatisticsMostKillDeathAssistInfoDto> mostKillDeathAssistInfoDtoList =
+    List<MostKillDeathAssistInfoDto> mostKillDeathAssistInfoDtoList =
         getMostKillDeathAssistInfoDtoList(lolienMatches);
 
-    for (CustomGamesStatisticsMostKillDeathAssistInfoDto mostKillDeathAssistInfoDto
+    for (MostKillDeathAssistInfoDto mostKillDeathAssistInfoDto
         : mostKillDeathAssistInfoDtoList) {
       String summonerName = mostKillDeathAssistInfoDto.getSummonerName();
       int kills = mostKillDeathAssistInfoDto.getKills();
@@ -743,8 +740,8 @@ public class CustomGameServiceImpl implements CustomGameService {
       int assists = mostKillDeathAssistInfoDto.getAssists();
       float kda = getKda(kills, deaths, assists);
 
-      CustomGamesStatisticsMostKillDeathAssistDto mostKillDeathAssistDto =
-          CustomGamesStatisticsMostKillDeathAssistDto
+      MostKillDeathAssistDto mostKillDeathAssistDto =
+          MostKillDeathAssistDto
               .builder()
               .summonerName(summonerName)
               .kda(kda)
@@ -755,7 +752,7 @@ public class CustomGameServiceImpl implements CustomGameService {
 
     return mostKillDeathAssistDtoList
         .stream()
-        .sorted(Comparator.comparing(CustomGamesStatisticsMostKillDeathAssistDto::getKda)
+        .sorted(Comparator.comparing(MostKillDeathAssistDto::getKda)
             .reversed())
         .limit(3)
         .collect(Collectors.toList());
@@ -766,10 +763,10 @@ public class CustomGameServiceImpl implements CustomGameService {
    * @param lolienMatches lolienMatches
    * @return 모든 내전의 K, D, A 합
    */
-  private List<CustomGamesStatisticsMostKillDeathAssistInfoDto> getMostKillDeathAssistInfoDtoList(
+  private List<MostKillDeathAssistInfoDto> getMostKillDeathAssistInfoDtoList(
       List<LolienMatch> lolienMatches) {
 
-    List<CustomGamesStatisticsMostKillDeathAssistInfoDto> mostKillDeathAssistInfoDtoList = Lists
+    List<MostKillDeathAssistInfoDto> mostKillDeathAssistInfoDtoList = Lists
         .newArrayList();
 
     for (LolienMatch lolienMatch : lolienMatches) {
@@ -783,7 +780,7 @@ public class CustomGameServiceImpl implements CustomGameService {
         int deaths = stats.getDeaths();
         int assists = stats.getAssists();
 
-        CustomGamesStatisticsMostKillDeathAssistInfoDto mostKillDeathAssistsInfoDto =
+        MostKillDeathAssistInfoDto mostKillDeathAssistsInfoDto =
             mostKillDeathAssistInfoDtoList
                 .stream()
                 .filter(mb -> mb.getSummonerName().equals(summonerName))
@@ -791,7 +788,7 @@ public class CustomGameServiceImpl implements CustomGameService {
                 .orElse(null);
 
         if (Objects.isNull(mostKillDeathAssistsInfoDto)) {
-          mostKillDeathAssistsInfoDto = CustomGamesStatisticsMostKillDeathAssistInfoDto
+          mostKillDeathAssistsInfoDto = MostKillDeathAssistInfoDto
               .builder()
               .summonerName(summonerName)
               .kills(kills)
@@ -824,7 +821,7 @@ public class CustomGameServiceImpl implements CustomGameService {
    * @param lolienMatches lolienMatches
    * @return 가장 많이 처치한 소환사
    */
-  private CustomGamesStatisticsMostKillDto getMostKillDto(List<LolienMatch> lolienMatches) {
+  private MostKillDto getMostKillDto(List<LolienMatch> lolienMatches) {
     long gameId = 0;
     String summonerName = "";
     int mostKills = 0;
@@ -844,7 +841,7 @@ public class CustomGameServiceImpl implements CustomGameService {
       }
     }
 
-    return CustomGamesStatisticsMostKillDto
+    return MostKillDto
         .builder()
         .gameId(gameId)
         .summonerName(summonerName)
@@ -857,7 +854,7 @@ public class CustomGameServiceImpl implements CustomGameService {
    * @param lolienMatches lolienMatches
    * @return 가장 많이 죽은 소환사
    */
-  private CustomGamesStatisticsMostDeathDto getMostDeathDto(List<LolienMatch> lolienMatches) {
+  private MostDeathDto getMostDeathDto(List<LolienMatch> lolienMatches) {
     long gameId = 0;
     String summonerName = "";
     int mostDeaths = 0;
@@ -877,7 +874,7 @@ public class CustomGameServiceImpl implements CustomGameService {
       }
     }
 
-    return CustomGamesStatisticsMostDeathDto
+    return MostDeathDto
         .builder()
         .gameId(gameId)
         .summonerName(summonerName)
@@ -890,7 +887,7 @@ public class CustomGameServiceImpl implements CustomGameService {
    * @param lolienMatches lolienMatches
    * @return 가장 많이 처치 기여한 소환사
    */
-  private CustomGamesStatisticsMostAssistDto getMostAssistDto(List<LolienMatch> lolienMatches) {
+  private MostAssistDto getMostAssistDto(List<LolienMatch> lolienMatches) {
     long gameId = 0;
     String summonerName = "";
     int mostAssists = 0;
@@ -910,7 +907,7 @@ public class CustomGameServiceImpl implements CustomGameService {
       }
     }
 
-    return CustomGamesStatisticsMostAssistDto
+    return MostAssistDto
         .builder()
         .gameId(gameId)
         .summonerName(summonerName)
@@ -923,7 +920,7 @@ public class CustomGameServiceImpl implements CustomGameService {
    * @param lolienMatches lolienMatches
    * @return 시야 점수가 가장 높은 소환사
    */
-  private CustomGamesStatisticsMostVisionScoreDto getMostVisionScoreDto(
+  private MostVisionScoreDto getMostVisionScoreDto(
       List<LolienMatch> lolienMatches) {
 
     long gameId = 0;
@@ -945,7 +942,7 @@ public class CustomGameServiceImpl implements CustomGameService {
       }
     }
 
-    return CustomGamesStatisticsMostVisionScoreDto
+    return MostVisionScoreDto
         .builder()
         .gameId(gameId)
         .summonerName(summonerName)
@@ -954,37 +951,37 @@ public class CustomGameServiceImpl implements CustomGameService {
   }
 
   /**
-   * 총 가한 피해량이 가장 높은 소환사 조회.
+   * 총 챔피언에게 가한 피해량이 가장 높은 소환사 조회.
    * @param lolienMatches lolienMatches
-   * @return 총 가한 피해량이 가장 높은 소환사
+   * @return 총 챔피언에게 가한 피해량이 가장 높은 소환사
    */
-  private CustomGamesStatisticsMostTotalDamageDealtDto getMostTotalDamageDealtDto(
+  private MostTotalDamageDealtToChampionsDto getMostTotalDamageDealtToChampions(
       List<LolienMatch> lolienMatches) {
 
     long gameId = 0;
     String summonerName = "";
-    long mostTotalDamageDealt = 0;
+    long mostTotalDamageDealtToChampions = 0;
 
     for (LolienMatch lolienMatch : lolienMatches) {
       Set<LolienParticipant> participants = lolienMatch.getParticipants();
 
       for (LolienParticipant participant : participants) {
         LolienParticipantStats stats = participant.getStats();
-        long totalDamageDealt = stats.getTotalDamageDealt();
+        long totalDamageDealtToChampions = stats.getTotalDamageDealtToChampions();
 
-        if (mostTotalDamageDealt < totalDamageDealt) {
+        if (mostTotalDamageDealtToChampions < totalDamageDealtToChampions) {
           gameId = lolienMatch.getGameId();
           summonerName = participant.getLolienSummoner().getSummonerName();
-          mostTotalDamageDealt = totalDamageDealt;
+          mostTotalDamageDealtToChampions = totalDamageDealtToChampions;
         }
       }
     }
 
-    return CustomGamesStatisticsMostTotalDamageDealtDto
+    return MostTotalDamageDealtToChampionsDto
         .builder()
         .gameId(gameId)
         .summonerName(summonerName)
-        .totalDamageDealt(mostTotalDamageDealt)
+        .totalDamageDealtToChampions(mostTotalDamageDealtToChampions)
         .build();
   }
 
@@ -993,7 +990,7 @@ public class CustomGameServiceImpl implements CustomGameService {
    * @param lolienMatches lolienMatches
    * @return 총 받은 피해량이 가장 높은 소환사
    */
-  private CustomGamesStatisticsMostTotalDamageTakenDto getMostTotalDamageTakenDto(
+  private MostTotalDamageTakenDto getMostTotalDamageTakenDto(
       List<LolienMatch> lolienMatches) {
 
     long gameId = 0;
@@ -1015,7 +1012,7 @@ public class CustomGameServiceImpl implements CustomGameService {
       }
     }
 
-    return CustomGamesStatisticsMostTotalDamageTakenDto
+    return MostTotalDamageTakenDto
         .builder()
         .gameId(gameId)
         .summonerName(summonerName)
@@ -1028,7 +1025,7 @@ public class CustomGameServiceImpl implements CustomGameService {
    * @param lolienMatches lolienMatches
    * @return 획득한 골드가 가장 높은 소환사
    */
-  private CustomGamesStatisticsMostGoldEarnedDto getMostGoldEarnedDto(
+  private MostGoldEarnedDto getMostGoldEarnedDto(
       List<LolienMatch> lolienMatches) {
 
     long gameId = 0;
@@ -1050,7 +1047,7 @@ public class CustomGameServiceImpl implements CustomGameService {
       }
     }
 
-    return CustomGamesStatisticsMostGoldEarnedDto
+    return MostGoldEarnedDto
         .builder()
         .gameId(gameId)
         .summonerName(summonerName)

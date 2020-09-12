@@ -1,36 +1,36 @@
 package kr.webgori.lolien.discord.bot.response;
 
 import java.util.List;
-import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMatchDto;
-import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostAssistDto;
-import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostBannedDto;
-import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostDeathDto;
-import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostGoldEarnedDto;
-import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostKillDeathAssistDto;
-import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostKillDto;
-import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostPlayedChampionDto;
-import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostPlayedSummonerDto;
-import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostTotalDamageDealtDto;
-import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostTotalDamageTakenDto;
-import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostVisionScoreDto;
-import kr.webgori.lolien.discord.bot.dto.statistics.CustomGamesStatisticsMostWinningDto;
+import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MatchDto;
+import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostAssistDto;
+import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostBannedDto;
+import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostDeathDto;
+import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostGoldEarnedDto;
+import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostKillDeathAssistDto;
+import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostKillDto;
+import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostPlayedChampionDto;
+import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostPlayedSummonerDto;
+import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostTotalDamageDealtToChampionsDto;
+import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostTotalDamageTakenDto;
+import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostVisionScoreDto;
+import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostWinningDto;
 import lombok.Builder;
 import lombok.Data;
 
 @Builder
 @Data
 public class CustomGamesStatisticsResponse {
-  private List<CustomGamesStatisticsMatchDto> matches;
-  private List<CustomGamesStatisticsMostBannedDto> mostBannedList;
-  private List<CustomGamesStatisticsMostPlayedChampionDto> mostPlayedChampionList;
-  private List<CustomGamesStatisticsMostWinningDto> mostWinningList;
-  private List<CustomGamesStatisticsMostPlayedSummonerDto> mostPlayedSummonerList;
-  private List<CustomGamesStatisticsMostKillDeathAssistDto> mostKillDeathAssistList;
-  private CustomGamesStatisticsMostKillDto mostKill;
-  private CustomGamesStatisticsMostDeathDto mostDeath;
-  private CustomGamesStatisticsMostAssistDto mostAssist;
-  private CustomGamesStatisticsMostVisionScoreDto mostVisionScore;
-  private CustomGamesStatisticsMostTotalDamageDealtDto mostTotalDamageDealt;
-  private CustomGamesStatisticsMostTotalDamageTakenDto mostTotalDamageTaken;
-  private CustomGamesStatisticsMostGoldEarnedDto mostGoldEarned;
+  private List<MatchDto> matches;
+  private List<MostBannedDto> mostBannedList;
+  private List<MostPlayedChampionDto> mostPlayedChampionList;
+  private List<MostWinningDto> mostWinningList;
+  private List<MostPlayedSummonerDto> mostPlayedSummonerList;
+  private List<MostKillDeathAssistDto> mostKillDeathAssistList;
+  private MostKillDto mostKill;
+  private MostDeathDto mostDeath;
+  private MostAssistDto mostAssist;
+  private MostVisionScoreDto mostVisionScore;
+  private MostTotalDamageDealtToChampionsDto mostTotalDamageDealtToChampions;
+  private MostTotalDamageTakenDto mostTotalDamageTaken;
+  private MostGoldEarnedDto mostGoldEarned;
 }
