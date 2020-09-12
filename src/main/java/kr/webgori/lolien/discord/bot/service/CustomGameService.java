@@ -473,7 +473,7 @@ public class CustomGameService {
     MostGoldEarnedDto mostGoldEarnedDto = getMostGoldEarnedDto(lolienMatches);
     MostNeutralMinionsKilledDto mostNeutralMinionsKilledDto = getMostNeutralMinionsKilledDto(
         lolienMatches);
-    MostFirstTowerKillDto firstTowerKillDto = getFirstTowerKillDto(lolienMatches);
+    MostFirstTowerKillDto mostFirstTowerKillDto = getMostFirstTowerKillDto(lolienMatches);
 
     return CustomGamesStatisticsResponse
         .builder()
@@ -493,7 +493,7 @@ public class CustomGameService {
         .mostTotalDamageTaken(mostTotalDamageTakenDto)
         .mostGoldEarned(mostGoldEarnedDto)
         .mostNeutralMinionsKilled(mostNeutralMinionsKilledDto)
-        .firstTowerKill(firstTowerKillDto)
+        .mostFirstTowerKill(mostFirstTowerKillDto)
         .build();
   }
 
@@ -1114,7 +1114,7 @@ public class CustomGameService {
    * @param lolienMatches lolienMatches
    * @return 첫 포탑을 가장 많이 파괴한 소환사
    */
-  private MostFirstTowerKillDto getFirstTowerKillDto(List<LolienMatch> lolienMatches) {
+  private MostFirstTowerKillDto getMostFirstTowerKillDto(List<LolienMatch> lolienMatches) {
     List<MostFirstTowerKillDto> mostFirstTowerKillDtoList = Lists
         .newArrayList();
 

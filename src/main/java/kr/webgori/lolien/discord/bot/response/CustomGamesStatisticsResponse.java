@@ -39,5 +39,5 @@ public class CustomGamesStatisticsResponse {
   private MostTotalDamageTakenDto mostTotalDamageTaken;
   private MostGoldEarnedDto mostGoldEarned;
   private MostNeutralMinionsKilledDto mostNeutralMinionsKilled;
-  private MostFirstTowerKillDto firstTowerKill;
+  private MostFirstTowerKillDto mostFirstTowerKill;
 }
