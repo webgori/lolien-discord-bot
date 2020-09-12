@@ -2,7 +2,9 @@ package kr.webgori.lolien.discord.bot.service;
 
 import static java.util.Collections.reverseOrder;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.getEndDateOfMonth;
+import static kr.webgori.lolien.discord.bot.util.CommonUtil.getEndDateOfPrevMonth;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.getStartDateOfMonth;
+import static kr.webgori.lolien.discord.bot.util.CommonUtil.getStartDateOfPrevMonth;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.localDateToTimestamp;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.timestampToLocalDateTime;
 
@@ -443,6 +445,14 @@ public class CustomGameService {
     LocalDate endDateOfMonth = getEndDateOfMonth();
 
     List<LolienMatch> lolienMatches = getLolienMatches(startDateOfMonth, endDateOfMonth);
+
+    if (lolienMatches.isEmpty()) {
+      startDateOfMonth = getStartDateOfPrevMonth();
+      endDateOfMonth = getEndDateOfPrevMonth();
+
+      lolienMatches = getLolienMatches(startDateOfMonth, endDateOfMonth);
+    }
+
     List<ChampDto> championNames = riotComponent.getChampionNames();
     JsonObject championJsonObject = riotComponent.getChampionJsonObject();
 
