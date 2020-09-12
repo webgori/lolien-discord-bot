@@ -1,5 +1,6 @@
 package kr.webgori.lolien.discord.bot.response;
 
+import java.time.LocalDate;
 import java.util.List;
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MatchDto;
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostAssistDto;
@@ -20,6 +21,8 @@ import lombok.Data;
 @Builder
 @Data
 public class CustomGamesStatisticsResponse {
+  private LocalDate startDateOfMonth;
+  private LocalDate endDateOfMonth;
   private List<MatchDto> matches;
   private List<MostBannedDto> mostBannedList;
   private List<MostPlayedChampionDto> mostPlayedChampionList;
