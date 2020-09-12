@@ -32,6 +32,7 @@ import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostGoldEarnedDto
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostKillDeathAssistDto;
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostKillDeathAssistInfoDto;
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostKillDto;
+import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostNeutralMinionsKilledDto;
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostPlayedChampionDto;
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostPlayedSummonerDto;
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostTotalDamageDealtToChampionsDto;
@@ -469,6 +470,8 @@ public class CustomGameService {
 
     MostTotalDamageTakenDto mostTotalDamageTakenDto = getMostTotalDamageTakenDto(lolienMatches);
     MostGoldEarnedDto mostGoldEarnedDto = getMostGoldEarnedDto(lolienMatches);
+    MostNeutralMinionsKilledDto mostNeutralMinionsKilledDto = getMostNeutralMinionsKilledDto(
+        lolienMatches);
 
     return CustomGamesStatisticsResponse
         .builder()
@@ -487,6 +490,7 @@ public class CustomGameService {
         .mostTotalDamageDealtToChampions(mostTotalDamageDealtToChampions)
         .mostTotalDamageTaken(mostTotalDamageTakenDto)
         .mostGoldEarned(mostGoldEarnedDto)
+        .mostNeutralMinionsKilled(mostNeutralMinionsKilledDto)
         .build();
   }
 
@@ -517,9 +521,9 @@ public class CustomGameService {
             endTimestamp);
   }
 
-  private List<MostBannedDto> getStatisticsMostBannedDto(
-      List<LolienMatch> lolienMatches, List<ChampDto> championNames,
-      JsonObject championJsonObject) {
+  private List<MostBannedDto> getStatisticsMostBannedDto(List<LolienMatch> lolienMatches,
+                                                         List<ChampDto> championNames,
+                                                         JsonObject championJsonObject) {
 
     List<MostBannedDto> mostBannedDtoList = Lists.newArrayList();
 
@@ -607,9 +611,9 @@ public class CustomGameService {
         .collect(Collectors.toList());
   }
 
-  private List<MostWinningDto> getStatisticsMostWinningDto(
-      List<LolienMatch> lolienMatches, List<ChampDto> championNames,
-      JsonObject championJsonObject) {
+  private List<MostWinningDto> getStatisticsMostWinningDto(List<LolienMatch> lolienMatches,
+                                                           List<ChampDto> championNames,
+                                                           JsonObject championJsonObject) {
 
     List<MostWinningChampionDto> mostWinningChampionDtoList =
         getMostWinningChampionDtoList(lolienMatches);
@@ -938,9 +942,7 @@ public class CustomGameService {
    * @param lolienMatches lolienMatches
    * @return 시야 점수가 가장 높은 소환사
    */
-  private MostVisionScoreDto getMostVisionScoreDto(
-      List<LolienMatch> lolienMatches) {
-
+  private MostVisionScoreDto getMostVisionScoreDto(List<LolienMatch> lolienMatches) {
     long gameId = 0;
     String summonerName = "";
     long mostVisionScore = 0;
@@ -1008,9 +1010,7 @@ public class CustomGameService {
    * @param lolienMatches lolienMatches
    * @return 총 받은 피해량이 가장 높은 소환사
    */
-  private MostTotalDamageTakenDto getMostTotalDamageTakenDto(
-      List<LolienMatch> lolienMatches) {
-
+  private MostTotalDamageTakenDto getMostTotalDamageTakenDto(List<LolienMatch> lolienMatches) {
     long gameId = 0;
     String summonerName = "";
     long mostTotalDamageTaken = 0;
@@ -1043,9 +1043,7 @@ public class CustomGameService {
    * @param lolienMatches lolienMatches
    * @return 획득한 골드가 가장 높은 소환사
    */
-  private MostGoldEarnedDto getMostGoldEarnedDto(
-      List<LolienMatch> lolienMatches) {
-
+  private MostGoldEarnedDto getMostGoldEarnedDto(List<LolienMatch> lolienMatches) {
     long gameId = 0;
     String summonerName = "";
     int mostGoldEarned = 0;
@@ -1070,6 +1068,41 @@ public class CustomGameService {
         .gameId(gameId)
         .summonerName(summonerName)
         .goldEarned(mostGoldEarned)
+        .build();
+  }
+
+  /**
+   * CS가 가장 높은 소환사 조회.
+   * @param lolienMatches lolienMatches
+   * @return CS가 가장 높은 소환사
+   */
+  private MostNeutralMinionsKilledDto getMostNeutralMinionsKilledDto(
+      List<LolienMatch> lolienMatches) {
+
+    long gameId = 0;
+    String summonerName = "";
+    long mostNeutralMinionsKilled = 0;
+
+    for (LolienMatch lolienMatch : lolienMatches) {
+      Set<LolienParticipant> participants = lolienMatch.getParticipants();
+
+      for (LolienParticipant participant : participants) {
+        LolienParticipantStats stats = participant.getStats();
+        long neutralMinionsKilled = stats.getNeutralMinionsKilled();
+
+        if (mostNeutralMinionsKilled < neutralMinionsKilled) {
+          gameId = lolienMatch.getGameId();
+          summonerName = participant.getLolienSummoner().getSummonerName();
+          mostNeutralMinionsKilled = neutralMinionsKilled;
+        }
+      }
+    }
+
+    return MostNeutralMinionsKilledDto
+        .builder()
+        .gameId(gameId)
+        .summonerName(summonerName)
+        .neutralMinionsKilled(mostNeutralMinionsKilled)
         .build();
   }
 }

@@ -9,6 +9,7 @@ import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostDeathDto;
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostGoldEarnedDto;
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostKillDeathAssistDto;
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostKillDto;
+import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostNeutralMinionsKilledDto;
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostPlayedChampionDto;
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostPlayedSummonerDto;
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostTotalDamageDealtToChampionsDto;
@@ -36,4 +37,5 @@ public class CustomGamesStatisticsResponse {
   private MostTotalDamageDealtToChampionsDto mostTotalDamageDealtToChampions;
   private MostTotalDamageTakenDto mostTotalDamageTaken;
   private MostGoldEarnedDto mostGoldEarned;
+  private MostNeutralMinionsKilledDto mostNeutralMinionsKilled;
 }
