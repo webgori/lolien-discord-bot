@@ -6,6 +6,7 @@ import static kr.webgori.lolien.discord.bot.util.CommonUtil.getStartDateOfYear;
 import com.google.common.collect.Lists;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -165,6 +166,8 @@ public class LeagueService {
     return summonersForParticipationDto
         .stream()
         .filter(s -> s.getNumberOfParticipation() >= 10)
+        .sorted(Comparator.comparing(SummonerForParticipationDto::getNumberOfParticipation)
+            .reversed())
         .collect(Collectors.toList());
   }
 }

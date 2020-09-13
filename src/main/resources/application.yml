@@ -16,6 +16,9 @@ spring:
         dialect: org.hibernate.dialect.MariaDB103Dialect
   datasource:
     driverClassName: org.mariadb.jdbc.Driver
+  mvc:
+    favicon:
+      enabled: false
 
 config:
   file:
