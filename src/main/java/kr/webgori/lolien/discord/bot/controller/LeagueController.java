@@ -6,7 +6,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import kr.webgori.lolien.discord.bot.request.LeagueAddRequest;
 import kr.webgori.lolien.discord.bot.request.LeagueAddResultRequest;
-import kr.webgori.lolien.discord.bot.response.LeagueGetLeaguesResponse;
+import kr.webgori.lolien.discord.bot.response.league.LeagueResponse;
+import kr.webgori.lolien.discord.bot.response.league.SummonerForParticipationResponse;
 import kr.webgori.lolien.discord.bot.service.LeagueService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -34,7 +35,7 @@ public class LeagueController {
                   mediaType = "application/json"))
       })
   @GetMapping("v1/leagues")
-  public LeagueGetLeaguesResponse getLeagues() {
+  public LeagueResponse getLeagues() {
     return leagueService.getLeagues();
   }
 
@@ -84,5 +85,20 @@ public class LeagueController {
   @PostMapping("v1/leagues/result")
   public void addLeagueResult(@RequestBody LeagueAddResultRequest leagueAddResultRequest) {
     leagueService.addLeagueResult(leagueAddResultRequest);
+  }
+
+  @Operation(
+      summary = "리그 참가 가능한 소환사 조회")
+  @ApiResponses(
+      value = {
+          @ApiResponse(
+              responseCode = "200",
+              description = "OK",
+              content = @Content(
+                  mediaType = "application/json"))
+      })
+  @GetMapping("v1/leagues/summoners/participation")
+  public SummonerForParticipationResponse getSummonersForParticipation() {
+    return leagueService.getSummonersForParticipation();
   }
 }

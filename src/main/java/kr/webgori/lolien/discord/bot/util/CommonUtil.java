@@ -235,11 +235,19 @@ public class CommonUtil {
   }
 
   /**
-   * getStartDateOfMonth.
+   * getStartDateOfPrevMonth.
    * @return LocalDate
    */
   public static LocalDate getStartDateOfPrevMonth() {
     return LocalDate.now().minusMonths(1).withDayOfMonth(1);
+  }
+
+  /**
+   * getStartDateOfYear.
+   * @return LocalDate
+   */
+  public static LocalDate getStartDateOfYear() {
+    return LocalDate.now().withDayOfYear(1);
   }
 
   /**
@@ -251,10 +259,18 @@ public class CommonUtil {
   }
 
   /**
-   * getEndDateOfMonth.
+   * getEndDateOfPrevMonth.
    * @return LocalDate
    */
   public static LocalDate getEndDateOfPrevMonth() {
     return LocalDate.now().withDayOfMonth(1).minusDays(1);
+  }
+
+  /**
+   * getEndDateOfPrevMonth.
+   * @return LocalDate
+   */
+  public static LocalDate getEndDateOfYear() {
+    return LocalDate.now().withDayOfYear(1);
   }
 }

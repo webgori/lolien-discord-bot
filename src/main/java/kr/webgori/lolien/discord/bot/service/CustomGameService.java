@@ -528,7 +528,13 @@ public class CustomGameService {
         .collect(Collectors.toList());
   }
 
-  private List<LolienMatch> getLolienMatches(LocalDate startDateOfMonth, LocalDate endDateOfMonth) {
+  /**
+   * getLolienMatches.
+   * @param startDateOfMonth startDateOfMonth
+   * @param endDateOfMonth endDateOfMonth
+   * @return lolienMatches
+   */
+  public List<LolienMatch> getLolienMatches(LocalDate startDateOfMonth, LocalDate endDateOfMonth) {
     long startTimestamp = localDateToTimestamp(startDateOfMonth);
     long endTimestamp = localDateToTimestamp(endDateOfMonth);
 
