@@ -271,6 +271,6 @@ public class CommonUtil {
    * @return LocalDate
    */
   public static LocalDate getEndDateOfYear() {
-    return LocalDate.now().withDayOfYear(1);
+    return LocalDate.now().plusYears(1).withDayOfYear(1);
   }
 }
