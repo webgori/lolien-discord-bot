@@ -1,27 +1,46 @@
 package kr.webgori.lolien.discord.bot.service;
 
+import static kr.webgori.lolien.discord.bot.service.CustomGameService.BLUE_TEAM;
+import static kr.webgori.lolien.discord.bot.service.CustomGameService.RED_TEAM;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.getEndDateOfYear;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.getStartDateOfYear;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import kr.webgori.lolien.discord.bot.component.LeagueComponent;
+import kr.webgori.lolien.discord.bot.component.RiotComponent;
+import kr.webgori.lolien.discord.bot.dto.CustomGameSummonerDto;
+import kr.webgori.lolien.discord.bot.dto.CustomGameTeamBanDto;
+import kr.webgori.lolien.discord.bot.dto.CustomGameTeamDto;
+import kr.webgori.lolien.discord.bot.dto.DataDragonVersionDto;
 import kr.webgori.lolien.discord.bot.dto.league.LeagueDto;
 import kr.webgori.lolien.discord.bot.dto.league.SummonerForParticipationDto;
 import kr.webgori.lolien.discord.bot.entity.LolienMatch;
 import kr.webgori.lolien.discord.bot.entity.LolienParticipant;
+import kr.webgori.lolien.discord.bot.entity.LolienSummoner;
 import kr.webgori.lolien.discord.bot.entity.league.LolienLeague;
+import kr.webgori.lolien.discord.bot.entity.league.LolienLeagueMatch;
+import kr.webgori.lolien.discord.bot.entity.league.LolienLeagueParticipant;
+import kr.webgori.lolien.discord.bot.entity.league.LolienLeagueParticipantStats;
+import kr.webgori.lolien.discord.bot.entity.league.LolienLeagueTeamBans;
+import kr.webgori.lolien.discord.bot.entity.league.LolienLeagueTeamStats;
 import kr.webgori.lolien.discord.bot.repository.league.LolienLeagueMatchRepository;
 import kr.webgori.lolien.discord.bot.repository.league.LolienLeagueRepository;
 import kr.webgori.lolien.discord.bot.request.LeagueAddRequest;
 import kr.webgori.lolien.discord.bot.request.LeagueAddResultRequest;
 import kr.webgori.lolien.discord.bot.response.league.LeagueResponse;
+import kr.webgori.lolien.discord.bot.response.league.ResultDto;
+import kr.webgori.lolien.discord.bot.response.league.ResultResponse;
 import kr.webgori.lolien.discord.bot.response.league.SummonerForParticipationResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +55,7 @@ public class LeagueService {
   private final LeagueComponent leagueComponent;
   private final LolienLeagueMatchRepository lolienLeagueMatchRepository;
   private final CustomGameService customGameService;
+  private final RiotComponent riotComponent;
 
   /**
    * getLeagues.
@@ -169,5 +189,306 @@ public class LeagueService {
         .sorted(Comparator.comparing(SummonerForParticipationDto::getNumberOfParticipation)
             .reversed())
         .collect(Collectors.toList());
+  }
+
+  public ResultResponse getLeagueResultsByLeague(int leagueIndex, int page, int size) {
+    LolienLeague lolienLeague = lolienLeagueRepository
+        .findById(leagueIndex)
+        .orElseThrow(() -> new IllegalArgumentException("invalid league index"));
+
+    int skip = page * size;
+
+    List<LolienLeagueMatch> lolienLeagueMatchePages = lolienLeague
+        .getLolienLeagueMatches()
+        .stream()
+        .sorted(Comparator.comparing(LolienLeagueMatch::getGameCreation).reversed())
+        .skip(skip)
+        .limit(size)
+        .collect(Collectors.toList());
+
+    int totalPages = lolienLeagueMatchePages.size() / size;
+
+    return getResultResponse(lolienLeagueMatchePages, totalPages);
+  }
+
+  private ResultResponse getResultResponse(List<LolienLeagueMatch> lolienLeagueMatches,
+                                           int totalPages) {
+
+    List<ResultDto> resultsDto = Lists.newArrayList();
+    List<CustomGameTeamDto> teamDtoList = Lists.newArrayList();
+    List<CustomGameTeamBanDto> teamBanDtoList = Lists.newArrayList();
+
+    List<DataDragonVersionDto> dataDragonVersions = riotComponent.getDataDragonVersions();
+    Map<String, JsonObject> summonerJsonObjectMap = Maps.newHashMap();
+    Map<String, JsonObject> championsJsonObjectMap = Maps.newHashMap();
+    Map<String, JsonObject> itemsJsonObjectMap = Maps.newHashMap();
+    Map<String, JsonArray> runesJsonArrayMap = Maps.newHashMap();
+
+    for (LolienLeagueMatch lolienLeagueMatch : lolienLeagueMatches) {
+      int idx = lolienLeagueMatch.getIdx();
+      long gameCreation = lolienLeagueMatch.getGameCreation();
+      long gameDuration = lolienLeagueMatch.getGameDuration();
+      long gameId = lolienLeagueMatch.getGameId();
+      String gameMode = lolienLeagueMatch.getGameMode();
+      String gameType = lolienLeagueMatch.getGameType();
+      String gameVersion = lolienLeagueMatch.getGameVersion();
+      int mapId = lolienLeagueMatch.getMapId();
+      String platformId = lolienLeagueMatch.getPlatformId();
+      int queueId = lolienLeagueMatch.getQueueId();
+      int seasonId = lolienLeagueMatch.getSeasonId();
+
+      List<LolienLeagueParticipant> participants = lolienLeagueMatch
+          .getParticipants()
+          .stream()
+          .sorted(Comparator.comparing(LolienLeagueParticipant::getIdx))
+          .collect(Collectors.toList());
+
+      List<CustomGameSummonerDto> blueTeamSummoners = Lists.newArrayList();
+      List<CustomGameSummonerDto> redTeamSummoners = Lists.newArrayList();
+
+      for (LolienLeagueParticipant lolienParticipant : participants) {
+        String closeDataDragonVersion = riotComponent.getCloseDataDragonVersion(gameVersion,
+            dataDragonVersions);
+
+        JsonObject summonerJsonObject;
+
+        if (summonerJsonObjectMap.containsKey(closeDataDragonVersion)) {
+          summonerJsonObject = summonerJsonObjectMap.get(closeDataDragonVersion);
+        } else {
+          summonerJsonObject = riotComponent.getSummonerJsonObject(closeDataDragonVersion);
+          summonerJsonObjectMap.put(closeDataDragonVersion, summonerJsonObject);
+        }
+
+        JsonObject championsJsonObject;
+
+        if (championsJsonObjectMap.containsKey(closeDataDragonVersion)) {
+          championsJsonObject = championsJsonObjectMap.get(closeDataDragonVersion);
+        } else {
+          championsJsonObject = riotComponent.getChampionJsonObject(closeDataDragonVersion);
+          championsJsonObjectMap.put(closeDataDragonVersion, championsJsonObject);
+        }
+
+        int championId = lolienParticipant.getChampionId();
+        String championUrl = riotComponent.getChampionUrl(championsJsonObject,
+            closeDataDragonVersion, championId);
+        String championName = riotComponent.getChampionName(championsJsonObject, championId);
+
+        LolienLeagueParticipantStats lolienParticipantStats = lolienParticipant.getStats();
+
+        long totalDamageDealtToChampions = lolienParticipantStats.getTotalDamageDealtToChampions();
+        int wardsPlaced = lolienParticipantStats.getWardsPlaced();
+
+        int kills = lolienParticipantStats.getKills();
+        int deaths = lolienParticipantStats.getDeaths();
+        int assists = lolienParticipantStats.getAssists();
+
+        int champLevel = lolienParticipantStats.getChampLevel();
+        int totalMinionsKilled = lolienParticipantStats.getTotalMinionsKilled();
+
+        JsonObject itemsJsonObject;
+
+        if (itemsJsonObjectMap.containsKey(closeDataDragonVersion)) {
+          itemsJsonObject = itemsJsonObjectMap.get(closeDataDragonVersion);
+        } else {
+          itemsJsonObject = riotComponent.getItemJsonObject(closeDataDragonVersion);
+          itemsJsonObjectMap.put(closeDataDragonVersion, itemsJsonObject);
+        }
+
+        int item0 = lolienParticipantStats.getItem0();
+        String item0Url = riotComponent.getItemUrl(itemsJsonObject, closeDataDragonVersion, item0);
+        String item0Name = riotComponent.getItemName(itemsJsonObject, item0);
+        String item0Description = riotComponent
+            .getItemDescription(itemsJsonObject, item0);
+
+        int item1 = lolienParticipantStats.getItem1();
+        String item1Url = riotComponent.getItemUrl(itemsJsonObject, closeDataDragonVersion, item1);
+        String item1Name = riotComponent.getItemName(itemsJsonObject, item1);
+        String item1Description = riotComponent
+            .getItemDescription(itemsJsonObject, item1);
+
+        int item2 = lolienParticipantStats.getItem2();
+        String item2Url = riotComponent.getItemUrl(itemsJsonObject, closeDataDragonVersion, item2);
+        String item2Name = riotComponent.getItemName(itemsJsonObject, item2);
+        String item2Description = riotComponent
+            .getItemDescription(itemsJsonObject, item2);
+
+        int item3 = lolienParticipantStats.getItem3();
+        String item3Url = riotComponent.getItemUrl(itemsJsonObject, closeDataDragonVersion, item3);
+        String item3Name = riotComponent.getItemName(itemsJsonObject, item3);
+        String item3Description = riotComponent
+            .getItemDescription(itemsJsonObject, item3);
+
+        int item4 = lolienParticipantStats.getItem4();
+        String item4Url = riotComponent.getItemUrl(itemsJsonObject, closeDataDragonVersion, item4);
+        String item4Name = riotComponent.getItemName(itemsJsonObject, item4);
+        String item4Description = riotComponent
+            .getItemDescription(itemsJsonObject, item4);
+
+        int item5 = lolienParticipantStats.getItem5();
+        String item5Url = riotComponent.getItemUrl(itemsJsonObject, closeDataDragonVersion, item5);
+        String item5Name = riotComponent.getItemName(itemsJsonObject, item5);
+        String item5Description = riotComponent
+            .getItemDescription(itemsJsonObject, item5);
+
+        int item6 = lolienParticipantStats.getItem6();
+        String item6Url = riotComponent.getItemUrl(itemsJsonObject, closeDataDragonVersion, item6);
+        String item6Name = riotComponent.getItemName(itemsJsonObject, item6);
+        String item6Description = riotComponent
+            .getItemDescription(itemsJsonObject, item6);
+
+        JsonArray runesJsonArray;
+
+        if (runesJsonArrayMap.containsKey(closeDataDragonVersion)) {
+          runesJsonArray = runesJsonArrayMap.get(closeDataDragonVersion);
+        } else {
+          runesJsonArray = riotComponent.getRuneJsonArray(closeDataDragonVersion);
+          runesJsonArrayMap.put(closeDataDragonVersion, runesJsonArray);
+        }
+
+        int primaryRunId = lolienParticipantStats.getPerk0();
+        String primaryRuneUrl = riotComponent.getRuneUrl(runesJsonArray, primaryRunId);
+        String primaryRuneName = riotComponent.getRuneName(runesJsonArray, primaryRunId);
+        String primaryRuneDescription = riotComponent
+            .getRuneDescription(runesJsonArray, primaryRunId);
+
+        int subRunId = lolienParticipantStats.getPerkSubStyle();
+        String subRuneUrl = riotComponent.getRuneUrl(runesJsonArray, subRunId);
+        String subRuneName = riotComponent.getRuneName(runesJsonArray, subRunId);
+        String subRuneDescription = riotComponent
+            .getRuneDescription(runesJsonArray, subRunId);
+
+        int teamId = lolienParticipant.getTeamId();
+        boolean win = lolienParticipantStats.getWin();
+
+        LolienSummoner lolienSummoner = lolienParticipant.getLolienSummoner();
+        int lolienSummonerIdx = lolienSummoner.getIdx();
+        String summonerName = lolienSummoner.getSummonerName();
+
+        int spell1Id = lolienParticipant.getSpell1Id();
+        String spell1Url = riotComponent.getSpellUrl(summonerJsonObject, closeDataDragonVersion,
+            spell1Id);
+        String spell1Name = riotComponent.getSpellName(summonerJsonObject, spell1Id);
+        String spell1Description = riotComponent.getSpellDescription(summonerJsonObject, spell1Id);
+
+        int spell2Id = lolienParticipant.getSpell2Id();
+        String spell2Url = riotComponent.getSpellUrl(summonerJsonObject, closeDataDragonVersion,
+            spell2Id);
+        String spell2Name = riotComponent.getSpellName(summonerJsonObject, spell2Id);
+        String spell2Description = riotComponent.getSpellDescription(summonerJsonObject, spell2Id);
+
+        CustomGameSummonerDto customGameSummonerDto = CustomGameSummonerDto
+            .builder()
+            .idx(lolienSummonerIdx)
+            .summonerName(summonerName)
+            .championId(championId)
+            .championUrl(championUrl)
+            .championName(championName)
+            .totalDamageDealtToChampions(totalDamageDealtToChampions)
+            .spell1Url(spell1Url)
+            .spell2Url(spell2Url)
+            .spell1Name(spell1Name)
+            .spell2Name(spell2Name)
+            .spell1Description(spell1Description)
+            .spell2Description(spell2Description)
+            .kills(kills)
+            .deaths(deaths)
+            .assists(assists)
+            .champLevel(champLevel)
+            .totalMinionsKilled(totalMinionsKilled)
+            .item0Url(item0Url)
+            .item1Url(item1Url)
+            .item2Url(item2Url)
+            .item3Url(item3Url)
+            .item4Url(item4Url)
+            .item5Url(item5Url)
+            .item6Url(item6Url)
+            .item0Name(item0Name)
+            .item1Name(item1Name)
+            .item2Name(item2Name)
+            .item3Name(item3Name)
+            .item4Name(item4Name)
+            .item5Name(item5Name)
+            .item6Name(item6Name)
+            .item0Description(item0Description)
+            .item1Description(item1Description)
+            .item2Description(item2Description)
+            .item3Description(item3Description)
+            .item4Description(item4Description)
+            .item5Description(item5Description)
+            .item6Description(item6Description)
+            .primaryRuneUrl(primaryRuneUrl)
+            .primaryRuneName(primaryRuneName)
+            .primaryRuneDescription(primaryRuneDescription)
+            .subRuneUrl(subRuneUrl)
+            .subRuneName(subRuneName)
+            .subRuneDescription(subRuneDescription)
+            .wardsPlaced(wardsPlaced)
+            .teamId(teamId)
+            .win(win)
+            .build();
+
+        if (teamId == BLUE_TEAM) {
+          blueTeamSummoners.add(customGameSummonerDto);
+        } else if (teamId == RED_TEAM) {
+          redTeamSummoners.add(customGameSummonerDto);
+        }
+      }
+
+      List<LolienLeagueTeamStats> teams = lolienLeagueMatch
+          .getTeams()
+          .stream()
+          .sorted(Comparator.comparing(LolienLeagueTeamStats::getIdx))
+          .collect(Collectors.toList());
+
+      for (LolienLeagueTeamStats team : teams) {
+        List<LolienLeagueTeamBans> bans = team.getBans();
+
+        for (LolienLeagueTeamBans ban : bans) {
+          int pickTurn = ban.getPickTurn();
+          int championId = ban.getChampionId();
+
+          CustomGameTeamBanDto teamBanDto = CustomGameTeamBanDto
+              .builder()
+              .pickTurn(pickTurn)
+              .championId(championId)
+              .build();
+
+          teamBanDtoList.add(teamBanDto);
+        }
+
+        CustomGameTeamDto teamDto = CustomGameTeamDto
+            .builder()
+            .bans(teamBanDtoList)
+            .build();
+
+        teamDtoList.add(teamDto);
+      }
+
+      ResultDto resultDto = ResultDto
+          .builder()
+          .idx(idx)
+          .gameCreation(gameCreation)
+          .gameDuration(gameDuration)
+          .gameId(gameId)
+          .gameMode(gameMode)
+          .gameType(gameType)
+          .gameVersion(gameVersion)
+          .mapId(mapId)
+          .platformId(platformId)
+          .queueId(queueId)
+          .seasonId(seasonId)
+          .blueTeamSummoners(blueTeamSummoners)
+          .redTeamSummoners(redTeamSummoners)
+          .teams(teamDtoList)
+          .build();
+
+      resultsDto.add(resultDto);
+    }
+
+    return ResultResponse
+        .builder()
+        .results(resultsDto)
+        .totalPages(totalPages)
+        .build();
   }
 }

@@ -68,8 +68,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Service
 public class CustomGameService {
-  private static final int BLUE_TEAM = 100;
-  private static final int RED_TEAM = 200;
+  static final int BLUE_TEAM = 100;
+  static final int RED_TEAM = 200;
 
   private final LolienMatchRepository lolienMatchRepository;
   private final CustomGameComponent customGameComponent;
