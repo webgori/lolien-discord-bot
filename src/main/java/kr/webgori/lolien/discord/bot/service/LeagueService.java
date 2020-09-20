@@ -191,6 +191,14 @@ public class LeagueService {
         .collect(Collectors.toList());
   }
 
+  /**
+   * getLeagueResultsByLeague.
+   * @param leagueIndex leagueIndex
+   * @param page page
+   * @param size size
+   * @return ResultResponse
+   */
+  @Transactional(readOnly = true)
   public ResultResponse getLeagueResultsByLeague(int leagueIndex, int page, int size) {
     LolienLeague lolienLeague = lolienLeagueRepository
         .findById(leagueIndex)
