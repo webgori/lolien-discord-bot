@@ -214,7 +214,7 @@ public class LeagueService {
         .limit(size)
         .collect(Collectors.toList());
 
-    int totalPages = lolienLeagueMatchePages.size() / size;
+    int totalPages = (int) Math.ceil(lolienLeagueMatchePages.size() / (float) size);
 
     return getResultResponse(lolienLeagueMatchePages, totalPages);
   }
