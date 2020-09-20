@@ -86,8 +86,9 @@ public class LeagueComponent {
       BeanUtils.copyProperties(stats, lolienLeagueParticipantStats);
 
       String summonerName = entries[i];
+      String nonSpaceSummonerName = summonerName.replaceAll("\\s+", "");
       LolienSummoner bySummonerName = lolienSummonerRepository
-          .findBySummonerName(summonerName);
+          .findBySummonerName(nonSpaceSummonerName);
 
       LolienLeagueParticipant lolienLeagueParticipant = LolienLeagueParticipant
           .builder()
@@ -107,13 +108,42 @@ public class LeagueComponent {
     List<LolienLeagueTeamBans> lolienLeagueTeamBansList = Lists.newArrayList();
 
     for (TeamStats teamStats : teams) {
+      int baronKills = teamStats.getBaronKills();
+      int dominionVictoryScore = teamStats.getDominionVictoryScore();
+      int dragonKills = teamStats.getDragonKills();
+      boolean firstBaron = teamStats.isFirstBaron();
+      boolean firstBlood = teamStats.isFirstBlood();
+      boolean firstDragon = teamStats.isFirstDragon();
+      boolean firstInhibitor = teamStats.isFirstInhibitor();
+      boolean firstRiftHerald = teamStats.isFirstRiftHerald();
+      boolean firstTower = teamStats.isFirstTower();
+      int inhibitorKills = teamStats.getInhibitorKills();
+      int riftHeraldKills = teamStats.getRiftHeraldKills();
+      int teamId = teamStats.getTeamId();
+      int towerKills = teamStats.getTowerKills();
+      int vilemawKills = teamStats.getVilemawKills();
+      String win = teamStats.getWin();
+
       LolienLeagueTeamStats lolienLeagueTeamStats = LolienLeagueTeamStats
           .builder()
           .match(lolienLeagueMatch)
           .bans(lolienLeagueTeamBansList)
+          .baronKills(baronKills)
+          .dominionVictoryScore(dominionVictoryScore)
+          .dragonKills(dragonKills)
+          .firstBaron(firstBaron)
+          .firstBlood(firstBlood)
+          .firstDragon(firstDragon)
+          .firstInhibitor(firstInhibitor)
+          .firstRiftHerald(firstRiftHerald)
+          .firstTower(firstTower)
+          .inhibitorKills(inhibitorKills)
+          .riftHeraldKills(riftHeraldKills)
+          .teamId(teamId)
+          .towerKills(towerKills)
+          .vilemawKills(vilemawKills)
+          .win(win)
           .build();
-
-      BeanUtils.copyProperties(teamStats, lolienLeagueTeamStats);
 
       List<TeamBans> bans = teamStats.getBans();
 
@@ -135,14 +165,5 @@ public class LeagueComponent {
     }
 
     lolienLeagueMatchRepository.save(lolienLeagueMatch);
-
-    /*for (String summonerName : entries) {
-      HashOperations<String, Object, Object> opsForHash = redisTemplate.opsForHash();
-      boolean hasHashKey = opsForHash.hasKey(REDIS_MOST_CHAMPS_KEY, summonerName);
-      if (hasHashKey) {
-        opsForHash.delete(REDIS_MOST_CHAMPS_KEY, summonerName);
-      }
-      getMostChamp(summonerName, 3);
-    }*/
   }
 }

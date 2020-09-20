@@ -75,7 +75,7 @@ public class LeagueController {
   }
 
   @Operation(
-      summary = "내전 결과 등록",
+      summary = "리그 결과 등록",
       hidden = true)
   @ApiResponses(
       value = {
