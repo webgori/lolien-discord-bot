@@ -19,6 +19,10 @@ spring:
   mvc:
     favicon:
       enabled: false
+  servlet:
+    multipart:
+      max-file-size: 15MB
+      max-request-size: 150MB
 
 config:
   file:

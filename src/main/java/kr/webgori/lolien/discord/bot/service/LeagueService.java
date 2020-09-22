@@ -19,6 +19,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.StringJoiner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import kr.webgori.lolien.discord.bot.component.LeagueComponent;
 import kr.webgori.lolien.discord.bot.component.RiotComponent;
@@ -47,6 +50,7 @@ import kr.webgori.lolien.discord.bot.response.league.ResultResponse;
 import kr.webgori.lolien.discord.bot.response.league.SummonerForParticipationResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FilenameUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -510,18 +514,62 @@ public class LeagueService {
    * addLeagueResultByFiles.
    * @param files files
    */
-  public void addLeagueResultByFiles(List<MultipartFile> files) {
+  public void addLeagueResultByFiles(int leagueIndex, List<MultipartFile> files) {
+    Pattern pattern = Pattern.compile("\\\\\"NAME\\\\\":\\\\\"([A-Za-z0-9가-힣 ]*)\\\\\"");
+
     for (MultipartFile file : files) {
-      String contents = "";
+      LeagueAddResultRequest leagueAddResultRequest = new LeagueAddResultRequest();
+      leagueAddResultRequest.setLeagueIdx(leagueIndex);
 
-      try {
-        contents = new String(file.getBytes(), DEFAULT_CHARSET);
-      } catch (IOException e) {
-        logger.error("", e);
-      }
+      long gameId = getGameId(file);
+      leagueAddResultRequest.setMatchId(gameId);
 
-      logger.error(contents);
+      String entries = getEntries(file, pattern);
+      leagueAddResultRequest.setEntries(entries);
+
+      addLeagueResult(leagueAddResultRequest);
     }
+  }
+
+  private String getEntries(MultipartFile file, Pattern pattern) {
+    StringJoiner entryStringJoiner = new StringJoiner(",");
+
+    try {
+      String contents = new String(file.getBytes(), DEFAULT_CHARSET);
+      Matcher matcher = pattern.matcher(contents);
+
+      while (matcher.find()) {
+        String summonerName = stripSummonerName(matcher.group());
+        entryStringJoiner.add(summonerName);
+      }
+    } catch (IOException e) {
+      logger.error("", e);
+    }
+
+    if (entryStringJoiner.toString().split(",").length != 10) {
+      throw new IllegalArgumentException("invalid league result file");
+    }
+
+    return entryStringJoiner.toString();
+  }
+
+  private String stripSummonerName(String summonerName) {
+    summonerName = summonerName.replace("NAME", "");
+    summonerName = summonerName.replace("\"", "");
+    summonerName = summonerName.replace("\\", "");
+    summonerName = summonerName.replace(":", "");
+    return summonerName.replaceAll("\\s+", "");
+  }
+
+  private long getGameId(MultipartFile multipartFile) {
+    String originalFilename = multipartFile.getOriginalFilename();
+    originalFilename = FilenameUtils.removeExtension(originalFilename);
+
+    if (Objects.isNull(originalFilename)) {
+      throw new IllegalArgumentException("invalid league result file");
+    }
+
+    return Long.parseLong(originalFilename.replace("KR-", ""));
   }
 
   /**
