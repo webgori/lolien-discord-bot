@@ -9,6 +9,9 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Comparator;
@@ -46,11 +49,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @RequiredArgsConstructor
 @Service
 public class LeagueService {
+  private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
+
   private final LolienLeagueRepository lolienLeagueRepository;
   private final LeagueComponent leagueComponent;
   private final LolienLeagueMatchRepository lolienLeagueMatchRepository;
@@ -498,5 +504,23 @@ public class LeagueService {
         .results(resultsDto)
         .totalPages(totalPages)
         .build();
+  }
+
+  /**
+   * addLeagueResultByFiles.
+   * @param files files
+   */
+  public void addLeagueResultByFiles(List<MultipartFile> files) {
+    for (MultipartFile file : files) {
+      String contents = "";
+
+      try {
+        contents = new String(file.getBytes(), DEFAULT_CHARSET);
+      } catch (IOException e) {
+        logger.error("", e);
+      }
+
+      logger.error(contents);
+    }
   }
 }

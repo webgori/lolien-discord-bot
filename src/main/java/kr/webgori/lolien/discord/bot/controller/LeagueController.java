@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import java.util.List;
 import kr.webgori.lolien.discord.bot.request.LeagueAddRequest;
 import kr.webgori.lolien.discord.bot.request.LeagueAddResultRequest;
 import kr.webgori.lolien.discord.bot.response.league.LeagueResponse;
@@ -19,8 +20,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RequiredArgsConstructor
 @RestController
@@ -88,6 +91,22 @@ public class LeagueController {
   @PostMapping("v1/leagues/result")
   public void addLeagueResult(@RequestBody LeagueAddResultRequest leagueAddResultRequest) {
     leagueService.addLeagueResult(leagueAddResultRequest);
+  }
+
+  @Operation(
+      summary = "리플레이 파일로 리그 결과 등록",
+      hidden = true)
+  @ApiResponses(
+      value = {
+          @ApiResponse(
+              responseCode = "401",
+              description = "Unauthorized. 인증 정보를 찾을 수 없을 때"),
+          @ApiResponse(
+              responseCode = "204",
+              description = "No Content")})
+  @PostMapping("v1/leagues/result/files")
+  public void addLeagueResult(@RequestPart List<MultipartFile> files) {
+    leagueService.addLeagueResultByFiles(files);
   }
 
   @Operation(
