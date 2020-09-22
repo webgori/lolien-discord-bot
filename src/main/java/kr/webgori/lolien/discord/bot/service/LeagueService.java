@@ -524,6 +524,10 @@ public class LeagueService {
     }
   }
 
+  /**
+   * deleteLeagueResult.
+   * @param gameId gameId
+   */
   @Transactional
   public void deleteLeagueResult(long gameId) {
     boolean existsByGameId = lolienLeagueMatchRepository.existsByGameId(gameId);
