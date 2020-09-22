@@ -523,4 +523,15 @@ public class LeagueService {
       logger.error(contents);
     }
   }
+
+  @Transactional
+  public void deleteLeagueResult(long gameId) {
+    boolean existsByGameId = lolienLeagueMatchRepository.existsByGameId(gameId);
+
+    if (!existsByGameId) {
+      throw new IllegalArgumentException("리그 결과가 존재하지 않습니다.");
+    }
+
+    lolienLeagueMatchRepository.deleteByGameId(gameId);
+  }
 }

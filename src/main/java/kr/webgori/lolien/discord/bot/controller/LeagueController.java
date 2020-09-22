@@ -110,6 +110,22 @@ public class LeagueController {
   }
 
   @Operation(
+      summary = "리그 결과 제거")
+  @ApiResponses(
+      value = {
+          @ApiResponse(
+              responseCode = "201",
+              description = "No Content",
+              content = @Content(
+                  mediaType = "application/json"))
+      })
+  @DeleteMapping("v1/leagues/result/{game-id}")
+  @ResponseStatus(value = HttpStatus.NO_CONTENT)
+  public void deleteLeagueResult(@PathVariable("game-id") long gameId) {
+    leagueService.deleteLeagueResult(gameId);
+  }
+
+  @Operation(
       summary = "리그 참가 가능한 소환사 조회")
   @ApiResponses(
       value = {
