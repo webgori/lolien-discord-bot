@@ -595,6 +595,10 @@ public class LeagueService {
     lolienLeagueMatchRepository.deleteByGameId(gameId);
   }
 
+  /**
+   * 팀 정보 조회.
+   * @return 팀 정보
+   */
   public TeamResponse getTeams() {
     List<LolienLeagueTeam> teams = lolienLeagueTeamRepository.findAll();
 
@@ -604,6 +608,10 @@ public class LeagueService {
         .build();
   }
 
+  /**
+   * 대진표 조회.
+   * @return 대진표
+   */
   public ScheduleResponse getSchedules() {
     List<LolienLeagueSchedule> schedules = lolienLeagueScheduleRepository.findAll();
 
