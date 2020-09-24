@@ -145,8 +145,9 @@ public class LeagueService {
     }
 
     int leagueIdx = leagueAddResultRequest.getLeagueIdx();
+    int scheduleIdx = leagueAddResultRequest.getScheduleIdx();
 
-    leagueComponent.addResult(leagueIdx, matchId, entries);
+    leagueComponent.addResult(leagueIdx, scheduleIdx, matchId, entries);
   }
 
   /**

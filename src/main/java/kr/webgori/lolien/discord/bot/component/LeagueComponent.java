@@ -11,12 +11,14 @@ import kr.webgori.lolien.discord.bot.entity.league.LolienLeague;
 import kr.webgori.lolien.discord.bot.entity.league.LolienLeagueMatch;
 import kr.webgori.lolien.discord.bot.entity.league.LolienLeagueParticipant;
 import kr.webgori.lolien.discord.bot.entity.league.LolienLeagueParticipantStats;
+import kr.webgori.lolien.discord.bot.entity.league.LolienLeagueSchedule;
 import kr.webgori.lolien.discord.bot.entity.league.LolienLeagueTeamBans;
 import kr.webgori.lolien.discord.bot.entity.league.LolienLeagueTeamStats;
 import kr.webgori.lolien.discord.bot.exception.LeagueNotFoundException;
 import kr.webgori.lolien.discord.bot.repository.LolienSummonerRepository;
 import kr.webgori.lolien.discord.bot.repository.league.LolienLeagueMatchRepository;
 import kr.webgori.lolien.discord.bot.repository.league.LolienLeagueRepository;
+import kr.webgori.lolien.discord.bot.repository.league.LolienLeagueScheduleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.rithms.riot.api.endpoints.match.dto.Match;
@@ -34,6 +36,7 @@ public class LeagueComponent {
   private final LolienLeagueRepository lolienLeagueRepository;
   private final LolienSummonerRepository lolienSummonerRepository;
   private final LolienLeagueMatchRepository lolienLeagueMatchRepository;
+  private final LolienLeagueScheduleRepository lolienLeagueScheduleRepository;
 
   /**
    * addResult.
@@ -42,10 +45,14 @@ public class LeagueComponent {
    * @param matchId   matchId
    * @param entries   entries
    */
-  public void addResult(int leagueIdx, long matchId, String[] entries) {
+  public void addResult(int leagueIdx, int scheduleIdx, long matchId, String[] entries) {
     LolienLeague lolienLeague = lolienLeagueRepository
         .findById(leagueIdx)
         .orElseThrow(() -> new LeagueNotFoundException("존재하지 않는 리그 입니다."));
+
+    LolienLeagueSchedule schedule = lolienLeagueScheduleRepository
+        .findById(scheduleIdx)
+        .orElseThrow(() -> new LeagueNotFoundException("존재하지 않는 대진표 입니다."));
 
     for (String summonerName : entries) {
       boolean hasSummonerName = lolienSummonerRepository.existsBySummonerName(summonerName);
@@ -67,6 +74,7 @@ public class LeagueComponent {
     LolienLeagueMatch lolienLeagueMatch = LolienLeagueMatch
         .builder()
         .lolienLeague(lolienLeague)
+        .schedule(schedule)
         .participants(lolienLeagueParticipantSet)
         .teams(lolienLeagueTeamStatsSet)
         .build();
