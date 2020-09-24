@@ -10,6 +10,9 @@ public class LeagueAddResultRequest {
   private Integer leagueIdx;
 
   @NotNull
+  private Integer scheduleIdx;
+
+  @NotNull
   private Long matchId;
 
   @NotBlank

@@ -71,4 +71,8 @@ public class LolienLeagueMatch {
   @ManyToOne
   @JoinColumn(name = "lolien_league_idx", nullable = false)
   private LolienLeague lolienLeague;
+
+  @ManyToOne
+  @JoinColumn(name = "lolien_league_schedule_idx", nullable = false)
+  private LolienLeagueSchedule schedule;
 }

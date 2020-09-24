@@ -30,6 +30,7 @@ import kr.webgori.lolien.discord.bot.dto.CustomGameTeamBanDto;
 import kr.webgori.lolien.discord.bot.dto.CustomGameTeamDto;
 import kr.webgori.lolien.discord.bot.dto.DataDragonVersionDto;
 import kr.webgori.lolien.discord.bot.dto.league.LeagueDto;
+import kr.webgori.lolien.discord.bot.dto.league.ScheduleDto;
 import kr.webgori.lolien.discord.bot.dto.league.SummonerForParticipationDto;
 import kr.webgori.lolien.discord.bot.entity.LolienMatch;
 import kr.webgori.lolien.discord.bot.entity.LolienParticipant;
@@ -522,12 +523,13 @@ public class LeagueService {
    * addLeagueResultByFiles.
    * @param files files
    */
-  public void addLeagueResultByFiles(int leagueIndex, List<MultipartFile> files) {
+  public void addLeagueResultByFiles(int leagueIndex, int scheduleIdx, List<MultipartFile> files) {
     Pattern pattern = Pattern.compile("\\\\\"NAME\\\\\":\\\\\"([A-Za-z0-9가-힣 ]*)\\\\\"");
 
     for (MultipartFile file : files) {
       LeagueAddResultRequest leagueAddResultRequest = new LeagueAddResultRequest();
       leagueAddResultRequest.setLeagueIdx(leagueIndex);
+      leagueAddResultRequest.setScheduleIdx(scheduleIdx);
 
       long gameId = getGameId(file);
       leagueAddResultRequest.setMatchId(gameId);
@@ -614,10 +616,28 @@ public class LeagueService {
    */
   public ScheduleResponse getSchedules() {
     List<LolienLeagueSchedule> schedules = lolienLeagueScheduleRepository.findAll();
+    List<ScheduleDto> schedulesDto = Lists.newArrayList();
+
+    for (LolienLeagueSchedule schedule : schedules) {
+      int idx = schedule.getIdx();
+      LolienLeagueTeam team = schedule.getTeam();
+      LolienLeagueTeam enemyTeam = schedule.getEnemyTeam();
+      LocalDateTime matchDateTime = schedule.getMatchDateTime();
+
+      ScheduleDto scheduleDto = ScheduleDto
+          .builder()
+          .idx(idx)
+          .team(team)
+          .enemyTeam(enemyTeam)
+          .matchDateTime(matchDateTime)
+          .build();
+
+      schedulesDto.add(scheduleDto);
+    }
 
     return ScheduleResponse
         .builder()
-        .schedules(schedules)
+        .schedules(schedulesDto)
         .build();
   }
 }

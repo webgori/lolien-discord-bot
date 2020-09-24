@@ -106,8 +106,8 @@ public class LeagueController {
               responseCode = "204",
               description = "No Content")})
   @PostMapping("v1/leagues/result/files")
-  public void addLeagueResult(int leagueIndex, List<MultipartFile> files) {
-    leagueService.addLeagueResultByFiles(leagueIndex, files);
+  public void addLeagueResult(int leagueIndex, int scheduleIdx, List<MultipartFile> files) {
+    leagueService.addLeagueResultByFiles(leagueIndex, scheduleIdx, files);
   }
 
   @Operation(
