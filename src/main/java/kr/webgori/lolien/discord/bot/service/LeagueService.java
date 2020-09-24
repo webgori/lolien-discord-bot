@@ -219,7 +219,9 @@ public class LeagueService {
    * @return ResultResponse
    */
   @Transactional(readOnly = true)
-  public ResultResponse getLeagueResultsByLeague(int leagueIndex, int page, int size) {
+  public ResultResponse getLeagueResultsByLeague(
+      int leagueIndex, int scheduleIdx, int page, int size) {
+
     LolienLeague lolienLeague = lolienLeagueRepository
         .findById(leagueIndex)
         .orElseThrow(() -> new IllegalArgumentException("invalid league index"));
@@ -229,6 +231,7 @@ public class LeagueService {
     List<LolienLeagueMatch> lolienLeagueMatchePages = lolienLeague
         .getLolienLeagueMatches()
         .stream()
+        .filter(m -> m.getSchedule().getIdx().equals(scheduleIdx))
         .sorted(Comparator.comparing(LolienLeagueMatch::getGameCreation).reversed())
         .skip(skip)
         .limit(size)

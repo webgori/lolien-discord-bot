@@ -155,9 +155,10 @@ public class LeagueController {
   @GetMapping("v1/leagues/{league-index}")
   public ResultResponse getLeagueResultsByLeague(
       @PathVariable("league-index") int leagueIndex,
+      @RequestParam(value = "scheduleIdx") int scheduleIdx,
       @RequestParam(value = "page", defaultValue = "1") int page,
       @RequestParam(value = "size", defaultValue = "5") int size) {
-    return leagueService.getLeagueResultsByLeague(leagueIndex, page, size);
+    return leagueService.getLeagueResultsByLeague(leagueIndex, scheduleIdx, page, size);
   }
 
   @Operation(
