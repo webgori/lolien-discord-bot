@@ -27,11 +27,11 @@ public class LolienLeagueSchedule {
 
   @OneToOne
   @JoinColumn(name = "team_idx")
-  private LolienLeagueTeam teamIndex;
+  private LolienLeagueTeam team;
 
   @OneToOne
   @JoinColumn(name = "enemy_team_idx")
-  private LolienLeagueTeam enemyTeamIndex;
+  private LolienLeagueTeam enemyTeam;
 
   @Column(name = "match_date_time", nullable = false)
   private LocalDateTime matchDateTime;
