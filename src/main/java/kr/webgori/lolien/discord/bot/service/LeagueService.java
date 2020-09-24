@@ -38,16 +38,22 @@ import kr.webgori.lolien.discord.bot.entity.league.LolienLeague;
 import kr.webgori.lolien.discord.bot.entity.league.LolienLeagueMatch;
 import kr.webgori.lolien.discord.bot.entity.league.LolienLeagueParticipant;
 import kr.webgori.lolien.discord.bot.entity.league.LolienLeagueParticipantStats;
+import kr.webgori.lolien.discord.bot.entity.league.LolienLeagueSchedule;
+import kr.webgori.lolien.discord.bot.entity.league.LolienLeagueTeam;
 import kr.webgori.lolien.discord.bot.entity.league.LolienLeagueTeamBans;
 import kr.webgori.lolien.discord.bot.entity.league.LolienLeagueTeamStats;
 import kr.webgori.lolien.discord.bot.repository.league.LolienLeagueMatchRepository;
 import kr.webgori.lolien.discord.bot.repository.league.LolienLeagueRepository;
+import kr.webgori.lolien.discord.bot.repository.league.LolienLeagueScheduleRepository;
+import kr.webgori.lolien.discord.bot.repository.league.LolienLeagueTeamRepository;
 import kr.webgori.lolien.discord.bot.request.LeagueAddRequest;
 import kr.webgori.lolien.discord.bot.request.LeagueAddResultRequest;
 import kr.webgori.lolien.discord.bot.response.league.LeagueResponse;
 import kr.webgori.lolien.discord.bot.response.league.ResultDto;
 import kr.webgori.lolien.discord.bot.response.league.ResultResponse;
+import kr.webgori.lolien.discord.bot.response.league.ScheduleResponse;
 import kr.webgori.lolien.discord.bot.response.league.SummonerForParticipationResponse;
+import kr.webgori.lolien.discord.bot.response.league.TeamResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
@@ -66,6 +72,8 @@ public class LeagueService {
   private final LolienLeagueMatchRepository lolienLeagueMatchRepository;
   private final CustomGameService customGameService;
   private final RiotComponent riotComponent;
+  private final LolienLeagueTeamRepository lolienLeagueTeamRepository;
+  private final LolienLeagueScheduleRepository lolienLeagueScheduleRepository;
 
   /**
    * getLeagues.
@@ -585,5 +593,23 @@ public class LeagueService {
     }
 
     lolienLeagueMatchRepository.deleteByGameId(gameId);
+  }
+
+  public TeamResponse getTeams() {
+    List<LolienLeagueTeam> teams = lolienLeagueTeamRepository.findAll();
+
+    return TeamResponse
+        .builder()
+        .teams(teams)
+        .build();
+  }
+
+  public ScheduleResponse getSchedules() {
+    List<LolienLeagueSchedule> schedules = lolienLeagueScheduleRepository.findAll();
+
+    return ScheduleResponse
+        .builder()
+        .schedules(schedules)
+        .build();
   }
 }
