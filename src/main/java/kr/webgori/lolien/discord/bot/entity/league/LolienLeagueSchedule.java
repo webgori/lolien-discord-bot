@@ -6,6 +6,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,12 +25,14 @@ public class LolienLeagueSchedule {
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Integer idx;
 
-  @Column(name = "team_index", nullable = false)
-  private Integer teamIndex;
+  @OneToOne
+  @JoinColumn(name = "team_idx")
+  private LolienLeagueTeam teamIndex;
 
-  @Column(name = "enemy_team_index", nullable = false)
-  private Integer enemyTeamIndex;
+  @OneToOne
+  @JoinColumn(name = "enemy_team_idx")
+  private LolienLeagueTeam enemyTeamIndex;
 
   @Column(name = "match_date_time", nullable = false)
-  private LocalDateTime mateDateTime;
+  private LocalDateTime matchDateTime;
 }
