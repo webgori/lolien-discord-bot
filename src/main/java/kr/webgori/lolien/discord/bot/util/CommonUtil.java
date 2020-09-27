@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.awt.Color;
+import java.security.SecureRandom;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -272,5 +273,16 @@ public class CommonUtil {
    */
   public static LocalDate getEndDateOfYear() {
     return LocalDate.now().plusYears(1).withDayOfYear(1);
+  }
+
+  /**
+   * getRandomNumber.
+   * @param min min value
+   * @param max max value
+   * @return random number
+   */
+  public static int getRandomNumber(int min, int max) {
+    SecureRandom r = new SecureRandom();
+    return r.nextInt((max - min) + 1) + min;
   }
 }
