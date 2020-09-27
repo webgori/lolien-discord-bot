@@ -503,7 +503,6 @@ public class CustomGameComponent {
 
   private void addResultMmr(LolienMatch lolienMatch) {
     Set<LolienParticipant> participants = lolienMatch.getParticipants();
-
     List<LolienSummoner> team1Summoners = participants
         .stream()
         .filter(a -> a.getTeamId() == 100)
@@ -529,52 +528,60 @@ public class CustomGameComponent {
         .orElse(0);
 
     for (LolienParticipant lolienParticipant : participants) {
-      LolienParticipantStats stats = lolienParticipant.getStats();
-      Integer teamId = lolienParticipant.getTeamId();
+      applyMmr(team1MmrAverage, team2MmrAverage, lolienParticipant);
 
-      Boolean win = stats.getWin();
       LolienSummoner lolienSummoner = lolienParticipant.getLolienSummoner();
-      int mmr = lolienSummoner.getMmr();
+      lolienSummonerRepository.save(lolienSummoner);
+    }
+  }
 
-      if (win) {
-        int resultMmr = 0;
+  private void applyMmr(double team1MmrAverage, double team2MmrAverage,
+                        LolienParticipant lolienParticipant) {
 
-        if (teamId == 100) {
-          if (mmr > team2MmrAverage) {
-            resultMmr = (int) (mmr / team2MmrAverage * 1);
-          } else if (mmr < team2MmrAverage) {
-            resultMmr = (int) (team2MmrAverage / mmr * 1.5);
-          }
-        } else if (teamId == 200) {
-          if (mmr > team1MmrAverage) {
-            resultMmr = (int) (mmr / team1MmrAverage * 1);
-          } else if (mmr < team1MmrAverage) {
-            resultMmr = (int) (team1MmrAverage / mmr * 1.5);
-          }
+    LolienParticipantStats stats = lolienParticipant.getStats();
+    Integer teamId = lolienParticipant.getTeamId();
+
+    Boolean win = stats.getWin();
+    LolienSummoner lolienSummoner = lolienParticipant.getLolienSummoner();
+
+    int mmr = lolienSummoner.getMmr();
+
+    if (win) {
+      int resultMmr = 0;
+
+      if (teamId == 100) {
+        if (mmr > team2MmrAverage) {
+          resultMmr = (int) (mmr / team2MmrAverage * 1);
+        } else if (mmr < team2MmrAverage) {
+          resultMmr = (int) (team2MmrAverage / mmr * 1.5);
         }
-
-        lolienSummoner.plusMmr(resultMmr);
-      } else {
-        int resultMmr = 0;
-
-        if (teamId == 100) {
-          if (mmr > team2MmrAverage) {
-            resultMmr = (int) (mmr / team2MmrAverage * 1.5);
-          } else if (mmr < team2MmrAverage) {
-            resultMmr = (int) (team2MmrAverage / mmr * 1);
-          }
-        } else if (teamId == 200) {
-          if (mmr > team1MmrAverage) {
-            resultMmr = (int) (mmr / team1MmrAverage * 1.5);
-          } else if (mmr < team1MmrAverage) {
-            resultMmr = (int) (team1MmrAverage / mmr * 1);
-          }
+      } else if (teamId == 200) {
+        if (mmr > team1MmrAverage) {
+          resultMmr = (int) (mmr / team1MmrAverage * 1);
+        } else if (mmr < team1MmrAverage) {
+          resultMmr = (int) (team1MmrAverage / mmr * 1.5);
         }
-
-        lolienSummoner.minusMmr(resultMmr);
       }
 
-      lolienSummonerRepository.save(lolienSummoner);
+      lolienSummoner.plusMmr(resultMmr);
+    } else {
+      int resultMmr = 0;
+
+      if (teamId == 100) {
+        if (mmr > team2MmrAverage) {
+          resultMmr = (int) (mmr / team2MmrAverage * 1.5);
+        } else if (mmr < team2MmrAverage) {
+          resultMmr = (int) (team2MmrAverage / mmr * 1);
+        }
+      } else if (teamId == 200) {
+        if (mmr > team1MmrAverage) {
+          resultMmr = (int) (mmr / team1MmrAverage * 1.5);
+        } else if (mmr < team1MmrAverage) {
+          resultMmr = (int) (team1MmrAverage / mmr * 1);
+        }
+      }
+
+      lolienSummoner.minusMmr(resultMmr);
     }
   }
 
