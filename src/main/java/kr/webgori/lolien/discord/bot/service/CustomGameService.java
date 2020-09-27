@@ -1230,6 +1230,10 @@ public class CustomGameService {
             .build());
   }
 
+  /**
+   * 내전 결과 제거.
+   * @param gameId gameId
+   */
   public void deleteResult(long gameId) {
     boolean existsByGameId = lolienMatchRepository.existsByGameId(gameId);
 
