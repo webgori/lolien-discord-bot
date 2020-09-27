@@ -1229,4 +1229,14 @@ public class CustomGameService {
             .count(0)
             .build());
   }
+
+  public void deleteResult(long gameId) {
+    boolean existsByGameId = lolienMatchRepository.existsByGameId(gameId);
+
+    if (!existsByGameId) {
+      throw new IllegalArgumentException("내전 결과가 존재하지 않습니다.");
+    }
+
+    lolienMatchRepository.deleteByGameId(gameId);
+  }
 }

@@ -11,6 +11,7 @@ import kr.webgori.lolien.discord.bot.response.CustomGamesStatisticsResponse;
 import kr.webgori.lolien.discord.bot.service.CustomGameService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -92,5 +93,21 @@ public class CustomGameController {
   @GetMapping("v1/custom-game/statistics")
   public CustomGamesStatisticsResponse getStatistics() {
     return customGameService.getStatistics();
+  }
+
+  @Operation(
+      summary = "내전 결과 제거")
+  @ApiResponses(
+      value = {
+          @ApiResponse(
+              responseCode = "201",
+              description = "No Content",
+              content = @Content(
+                  mediaType = "application/json"))
+      })
+  @DeleteMapping("v1/custom-game/result/{game-id}")
+  @ResponseStatus(value = HttpStatus.NO_CONTENT)
+  public void deleteResult(@PathVariable("game-id") long gameId) {
+    customGameService.deleteResult(gameId);
   }
 }
