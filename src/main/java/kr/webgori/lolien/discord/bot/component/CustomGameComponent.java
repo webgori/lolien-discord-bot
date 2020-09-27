@@ -19,6 +19,7 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -531,7 +532,20 @@ public class CustomGameComponent {
       applyMmr(team1MmrAverage, team2MmrAverage, lolienParticipant);
 
       LolienSummoner lolienSummoner = lolienParticipant.getLolienSummoner();
+      checkMmr(lolienSummoner, lolienMatch);
+
       lolienSummonerRepository.save(lolienSummoner);
+    }
+  }
+
+  private void checkMmr(LolienSummoner lolienSummoner, LolienMatch lolienMatch) {
+    Integer mmr = lolienSummoner.getMmr();
+
+    if (Objects.isNull(mmr) || mmr < 0 || mmr >= 1000) {
+      logger.error("{}", lolienSummoner);
+      logger.error("{}", lolienMatch);
+
+      throw new IllegalArgumentException("mmr something wrong");
     }
   }
 
@@ -636,10 +650,6 @@ public class CustomGameComponent {
 
   private void sendSyntax(TextChannel textChannel) {
     sendErrorMessage(textChannel, "잘못된 명령어 입니다. !도움말 명령어를 확인해 주세요.", Color.RED);
-  }
-
-  public void sendAddResultSyntax(TextChannel textChannel) {
-    sendErrorMessage(textChannel, "잘못된 접근 입니다.", Color.RED);
   }
 
   private void sendGetResultSyntax(TextChannel textChannel) {
