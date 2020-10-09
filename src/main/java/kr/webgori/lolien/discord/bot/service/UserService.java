@@ -3,6 +3,7 @@ package kr.webgori.lolien.discord.bot.service;
 import java.util.Objects;
 import javax.servlet.http.HttpServletRequest;
 import kr.webgori.lolien.discord.bot.component.AuthenticationComponent;
+import kr.webgori.lolien.discord.bot.dto.UserDto;
 import kr.webgori.lolien.discord.bot.dto.UserSessionDto;
 import kr.webgori.lolien.discord.bot.entity.LolienSummoner;
 import kr.webgori.lolien.discord.bot.entity.user.ClienUser;
@@ -154,13 +155,26 @@ public class UserService {
       summonerName = lolienSummoner.getSummonerName();
     }
 
+    UserDto userInfo = getUserDto(email, nickname, emailVerified, clienId, summonerName);
+
     return UserInfoResponse
+        .builder()
+        .userInfo(userInfo)
+        .build();
+  }
+
+  private UserDto getUserDto(String email,
+                             String nickname,
+                             boolean emailVerified,
+                             String clienId,
+                             String summerName) {
+    return UserDto
         .builder()
         .email(email)
         .nickname(nickname)
         .emailVerified(emailVerified)
         .clienId(clienId)
-        .summonerName(summonerName)
+        .summonerName(summerName)
         .build();
   }
 
