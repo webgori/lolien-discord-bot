@@ -25,6 +25,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class RootConfig {
+  private static final String YML_PROPERTY_PATH_WINDOWS = "c:\\config.yml";
+  private static final String YML_PROPERTY_PATH_LINUX = "/usr/local/tomcat/conf/config.yml";
+
   /**
    * webMvcConfigurer.
    *
@@ -85,9 +88,10 @@ public class RootConfig {
    * @return PropertySourcesPlaceholderConfigurer
    */
   @Bean
-  public static PropertySourcesPlaceholderConfigurer properties() {
+  public PropertySourcesPlaceholderConfigurer properties() {
     YamlPropertiesFactoryBean yamlPropertiesFactoryBean = new YamlPropertiesFactoryBean();
-    FileSystemResource fileSystemResource = new FileSystemResource("c:\\application-dev.yml");
+    String ymlPropertyFilePath = getYmlPropertyFilePath();
+    FileSystemResource fileSystemResource = new FileSystemResource(ymlPropertyFilePath);
     yamlPropertiesFactoryBean.setResources(fileSystemResource);
 
     Properties properties = yamlPropertiesFactoryBean.getObject();
@@ -100,5 +104,15 @@ public class RootConfig {
     configurer.setProperties(properties);
 
     return configurer;
+  }
+
+  private String getYmlPropertyFilePath() {
+    String osName = System.getProperty("os.name");
+
+    if (osName.startsWith("Windows")) {
+      return YML_PROPERTY_PATH_WINDOWS;
+    } else {
+      return YML_PROPERTY_PATH_LINUX;
+    }
   }
 }
