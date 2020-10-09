@@ -1,30 +1,22 @@
 package kr.webgori.lolien.discord.bot.spring;
 
-import static kr.webgori.lolien.discord.bot.util.CommonUtil.localDateTimeToTimestamp;
-
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Objects;
-import kr.webgori.lolien.discord.bot.dto.SessionUserDto;
-import kr.webgori.lolien.discord.bot.util.CommonUtil;
+import kr.webgori.lolien.discord.bot.dto.UserSessionDto;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.util.DigestUtils;
 
 @Slf4j
 @ToString(callSuper = true)
 public class AuthenticationTokenImpl extends AbstractAuthenticationToken {
-  private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
-  private String username;
+  private String email;
 
   public AuthenticationTokenImpl(String principal,
                                  Collection<? extends GrantedAuthority> authorities) {
     super(authorities);
-    this.username = principal;
+    this.email = principal;
   }
 
   /**
@@ -33,11 +25,11 @@ public class AuthenticationTokenImpl extends AbstractAuthenticationToken {
   public void authenticate() {
     Object details = getDetails();
 
-    if (Objects.isNull(details) || !(details instanceof SessionUserDto)) {
+    if (Objects.isNull(details) || !(details instanceof UserSessionDto)) {
       setAuthenticated(false);
     } else {
-      SessionUserDto sessionUserDto = (SessionUserDto) details;
-      boolean expired = sessionUserDto.hasExpired();
+      UserSessionDto userSessionDto = (UserSessionDto) details;
+      boolean expired = userSessionDto.hasExpired();
 
       setAuthenticated(true);
 
@@ -54,20 +46,6 @@ public class AuthenticationTokenImpl extends AbstractAuthenticationToken {
 
   @Override
   public Object getPrincipal() {
-    return username;
-  }
-
-  /**
-   * getHash.
-   * @return hash
-   */
-  public String getHash() {
-    SessionUserDto sessionUserDto = (SessionUserDto) getDetails();
-    LocalDateTime createdAt = sessionUserDto.getCreatedAt();
-    long timestamp = CommonUtil.localDateTimeToTimestamp(createdAt);
-
-    String hashString = String.format("%s_%d", username, timestamp);
-    byte[] hashBytes = hashString.getBytes(DEFAULT_CHARSET);
-    return DigestUtils.md5DigestAsHex(hashBytes);
+    return email;
   }
 }

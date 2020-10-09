@@ -12,11 +12,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 @Data
-public class SessionUserDto {
+public class UserSessionDto {
   private String email;
-  private String password;
+  private String nickname;
   private String role;
   private LocalDateTime createdAt;
+  private String hash;
 
   /**
    * hasExpired.
@@ -27,7 +28,7 @@ public class SessionUserDto {
       return true;
     }
 
-    createdAt = createdAt.plusDays(90);
+    createdAt = createdAt.plusMinutes(30);
     LocalDateTime now = LocalDateTime.now();
 
     return createdAt.isBefore(now);

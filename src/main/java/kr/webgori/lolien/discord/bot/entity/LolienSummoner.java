@@ -12,6 +12,7 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import kr.webgori.lolien.discord.bot.entity.user.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -53,7 +54,7 @@ public class LolienSummoner {
   private Integer mmr;
 
   @OneToOne(mappedBy = "lolienSummoner")
-  private LolienUser lolienUser;
+  private User user;
 
   public void plusMmr(Integer mmr) {
     this.mmr += mmr;

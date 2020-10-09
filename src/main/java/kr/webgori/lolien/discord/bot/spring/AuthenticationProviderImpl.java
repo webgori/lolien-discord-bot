@@ -1,66 +1,109 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package kr.webgori.lolien.discord.bot.spring;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
-import kr.webgori.lolien.discord.bot.dto.SessionUserDto;
-import kr.webgori.lolien.discord.bot.service.LolienService;
+import kr.webgori.lolien.discord.bot.component.AuthenticationComponent;
+import kr.webgori.lolien.discord.bot.dto.UserSessionDto;
+import kr.webgori.lolien.discord.bot.entity.user.User;
+import kr.webgori.lolien.discord.bot.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.core.RedisTemplate;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
+@Slf4j
 @RequiredArgsConstructor
 public class AuthenticationProviderImpl implements AuthenticationProvider {
-  private final RedisTemplate<String, Object> redisTemplate;
-  private final LolienService lolienService;
-  private final ObjectMapper objectMapper;
+  private final UserRepository userRepository;
+  private final PasswordEncoder passwordEncoder;
+  private final AuthenticationComponent authenticationComponent;
 
+  /**
+   * 로그인 (인증 정보가 맞는지 확인).
+   * @param authentication authentication
+   * @return Authentication
+   * @throws AuthenticationException AuthenticationException
+   */
   @Override
   public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-    String clienId = authentication.getPrincipal().toString();
-    String clienPassword = authentication.getCredentials().toString();
+    String email = authentication.getPrincipal().toString();
+    String password = authentication.getCredentials().toString();
 
-    lolienService.checkLogin(clienId, clienPassword);
+    authentication(email, password);
 
-    String role = "ROLE_USER";
+    User user = getUser(email);
+    String role = user.getUserRole().getRole().getRole();
 
     SimpleGrantedAuthority simpleGrantedAuthority = new SimpleGrantedAuthority(role);
     List<SimpleGrantedAuthority> authorities = new ArrayList<>();
     authorities.add(simpleGrantedAuthority);
 
-    AuthenticationTokenImpl authenticationToken = new AuthenticationTokenImpl(clienId, authorities);
+    AuthenticationTokenImpl authenticationToken = new AuthenticationTokenImpl(email, authorities);
     authenticationToken.setAuthenticated(true);
 
-    LocalDateTime createdAt = LocalDateTime.now();
+    LocalDateTime now = LocalDateTime.now();
+    String hash = authenticationComponent.getHash(now, email);
 
-    SessionUserDto sessionUserDto = SessionUserDto
+    //String hash = authenticationToken.getHash();
+    //UserSessionDto userSessionDto = getUserSessionDto(user, hash);
+    UserSessionDto userSessionDto = authenticationComponent.getUserSessionDto(now, user, hash);
+    authenticationToken.setDetails(userSessionDto);
+
+    //LocalDateTime createdAt = LocalDateTime.now();
+
+    /*SessionUserDto sessionUserDto = SessionUserDto
         .builder()
-        .id(clienId)
+        .email(email)
+        .role(role)
         .createdAt(createdAt)
         .build();
 
-    authenticationToken.setDetails(sessionUserDto);
+    authenticationToken.setDetails(sessionUserDto);*/
 
-    String idLowerCase = clienId.toLowerCase();
-    String hash = authenticationToken.getHash();
-    String key = String.format("%s:%s", idLowerCase, hash);
+    /*String idLowerCase = email.toLowerCase();
+    String sessionKey = String.format("users:session:%s:%s", idLowerCase, hash);*/
 
-    redisTemplate.opsForValue().set(key, sessionUserDto);
-    redisTemplate.expire(key, 90L, TimeUnit.DAYS);
+    //String key = String.format("users:%s", idLowerCase);
+    /*redisTemplate.opsForValue().set(sessionKey, userSessionDto);
+    redisTemplate.expire(sessionKey, 30L, TimeUnit.MINUTES);*/
+
+    authenticationComponent.addUserSessionToRedis(email, userSessionDto);
 
     return authenticationToken;
+  }
+
+  private void authentication(String email, String password) {
+    checkExistsEmail(email);
+    checkMatchesPassword(email, password);
+  }
+
+  private void checkExistsEmail(String email) {
+    boolean existsByEmail = userRepository.existsByEmail(email);
+
+    if (!existsByEmail) {
+      throw new BadCredentialsException("이메일이 존재하지 않습니다.");
+    }
+  }
+
+  private void checkMatchesPassword(String email, String rawPassword) {
+    User user = userRepository.findByEmail(email);
+    String encodedPassword = user.getPassword();
+
+    boolean matchesPassword = passwordEncoder.matches(rawPassword, encodedPassword);
+
+    if (!matchesPassword) {
+      throw new BadCredentialsException("비밀번호가 올바르지 않습니다.");
+    }
+  }
+
+  private User getUser(String email) {
+    return userRepository.findByEmail(email);
   }
 
   @Override

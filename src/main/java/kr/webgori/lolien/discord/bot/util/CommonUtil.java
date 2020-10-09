@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.awt.Color;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -31,6 +33,8 @@ import net.rithms.riot.constant.Platform;
 
 @Slf4j
 public class CommonUtil {
+  public static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
+
   public static void sendMessage(TextChannel textChannel, String message) {
     textChannel.sendMessage(message).queue();
   }
@@ -284,5 +288,9 @@ public class CommonUtil {
   public static int getRandomNumber(int min, int max) {
     SecureRandom r = new SecureRandom();
     return r.nextInt((max - min) + 1) + min;
+  }
+
+  public static long getTimestamp() {
+    return localDateTimeToTimestamp(LocalDateTime.now());
   }
 }

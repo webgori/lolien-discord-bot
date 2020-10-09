@@ -1,7 +1,7 @@
 package kr.webgori.lolien.discord.bot.spring;
 
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
+import static kr.webgori.lolien.discord.bot.util.CommonUtil.getTimestamp;
+
 import javax.servlet.http.HttpServletRequest;
 import kr.webgori.lolien.discord.bot.exception.AlreadyAddedSummonerException;
 import kr.webgori.lolien.discord.bot.exception.SummonerNotFoundException;
@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -48,29 +49,35 @@ public class CustomExceptionHandler {
   public ResponseEntity<ExceptionResponse> illegalArgumentException(
       IllegalArgumentException exception) {
 
+    ExceptionResponse exceptionResponse = new ExceptionResponse();
+    long timestamp = getTimestamp();
+    exceptionResponse.setTimestamp(timestamp);
+
+    String requestUri = httpServletRequest.getRequestURI();
+    exceptionResponse.setPath(requestUri);
+
     String message = exception.getMessage();
+    exceptionResponse.setMessage(message);
 
     HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
     int status = httpStatus.value();
-    String error = httpStatus.getReasonPhrase();
-
-    String requestUri = httpServletRequest.getRequestURI();
-
-    LocalDateTime dateTime = LocalDateTime.now();
-    long timestamp = Timestamp.valueOf(dateTime).getTime();
-
-    ExceptionResponse exceptionResponse = new ExceptionResponse();
-    exceptionResponse.setTimestamp(timestamp);
-    exceptionResponse.setPath(requestUri);
-    exceptionResponse.setMessage(message);
     exceptionResponse.setStatus(status);
+
+    String error = httpStatus.getReasonPhrase();
     exceptionResponse.setError(error);
 
     return new ResponseEntity<>(exceptionResponse, httpStatus);
   }
 
+  /**
+   * accessDeniedException.
+   * @param exception exception
+   * @return ResponseEntity
+   */
   @ExceptionHandler(value = AccessDeniedException.class)
   public ResponseEntity accessDeniedException(AccessDeniedException exception) {
+    logger.error("", exception);
+
     HttpStatus httpStatus = HttpStatus.FORBIDDEN;
     return new ResponseEntity<>(httpStatus);
   }
@@ -85,6 +92,19 @@ public class CustomExceptionHandler {
     logger.error("", exception);
 
     HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+    return new ResponseEntity<>(httpStatus);
+  }
+
+  /**
+   * methodArgumentNotValidException.
+   * @param exception exception
+   * @return ResponseEntity
+   */
+  @ExceptionHandler(value = MethodArgumentNotValidException.class)
+  public ResponseEntity methodArgumentNotValidException(MethodArgumentNotValidException exception) {
+    logger.error("", exception);
+
+    HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
     return new ResponseEntity<>(httpStatus);
   }
 }
