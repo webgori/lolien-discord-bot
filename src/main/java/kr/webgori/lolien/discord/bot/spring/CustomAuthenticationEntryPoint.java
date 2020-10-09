@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.HandlerExecutionChain;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 @RequiredArgsConstructor
@@ -29,9 +30,12 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
     String message = "아이디 또는 비밀번호를 확인해주세요.";
 
     try {
-      Objects
-          .requireNonNull(requestMappingHandlerMapping.getHandler(httpServletRequest))
-          .getHandler();
+      HandlerExecutionChain handler = requestMappingHandlerMapping.getHandler(httpServletRequest);
+
+      if (Objects.isNull(handler)) {
+        httpStatus = HttpStatus.NOT_FOUND;
+        message = HttpStatus.NOT_FOUND.getReasonPhrase();
+      }
     } catch (Exception e) {
       logger.info("", e);
       httpStatus = HttpStatus.NOT_FOUND;
