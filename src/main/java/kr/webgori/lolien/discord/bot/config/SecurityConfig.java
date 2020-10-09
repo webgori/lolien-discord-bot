@@ -85,6 +85,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     http.headers().cacheControl();
 
     http
+        .cors()
+        .and()
         .csrf()
         .disable()
         .exceptionHandling()
