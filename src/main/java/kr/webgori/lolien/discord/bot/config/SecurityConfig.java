@@ -76,7 +76,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     web
         .ignoring()
         .antMatchers("/v3/api-docs/**", "/swagger-ui/**")
-        .antMatchers("/v*/users/register", "/v*/users/access-token", "/v*/users/logout")
+        .antMatchers("/v*/users/register", "/v*/users/register/verify/clien-id",
+            "/v*/users/access-token", "/v*/users/logout")
         .antMatchers("/v*/summoners/**", "/v*/custom-game/**", "/v*/leagues/**");
   }
 

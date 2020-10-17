@@ -1,10 +1,27 @@
 package kr.webgori.lolien.discord.bot.service;
 
+import static kr.webgori.lolien.discord.bot.util.CommonUtil.objectToJsonString;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.gargoylesoftware.htmlunit.BrowserVersion;
+import com.gargoylesoftware.htmlunit.WebClient;
+import com.gargoylesoftware.htmlunit.html.HtmlForm;
+import com.gargoylesoftware.htmlunit.html.HtmlHiddenInput;
+import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import com.gargoylesoftware.htmlunit.html.HtmlPasswordInput;
+import com.gargoylesoftware.htmlunit.html.HtmlTextInput;
+import com.gargoylesoftware.htmlunit.util.Cookie;
+import java.io.IOException;
 import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import javax.servlet.http.HttpServletRequest;
 import kr.webgori.lolien.discord.bot.component.AuthenticationComponent;
 import kr.webgori.lolien.discord.bot.dto.UserDto;
 import kr.webgori.lolien.discord.bot.dto.UserSessionDto;
+import kr.webgori.lolien.discord.bot.dto.user.ClienSendMessageDto;
+import kr.webgori.lolien.discord.bot.dto.user.ClienSessionDto;
+import kr.webgori.lolien.discord.bot.dto.user.UserRegisterVerifyClienIdDto;
 import kr.webgori.lolien.discord.bot.entity.LolienSummoner;
 import kr.webgori.lolien.discord.bot.entity.user.ClienUser;
 import kr.webgori.lolien.discord.bot.entity.user.Role;
@@ -20,20 +37,37 @@ import kr.webgori.lolien.discord.bot.request.LolienUserAddSummonerRequest;
 import kr.webgori.lolien.discord.bot.request.user.AccessTokenRequest;
 import kr.webgori.lolien.discord.bot.request.user.LogoutRequest;
 import kr.webgori.lolien.discord.bot.request.user.RegisterRequest;
+import kr.webgori.lolien.discord.bot.request.user.VerifyClienIdRequest;
 import kr.webgori.lolien.discord.bot.response.UserInfoResponse;
 import kr.webgori.lolien.discord.bot.response.user.AccessTokenResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.rememberme.InvalidCookieException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 
 @Slf4j
 @RequiredArgsConstructor
 @Service
 public class UserService {
   private static final String USER_ROLE_DEFAULT = "USER";
+  private static final String CLIEN_SESSION_REDIS_KEY = "clien:session";
+  private static final String CLIEN_SEND_MESSAGE = "LoLien.kr (https://lolien.kr) 회원가입 "
+      + "인증 번호는 %s 입니다. 5분이 지나면 인증 번호는 만료됩니다.";
+  private static final String USER_REGISTER_VERIFY_CLIEN_ID_REDIS_KEY =
+      "users:register:verify:clien-id:%s";
 
   private final UserRepository userRepository;
   private final HttpServletRequest httpServletRequest;
@@ -42,9 +76,21 @@ public class UserService {
   private final UserRoleRepository userRoleRepository;
   private final RoleRepository roleRepository;
   private final AuthenticationComponent authenticationComponent;
+  private final RedisTemplate<String, Object> redisTemplate;
+  private final ObjectMapper objectMapper;
+  private final RestTemplate restTemplate;
 
   @Value("${clien.url}")
   private String clienUrl;
+
+  @Value("${clien.id}")
+  private String clienId;
+
+  @Value("${clien.password}")
+  private String clienPassword;
+
+  @Value("${clien.message:send:url}")
+  private String clienMessageSendUrl;
 
   /**
    * register.
@@ -239,5 +285,165 @@ public class UserService {
         .builder()
         .accessToken(accessToken)
         .build();
+  }
+
+  /**
+   * 클리앙 아이디 인증.
+   * @param request request
+   */
+  public void verifyClienId(VerifyClienIdRequest request) {
+    String authNumber = getAuthNumber();
+    callClienSendMessageApi(request, authNumber);
+    setClienIdToAuthNumber(request, authNumber);
+  }
+
+  private void setClienIdToAuthNumber(VerifyClienIdRequest request, String authNumber) {
+    UserRegisterVerifyClienIdDto userRegisterVerifyClienIdDto = UserRegisterVerifyClienIdDto
+        .builder()
+        .authNumber(authNumber)
+        .build();
+
+    String userRegisterVerifyClienIdRedisKey = getUserRegisterVerifyClienIdRedisKey(request);
+
+    redisTemplate
+        .opsForValue()
+        .set(userRegisterVerifyClienIdRedisKey, userRegisterVerifyClienIdDto);
+
+    redisTemplate.expire(userRegisterVerifyClienIdRedisKey, 5L, TimeUnit.MINUTES);
+  }
+
+  private String getUserRegisterVerifyClienIdRedisKey(VerifyClienIdRequest request) {
+    String clienId = request.getClienId();
+    return String.format(USER_REGISTER_VERIFY_CLIEN_ID_REDIS_KEY, clienId);
+  }
+
+  private void callClienSendMessageApi(VerifyClienIdRequest verifyClienIdRequest,
+                                       String authNumber) {
+    ClienSessionDto clienSessionDto = getClienSessionDto();
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.set("Content-Type", MediaType.APPLICATION_FORM_URLENCODED_VALUE);
+
+    headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+    String cookieSession = getCookieSession(clienSessionDto);
+    headers.set("Cookie", cookieSession);
+
+    String csrf = clienSessionDto.getCsrf();
+    headers.set("X-CSRF-TOKEN", csrf);
+
+    MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+    String jsonSendMessage = getJsonSendMessage(authNumber);
+    params.add("param", jsonSendMessage);
+
+    HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
+
+    String clienSendMessageUrl = getClienSendMessageUrl(verifyClienIdRequest);
+
+    ResponseEntity<String> exchange = restTemplate
+        .exchange(clienSendMessageUrl, HttpMethod.POST, request, String.class);
+
+    String body = exchange.getBody();
+
+    if (Objects.isNull(body) || !body.equals("true")) {
+      throw new IllegalArgumentException("클리앙 아이디를 인증하는 중 문제가 발생하였습니다.");
+    }
+  }
+
+  private String getClienSendMessageUrl(VerifyClienIdRequest verifyClienIdRequest) {
+    return clienMessageSendUrl + verifyClienIdRequest.getClienId();
+  }
+
+  private String getJsonSendMessage(String authNumber) {
+    ClienSendMessageDto sendMessageDto = getSendMessageDto(authNumber);
+
+    return objectToJsonString(sendMessageDto);
+  }
+
+  private ClienSendMessageDto getSendMessageDto(String authNumber) {
+    String message = String.format(CLIEN_SEND_MESSAGE, authNumber);
+
+    return ClienSendMessageDto
+        .builder()
+        .contents(message)
+        .build();
+  }
+
+  private String getAuthNumber() {
+    return RandomStringUtils.randomNumeric(1, 6);
+  }
+
+  private String getCookieSession(ClienSessionDto clienSessionDto) {
+    String session = clienSessionDto.getSession();
+    return String.format("SESSION=%s", session);
+  }
+
+  private ClienSessionDto getClienSessionDto() {
+    ClienSessionDto clienSessionDto = getClienSessionDtoFromRedis();
+
+    if (Objects.isNull(clienSessionDto)) {
+      clienSessionDto = getClienSessionInfoByLogin();
+      setClienSessionDtoFromRedis(clienSessionDto);
+    }
+
+    return clienSessionDto;
+  }
+
+  private ClienSessionDto getClienSessionInfoByLogin() {
+    try {
+      WebClient webClient = getWebClient();
+      HtmlPage htmlPage = webClient.getPage(clienUrl);
+
+      HtmlForm form = htmlPage.getHtmlElementById("loginForm");
+      HtmlTextInput inputId = form.getInputByName("userId");
+      HtmlPasswordInput inputPw = form.getInputByName("userPassword");
+
+      inputId.setValueAttribute(clienId);
+      inputPw.setValueAttribute(clienPassword);
+
+      htmlPage = form.getButtonByName("로그인하기").click();
+      boolean login = htmlPage.asText().contains("로그아웃");
+
+      if (!login) {
+        throw new IllegalArgumentException("클리앙 아이디를 인증하는 중 문제가 발생하였습니다.");
+      }
+
+      HtmlHiddenInput csrfHiddenInput = htmlPage.getElementByName("_csrf");
+      String csrf = csrfHiddenInput.getValueAttribute();
+
+      Set<Cookie> cookies = webClient.getCookieManager().getCookies();
+
+      Cookie cookie = cookies
+          .stream()
+          .filter(c -> c.getName().equals("SESSION"))
+          .findFirst().orElseThrow(() -> new InvalidCookieException("not found session"));
+
+      String session = cookie.getValue();
+
+      return ClienSessionDto
+          .builder()
+          .csrf(csrf)
+          .session(session)
+          .build();
+    } catch (IOException e) {
+      logger.error("", e);
+      throw new IllegalArgumentException("클리앙 아이디를 인증하는 중 문제가 발생하였습니다.");
+    }
+  }
+
+  private WebClient getWebClient() {
+    WebClient webClient = new WebClient(BrowserVersion.CHROME);
+    webClient.getOptions().setThrowExceptionOnScriptError(false);
+    webClient.getOptions().setCssEnabled(false);
+    return webClient;
+  }
+
+  private ClienSessionDto getClienSessionDtoFromRedis() {
+    Object object = redisTemplate.opsForValue().get(CLIEN_SESSION_REDIS_KEY);
+    return objectMapper.convertValue(object, ClienSessionDto.class);
+  }
+
+  private void setClienSessionDtoFromRedis(ClienSessionDto clienSessionDto) {
+    redisTemplate.opsForValue().set(CLIEN_SESSION_REDIS_KEY, clienSessionDto);
   }
 }

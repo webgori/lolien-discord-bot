@@ -1,11 +1,13 @@
 package kr.webgori.lolien.discord.bot.unit;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertThat;
 
 import com.gargoylesoftware.htmlunit.BrowserVersion;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
+import com.gargoylesoftware.htmlunit.html.HtmlHiddenInput;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.html.HtmlPasswordInput;
 import com.gargoylesoftware.htmlunit.html.HtmlTextInput;
@@ -25,9 +27,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 @Slf4j
 @RunWith(SpringRunner.class)
 public class ClienUnitTest {
-  @Value("${clien.url}")
-  private String clienUrl;
-
   private WebClient getWebClient() {
     WebClient webClient = new WebClient(BrowserVersion.CHROME);
     webClient.getOptions().setThrowExceptionOnScriptError(false);
@@ -37,6 +36,7 @@ public class ClienUnitTest {
 
   @Test
   public void clienLogin() {
+    String clienUrl = "https://www.clien.net/service/";
     String id = "";
     String password = "";
 
@@ -55,6 +55,11 @@ public class ClienUnitTest {
       boolean login = htmlPage.asText().contains("로그아웃");
 
       assertThat(login, is(true));
+
+      HtmlHiddenInput csrfHiddenInput = htmlPage.getElementByName("_csrf");
+      String csrf = csrfHiddenInput.getValueAttribute();
+
+      assertThat(csrf.length(), greaterThan(0));
 
       Set<Cookie> cookies = webClient.getCookieManager().getCookies();
 

@@ -13,6 +13,7 @@ import kr.webgori.lolien.discord.bot.request.user.AccessTokenRequest;
 import kr.webgori.lolien.discord.bot.request.user.LoginRequest;
 import kr.webgori.lolien.discord.bot.request.user.LogoutRequest;
 import kr.webgori.lolien.discord.bot.request.user.RegisterRequest;
+import kr.webgori.lolien.discord.bot.request.user.VerifyClienIdRequest;
 import kr.webgori.lolien.discord.bot.response.UserInfoResponse;
 import kr.webgori.lolien.discord.bot.response.user.AccessTokenResponse;
 import kr.webgori.lolien.discord.bot.response.user.LoginResponse;
@@ -211,5 +212,22 @@ public class UserController {
   @ResponseStatus(value = HttpStatus.NO_CONTENT)
   public void deleteUser(HttpServletRequest request) {
     userService.deleteUser(request);
+  }
+
+  @Operation(
+      summary = "클리앙 아이디 인증",
+      security = {
+          @SecurityRequirement(name = "JWT")
+      })
+  @ApiResponses(
+      value = {
+          @ApiResponse(
+              responseCode = "204",
+              description = "No Content")
+      })
+  @PostMapping("v1/users/register/verify/clien-id")
+  @ResponseStatus(value = HttpStatus.NO_CONTENT)
+  public void verifyClienId(@RequestBody @Valid VerifyClienIdRequest request) {
+    userService.verifyClienId(request);
   }
 }
