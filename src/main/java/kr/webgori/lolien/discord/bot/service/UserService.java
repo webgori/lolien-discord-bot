@@ -80,7 +80,7 @@ public class UserService {
   private final ObjectMapper objectMapper;
   private final RestTemplate restTemplate;
 
-  @Value("${clien.url}")
+  @Value("${clien.service.url}")
   private String clienUrl;
 
   @Value("${clien.id}")
@@ -89,7 +89,7 @@ public class UserService {
   @Value("${clien.password}")
   private String clienPassword;
 
-  @Value("${clien.message:send:url}")
+  @Value("${clien.message.send.url}")
   private String clienMessageSendUrl;
 
   /**
@@ -346,7 +346,9 @@ public class UserService {
     String body = exchange.getBody();
 
     if (Objects.isNull(body) || !body.equals("true")) {
-      throw new IllegalArgumentException("클리앙 아이디를 인증하는 중 문제가 발생하였습니다.");
+      deleteClienSessionDtoFromRedis();
+      throw new IllegalArgumentException("클리앙 아이디를 인증하는 중 문제가 발생하였습니다. "
+          + "다시한번 시도 해보시거나, 관리자에게 문의 해주세요.");
     }
   }
 
@@ -370,7 +372,7 @@ public class UserService {
   }
 
   private String getAuthNumber() {
-    return RandomStringUtils.randomNumeric(1, 6);
+    return RandomStringUtils.randomNumeric(6);
   }
 
   private String getCookieSession(ClienSessionDto clienSessionDto) {
@@ -405,7 +407,8 @@ public class UserService {
       boolean login = htmlPage.asText().contains("로그아웃");
 
       if (!login) {
-        throw new IllegalArgumentException("클리앙 아이디를 인증하는 중 문제가 발생하였습니다.");
+        throw new IllegalArgumentException("클리앙 아이디를 인증하는 중 문제가 발생하였습니다. "
+            + "다시한번 시도 해보시거나, 관리자에게 문의 해주세요.");
       }
 
       HtmlHiddenInput csrfHiddenInput = htmlPage.getElementByName("_csrf");
@@ -427,7 +430,8 @@ public class UserService {
           .build();
     } catch (IOException e) {
       logger.error("", e);
-      throw new IllegalArgumentException("클리앙 아이디를 인증하는 중 문제가 발생하였습니다.");
+      throw new IllegalArgumentException("클리앙 아이디를 인증하는 중 문제가 발생하였습니다. "
+          + "다시한번 시도 해보시거나, 관리자에게 문의 해주세요.");
     }
   }
 
@@ -445,5 +449,9 @@ public class UserService {
 
   private void setClienSessionDtoFromRedis(ClienSessionDto clienSessionDto) {
     redisTemplate.opsForValue().set(CLIEN_SESSION_REDIS_KEY, clienSessionDto);
+  }
+
+  private void deleteClienSessionDtoFromRedis() {
+    redisTemplate.delete(CLIEN_SESSION_REDIS_KEY);
   }
 }

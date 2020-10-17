@@ -48,7 +48,8 @@ management:
       show-details: always
 
 clien:
-  url: https://www.clien.net/service/
+  service:
+    url: https://www.clien.net/service/
   message:
     send:
       url: https://www.clien.net/service/api/messages/send/

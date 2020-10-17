@@ -27,6 +27,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 @Slf4j
 @RunWith(SpringRunner.class)
 public class ClienUnitTest {
+  @Value("${clien.service.url}")
+  private String clienUrl;
+
   private WebClient getWebClient() {
     WebClient webClient = new WebClient(BrowserVersion.CHROME);
     webClient.getOptions().setThrowExceptionOnScriptError(false);
@@ -36,7 +39,6 @@ public class ClienUnitTest {
 
   @Test
   public void clienLogin() {
-    String clienUrl = "https://www.clien.net/service/";
     String id = "";
     String password = "";
 
