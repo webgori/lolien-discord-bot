@@ -119,8 +119,18 @@ public class RootConfig {
     }
   }
 
+  /**
+   * javaMailSender.
+   * @param mailHost mailHost
+   * @param mailPort mailPort
+   * @param mailUsername mailUsername
+   * @param mailPassword mailPassword
+   * @param smtpAuth smtpAuth
+   * @param starttlsEnable starttlsEnable
+   * @return
+   */
   @Bean
-  public JavaMailSender getJavaMailSender(
+  public JavaMailSender javaMailSender(
       @Value("${spring.mail.host}") String mailHost,
       @Value("${spring.mail.port}") int mailPort,
       @Value("${spring.mail.username}") String mailUsername,

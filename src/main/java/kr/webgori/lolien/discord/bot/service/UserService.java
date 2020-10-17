@@ -295,6 +295,10 @@ public class UserService {
         .build();
   }
 
+  /**
+   * 이메일 인증.
+   * @param request request
+   */
   public void verifyEmail(VerifyEmailRequest request) {
     String authNumber = getAuthNumber();
     sendEmail(request, authNumber);
