@@ -17,11 +17,12 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import javax.servlet.http.HttpServletRequest;
 import kr.webgori.lolien.discord.bot.component.AuthenticationComponent;
+import kr.webgori.lolien.discord.bot.component.MailComponent;
 import kr.webgori.lolien.discord.bot.dto.UserDto;
 import kr.webgori.lolien.discord.bot.dto.UserSessionDto;
 import kr.webgori.lolien.discord.bot.dto.user.ClienSendMessageDto;
 import kr.webgori.lolien.discord.bot.dto.user.ClienSessionDto;
-import kr.webgori.lolien.discord.bot.dto.user.UserRegisterVerifyClienIdDto;
+import kr.webgori.lolien.discord.bot.dto.user.VerifyAuthNumberDto;
 import kr.webgori.lolien.discord.bot.entity.LolienSummoner;
 import kr.webgori.lolien.discord.bot.entity.user.ClienUser;
 import kr.webgori.lolien.discord.bot.entity.user.Role;
@@ -38,6 +39,7 @@ import kr.webgori.lolien.discord.bot.request.user.AccessTokenRequest;
 import kr.webgori.lolien.discord.bot.request.user.LogoutRequest;
 import kr.webgori.lolien.discord.bot.request.user.RegisterRequest;
 import kr.webgori.lolien.discord.bot.request.user.VerifyClienIdRequest;
+import kr.webgori.lolien.discord.bot.request.user.VerifyEmailRequest;
 import kr.webgori.lolien.discord.bot.response.UserInfoResponse;
 import kr.webgori.lolien.discord.bot.response.user.AccessTokenResponse;
 import lombok.RequiredArgsConstructor;
@@ -64,9 +66,14 @@ import org.springframework.web.client.RestTemplate;
 public class UserService {
   private static final String USER_ROLE_DEFAULT = "USER";
   private static final String CLIEN_SESSION_REDIS_KEY = "clien:session";
-  private static final String CLIEN_SEND_MESSAGE = "LoLien.kr (https://lolien.kr) 회원가입 "
+  private static final String REGISTER_VERIFY_EMAIL_SUBJECT = "LoLien.kr 회원가입 이메일 인증";
+  private static final String REGISTER_VERIFY_EMAIL_TEXT = "LoLien.kr (https://lolien.kr) 회원가입 "
+      + "이메일 인증 번호는 [%s] 입니다. 5분이 지나면 인증 번호는 만료됩니다.";
+  private static final String REGISTER_VERIFY_EMAIL_REDIS_KEY =
+      "users:register:verify:email:%s";
+  private static final String REGISTER_VERIFY_CLIEN_ID_TEXT = "LoLien.kr (https://lolien.kr) 회원가입 "
       + "클리앙 아이디 인증 번호는 [%s] 입니다. 5분이 지나면 인증 번호는 만료됩니다.";
-  private static final String USER_REGISTER_VERIFY_CLIEN_ID_REDIS_KEY =
+  private static final String REGISTER_VERIFY_CLIEN_ID_REDIS_KEY =
       "users:register:verify:clien-id:%s";
 
   private final UserRepository userRepository;
@@ -79,6 +86,7 @@ public class UserService {
   private final RedisTemplate<String, Object> redisTemplate;
   private final ObjectMapper objectMapper;
   private final RestTemplate restTemplate;
+  private final MailComponent mailComponent;
 
   @Value("${clien.service.url}")
   private String clienUrl;
@@ -287,6 +295,40 @@ public class UserService {
         .build();
   }
 
+  public void verifyEmail(VerifyEmailRequest request) {
+    String authNumber = getAuthNumber();
+    sendEmail(request, authNumber);
+    setEmailToAuthNumber(request, authNumber);
+  }
+
+  private void sendEmail(VerifyEmailRequest request, String authNumber) {
+    String email = request.getEmail();
+    String emailVerifyText = getEmailVerifyText(authNumber);
+
+    mailComponent.sendMail("no-reply@LoLien.kr", email, REGISTER_VERIFY_EMAIL_SUBJECT,
+        emailVerifyText);
+  }
+
+  private void setEmailToAuthNumber(VerifyEmailRequest request, String authNumber) {
+    VerifyAuthNumberDto verifyAuthNumberDto = VerifyAuthNumberDto
+        .builder()
+        .authNumber(authNumber)
+        .build();
+
+    String verifyEmailRedisKey = getVerifyEmailRedisKey(request);
+
+    redisTemplate
+        .opsForValue()
+        .set(verifyEmailRedisKey, verifyAuthNumberDto);
+
+    redisTemplate.expire(verifyEmailRedisKey, 5L, TimeUnit.MINUTES);
+  }
+
+  private String getVerifyEmailRedisKey(VerifyEmailRequest request) {
+    String email = request.getEmail();
+    return String.format(REGISTER_VERIFY_EMAIL_REDIS_KEY, email);
+  }
+
   /**
    * 클리앙 아이디 인증.
    * @param request request
@@ -298,23 +340,23 @@ public class UserService {
   }
 
   private void setClienIdToAuthNumber(VerifyClienIdRequest request, String authNumber) {
-    UserRegisterVerifyClienIdDto userRegisterVerifyClienIdDto = UserRegisterVerifyClienIdDto
+    VerifyAuthNumberDto verifyAuthNumberDto = VerifyAuthNumberDto
         .builder()
         .authNumber(authNumber)
         .build();
 
-    String userRegisterVerifyClienIdRedisKey = getUserRegisterVerifyClienIdRedisKey(request);
+    String verifyClienIdRedisKey = getVerifyClienIdRedisKey(request);
 
     redisTemplate
         .opsForValue()
-        .set(userRegisterVerifyClienIdRedisKey, userRegisterVerifyClienIdDto);
+        .set(verifyClienIdRedisKey, verifyAuthNumberDto);
 
-    redisTemplate.expire(userRegisterVerifyClienIdRedisKey, 5L, TimeUnit.MINUTES);
+    redisTemplate.expire(verifyClienIdRedisKey, 5L, TimeUnit.MINUTES);
   }
 
-  private String getUserRegisterVerifyClienIdRedisKey(VerifyClienIdRequest request) {
+  private String getVerifyClienIdRedisKey(VerifyClienIdRequest request) {
     String clienId = request.getClienId();
-    return String.format(USER_REGISTER_VERIFY_CLIEN_ID_REDIS_KEY, clienId);
+    return String.format(REGISTER_VERIFY_CLIEN_ID_REDIS_KEY, clienId);
   }
 
   private void callClienSendMessageApi(VerifyClienIdRequest verifyClienIdRequest,
@@ -363,7 +405,7 @@ public class UserService {
   }
 
   private ClienSendMessageDto getSendMessageDto(String authNumber) {
-    String message = String.format(CLIEN_SEND_MESSAGE, authNumber);
+    String message = String.format(REGISTER_VERIFY_CLIEN_ID_TEXT, authNumber);
 
     return ClienSendMessageDto
         .builder()
@@ -453,5 +495,9 @@ public class UserService {
 
   private void deleteClienSessionDtoFromRedis() {
     redisTemplate.delete(CLIEN_SESSION_REDIS_KEY);
+  }
+
+  private String getEmailVerifyText(String authNumber) {
+    return String.format(REGISTER_VERIFY_EMAIL_TEXT, authNumber);
   }
 }

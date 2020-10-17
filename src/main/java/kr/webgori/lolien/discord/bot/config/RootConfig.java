@@ -10,6 +10,7 @@ import java.util.Objects;
 import java.util.Properties;
 import kr.webgori.lolien.discord.bot.spring.CustomLocalDateTimeDeserializer;
 import kr.webgori.lolien.discord.bot.spring.CustomLocalDateTimeSerializer;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,6 +18,8 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.client.RestTemplate;
@@ -114,5 +117,30 @@ public class RootConfig {
     } else {
       return YML_PROPERTY_PATH_LINUX;
     }
+  }
+
+  @Bean
+  public JavaMailSender getJavaMailSender(
+      @Value("${spring.mail.host}") String mailHost,
+      @Value("${spring.mail.port}") int mailPort,
+      @Value("${spring.mail.username}") String mailUsername,
+      @Value("${spring.mail.password}") String mailPassword,
+      @Value("${spring.mail.properties.mail.smtp.auth}") boolean smtpAuth,
+      @Value("${spring.mail.properties.mail.smtp.starttls.enable}") boolean starttlsEnable) {
+
+    JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
+    mailSender.setHost(mailHost);
+    mailSender.setPort(mailPort);
+
+    mailSender.setUsername(mailUsername);
+    mailSender.setPassword(mailPassword);
+
+    Properties props = mailSender.getJavaMailProperties();
+    props.put("mail.transport.protocol", "smtp");
+    props.put("mail.smtp.auth", smtpAuth);
+    props.put("mail.smtp.starttls.enable", starttlsEnable);
+    props.put("mail.debug", "true");
+
+    return mailSender;
   }
 }

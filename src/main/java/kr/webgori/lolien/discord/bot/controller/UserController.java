@@ -14,6 +14,7 @@ import kr.webgori.lolien.discord.bot.request.user.LoginRequest;
 import kr.webgori.lolien.discord.bot.request.user.LogoutRequest;
 import kr.webgori.lolien.discord.bot.request.user.RegisterRequest;
 import kr.webgori.lolien.discord.bot.request.user.VerifyClienIdRequest;
+import kr.webgori.lolien.discord.bot.request.user.VerifyEmailRequest;
 import kr.webgori.lolien.discord.bot.response.UserInfoResponse;
 import kr.webgori.lolien.discord.bot.response.user.AccessTokenResponse;
 import kr.webgori.lolien.discord.bot.response.user.LoginResponse;
@@ -215,10 +216,21 @@ public class UserController {
   }
 
   @Operation(
-      summary = "클리앙 아이디 인증",
-      security = {
-          @SecurityRequirement(name = "JWT")
+      summary = "이메일 인증")
+  @ApiResponses(
+      value = {
+          @ApiResponse(
+              responseCode = "204",
+              description = "No Content")
       })
+  @PostMapping("v1/users/register/verify/email")
+  @ResponseStatus(value = HttpStatus.NO_CONTENT)
+  public void verifyEmail(@RequestBody @Valid VerifyEmailRequest request) {
+    userService.verifyEmail(request);
+  }
+
+  @Operation(
+      summary = "클리앙 아이디 인증")
   @ApiResponses(
       value = {
           @ApiResponse(

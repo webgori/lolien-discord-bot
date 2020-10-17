@@ -9,6 +9,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class UserRegisterVerifyClienIdDto {
+public class VerifyAuthNumberDto {
   private String authNumber;
 }

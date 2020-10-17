@@ -17,16 +17,30 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Set;
+import kr.webgori.lolien.discord.bot.component.MailComponent;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.web.authentication.rememberme.InvalidCookieException;
 import org.springframework.test.context.junit4.SpringRunner;
 
 @Slf4j
 @RunWith(SpringRunner.class)
+@SpringBootTest
+@RequiredArgsConstructor
 public class ClienUnitTest {
+  private static final String REGISTER_VERIFY_EMAIL_SUBJECT = "LoLien.kr 회원가입 이메일 인증";
+  private static final String REGISTER_VERIFY_EMAIL_TEXT = "LoLien.kr (https://lolien.kr) 회원가입 "
+      + "이메일 인증 번호는 [%s] 입니다. 5분이 지나면 인증 번호는 만료됩니다.";
+
+  @Autowired
+  private MailComponent mailComponent;
+
   @Value("${clien.service.url}")
   private String clienUrl;
 
@@ -76,6 +90,23 @@ public class ClienUnitTest {
     } catch (IOException e) {
       e.printStackTrace();
     }
+  }
+
+  @Test
+  public void sendEmail() {
+    String authNumber = getAuthNumber();
+    String emailVerifyText = getEmailVerifyText(authNumber);
+
+    mailComponent.sendMail("no-reply@LoLien.kr", "webgori@gmail.com", REGISTER_VERIFY_EMAIL_SUBJECT,
+        emailVerifyText);
+  }
+
+  private String getAuthNumber() {
+    return RandomStringUtils.randomNumeric(6);
+  }
+
+  private String getEmailVerifyText(String authNumber) {
+    return String.format(REGISTER_VERIFY_EMAIL_TEXT, authNumber);
   }
 
   @Test
