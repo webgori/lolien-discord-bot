@@ -65,7 +65,7 @@ public class UserService {
   private static final String USER_ROLE_DEFAULT = "USER";
   private static final String CLIEN_SESSION_REDIS_KEY = "clien:session";
   private static final String CLIEN_SEND_MESSAGE = "LoLien.kr (https://lolien.kr) 회원가입 "
-      + "인증 번호는 %s 입니다. 5분이 지나면 인증 번호는 만료됩니다.";
+      + "클리앙 아이디 인증 번호는 [%s] 입니다. 5분이 지나면 인증 번호는 만료됩니다.";
   private static final String USER_REGISTER_VERIFY_CLIEN_ID_REDIS_KEY =
       "users:register:verify:clien-id:%s";
 
