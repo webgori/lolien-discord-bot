@@ -27,7 +27,7 @@ import lombok.ToString;
 @Entity
 @Table(name = "summoner")
 @ToString(exclude = {"leagues", "participants"})
-@EqualsAndHashCode(exclude = {"participants", "lolienUser"})
+@EqualsAndHashCode(exclude = {"participants"})
 public class LolienSummoner {
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
