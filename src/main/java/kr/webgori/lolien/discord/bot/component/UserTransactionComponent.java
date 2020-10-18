@@ -25,6 +25,14 @@ public class UserTransactionComponent {
   private final LolienSummonerRepository lolienSummonerRepository;
   private final LeagueRepository leagueRepository;
 
+  /**
+   * 회원가입.
+   * @param user user
+   * @param userRole userRole
+   * @param clienUser clienUser
+   * @param lolienSummoner lolienSummoner
+   * @param leagues leagues
+   */
   public void register(User user, UserRole userRole, ClienUser clienUser,
                        LolienSummoner lolienSummoner, List<League> leagues) {
     userRepository.save(user);
