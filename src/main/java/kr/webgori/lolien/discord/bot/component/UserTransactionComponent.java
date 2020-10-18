@@ -44,6 +44,14 @@ public class UserTransactionComponent {
     userRoleRepository.save(userRole);
   }
 
+  /**
+   * 회원 탈퇴.
+   * @param user user
+   * @param userRole userRole
+   * @param clienUser clienUser
+   * @param lolienSummoner lolienSummoner
+   * @param leagues leagues
+   */
   @Transactional
   public void deleteUser(User user, UserRole userRole, ClienUser clienUser,
                          LolienSummoner lolienSummoner, List<League> leagues) {
