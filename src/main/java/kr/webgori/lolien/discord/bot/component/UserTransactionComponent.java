@@ -14,6 +14,7 @@ import kr.webgori.lolien.discord.bot.repository.user.UserRoleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -33,12 +34,23 @@ public class UserTransactionComponent {
    * @param lolienSummoner lolienSummoner
    * @param leagues leagues
    */
+  @Transactional
   public void register(User user, UserRole userRole, ClienUser clienUser,
                        LolienSummoner lolienSummoner, List<League> leagues) {
-    userRepository.save(user);
-    userRoleRepository.save(userRole);
     clienUserRepository.save(clienUser);
     lolienSummonerRepository.save(lolienSummoner);
     leagueRepository.saveAll(leagues);
+    userRepository.save(user);
+    userRoleRepository.save(userRole);
+  }
+
+  @Transactional
+  public void deleteUser(User user, UserRole userRole, ClienUser clienUser,
+                         LolienSummoner lolienSummoner, List<League> leagues) {
+    userRoleRepository.delete(userRole);
+    userRepository.delete(user);
+    leagueRepository.deleteAll(leagues);
+    lolienSummonerRepository.delete(lolienSummoner);
+    clienUserRepository.delete(clienUser);
   }
 }

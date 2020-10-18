@@ -45,6 +45,7 @@ public class UserController {
               description = "Bad Request. 회원가입 양식이 올바르지 않음")
       })
   @PostMapping("v1/users/register")
+  @ResponseStatus(value = HttpStatus.NO_CONTENT)
   public void register(@RequestBody @Valid RegisterRequest request) {
     userService.register(request);
   }

@@ -46,7 +46,6 @@ import kr.webgori.lolien.discord.bot.repository.LolienSummonerRepository;
 import kr.webgori.lolien.discord.bot.repository.user.ClienUserRepository;
 import kr.webgori.lolien.discord.bot.repository.user.RoleRepository;
 import kr.webgori.lolien.discord.bot.repository.user.UserRepository;
-import kr.webgori.lolien.discord.bot.repository.user.UserRoleRepository;
 import kr.webgori.lolien.discord.bot.request.LolienUserAddSummonerRequest;
 import kr.webgori.lolien.discord.bot.request.user.AccessTokenRequest;
 import kr.webgori.lolien.discord.bot.request.user.LogoutRequest;
@@ -80,7 +79,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.rememberme.InvalidCookieException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
@@ -91,12 +89,12 @@ import org.springframework.web.client.RestTemplate;
 public class UserService {
   private static final String USER_ROLE_DEFAULT = "USER";
   private static final String CLIEN_SESSION_REDIS_KEY = "clien:session";
-  private static final String REGISTER_VERIFY_EMAIL_SUBJECT = "LoLien.kr 회원가입 이메일 인증";
-  private static final String REGISTER_VERIFY_EMAIL_TEXT = "LoLien.kr (https://lolien.kr) 회원가입 "
+  private static final String REGISTER_VERIFY_EMAIL_SUBJECT = "[LoLien.kr] 이메일 인증번호가 도착하였습니다";
+  private static final String REGISTER_VERIFY_EMAIL_TEXT = "LoLien.kr 회원가입 "
       + "이메일 인증 번호는 [%s] 입니다. 5분이 지나면 인증 번호는 만료됩니다.";
   private static final String REGISTER_VERIFY_EMAIL_REDIS_KEY =
       "users:register:verify:email:%s";
-  private static final String REGISTER_VERIFY_CLIEN_ID_TEXT = "LoLien.kr (https://lolien.kr) 회원가입 "
+  private static final String REGISTER_VERIFY_CLIEN_ID_TEXT = "LoLien.kr 회원가입 "
       + "클리앙 아이디 인증 번호는 [%s] 입니다. 5분이 지나면 인증 번호는 만료됩니다.";
   private static final String REGISTER_VERIFY_CLIEN_ID_REDIS_KEY =
       "users:register:verify:clien-id:%s";
@@ -105,7 +103,6 @@ public class UserService {
   private final HttpServletRequest httpServletRequest;
   private final LolienSummonerRepository lolienSummonerRepository;
   private final PasswordEncoder passwordEncoder;
-  private final UserRoleRepository userRoleRepository;
   private final RoleRepository roleRepository;
   private final AuthenticationComponent authenticationComponent;
   private final RedisTemplate<String, Object> redisTemplate;
@@ -148,6 +145,7 @@ public class UserService {
     User user = getUser(request, clienUser, lolienSummoner);
     Role role = getUserRole();
     UserRole userRole = getUserRole(user, role);
+    user.setUserRole(userRole);
 
     userTransactionComponent.register(user, userRole, clienUser, lolienSummoner, leagues);
   }
@@ -190,6 +188,11 @@ public class UserService {
 
   private void verifyEmailAuthNumber(RegisterRequest request) {
     VerifyAuthNumberDto verifyAuthNumberDto = getVerifyEmailAuthNumberDtoFromRedis(request);
+
+    if (Objects.isNull(verifyAuthNumberDto)) {
+      throw new IllegalArgumentException("이메일 인증 번호가 만료 되었습니다.");
+    }
+
     String authNumber = verifyAuthNumberDto.getAuthNumber();
     String emailAuthNumber = request.getEmailAuthNumber();
 
@@ -439,6 +442,11 @@ public class UserService {
 
   private void verifyClienIdAuthNumber(RegisterRequest request) {
     VerifyAuthNumberDto verifyAuthNumberDto = getVerifyClienIdAuthNumberDtoFromRedis(request);
+
+    if (Objects.isNull(verifyAuthNumberDto)) {
+      throw new IllegalArgumentException("클리앙 아이디 인증 번호가 만료 되었습니다.");
+    }
+
     String authNumber = verifyAuthNumberDto.getAuthNumber();
     String clienIdAuthNumber = request.getClienIdAuthNumber();
 
@@ -543,12 +551,14 @@ public class UserService {
    * deleteUser.
    * @param request request
    */
-  @Transactional
   public void deleteUser(HttpServletRequest request) {
     User user = authenticationComponent.getUser(httpServletRequest);
     UserRole userRole = user.getUserRole();
-    userRoleRepository.delete(userRole);
-    userRepository.delete(user);
+    LolienSummoner lolienSummoner = user.getLolienSummoner();
+    List<League> leagues = lolienSummoner.getLeagues();
+    ClienUser clienUser = user.getClienUser();
+
+    userTransactionComponent.deleteUser(user, userRole, clienUser, lolienSummoner, leagues);
 
     logout(request, true, null, null);
   }

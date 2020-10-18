@@ -13,6 +13,7 @@ spring:
     open-in-view: true
     properties:
       hibernate:
+        #show_sql: true
         dialect: org.hibernate.dialect.MariaDB103Dialect
   datasource:
     driverClassName: org.mariadb.jdbc.Driver
@@ -53,3 +54,8 @@ clien:
   message:
     send:
       url: https://www.clien.net/service/api/messages/send/
+
+#logging:
+  #level:
+    #org.hibernate.SQL: DEBUG
+    #org.hibernate.type: TRACE

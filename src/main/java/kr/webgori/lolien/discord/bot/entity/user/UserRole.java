@@ -30,6 +30,6 @@ public class UserRole {
   private User user;
 
   @OneToOne
-  @JoinColumn(name = "role_index", unique = true, nullable = false)
+  @JoinColumn(name = "role_index", nullable = false)
   private Role role;
 }
