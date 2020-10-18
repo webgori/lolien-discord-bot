@@ -194,7 +194,7 @@ public class UserService {
     String emailAuthNumber = request.getEmailAuthNumber();
 
     if (!authNumber.equals(emailAuthNumber)) {
-      throw new IllegalArgumentException("인증 번호가 올바르지 않습니다.");
+      throw new IllegalArgumentException("이메일 인증 번호가 올바르지 않습니다.");
     }
   }
 
@@ -443,7 +443,7 @@ public class UserService {
     String clienIdAuthNumber = request.getClienIdAuthNumber();
 
     if (!authNumber.equals(clienIdAuthNumber)) {
-      throw new IllegalArgumentException("인증 번호가 올바르지 않습니다.");
+      throw new IllegalArgumentException("클리앙 아이디 인증 번호가 올바르지 않습니다.");
     }
   }
 
