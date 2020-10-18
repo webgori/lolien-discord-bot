@@ -1,5 +1,9 @@
 package kr.webgori.lolien.discord.bot.service;
 
+import static kr.webgori.lolien.discord.bot.component.SummonerComponent.DEFAULT_TIER;
+import static kr.webgori.lolien.discord.bot.component.TeamGenerateComponent.CURRENT_SEASON;
+import static kr.webgori.lolien.discord.bot.util.CommonUtil.getSeasonFormat;
+import static kr.webgori.lolien.discord.bot.util.CommonUtil.numberToRomanNumeral;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.objectToJsonString;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,18 +15,26 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.html.HtmlPasswordInput;
 import com.gargoylesoftware.htmlunit.html.HtmlTextInput;
 import com.gargoylesoftware.htmlunit.util.Cookie;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import java.io.IOException;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import javax.servlet.http.HttpServletRequest;
 import kr.webgori.lolien.discord.bot.component.AuthenticationComponent;
+import kr.webgori.lolien.discord.bot.component.ConfigComponent;
 import kr.webgori.lolien.discord.bot.component.MailComponent;
+import kr.webgori.lolien.discord.bot.component.UserTransactionComponent;
 import kr.webgori.lolien.discord.bot.dto.UserDto;
 import kr.webgori.lolien.discord.bot.dto.UserSessionDto;
 import kr.webgori.lolien.discord.bot.dto.user.ClienSendMessageDto;
 import kr.webgori.lolien.discord.bot.dto.user.ClienSessionDto;
 import kr.webgori.lolien.discord.bot.dto.user.VerifyAuthNumberDto;
+import kr.webgori.lolien.discord.bot.entity.League;
 import kr.webgori.lolien.discord.bot.entity.LolienSummoner;
 import kr.webgori.lolien.discord.bot.entity.user.ClienUser;
 import kr.webgori.lolien.discord.bot.entity.user.Role;
@@ -31,6 +43,7 @@ import kr.webgori.lolien.discord.bot.entity.user.UserRole;
 import kr.webgori.lolien.discord.bot.exception.AlreadyAddedSummonerException;
 import kr.webgori.lolien.discord.bot.exception.SummonerNotFoundException;
 import kr.webgori.lolien.discord.bot.repository.LolienSummonerRepository;
+import kr.webgori.lolien.discord.bot.repository.user.ClienUserRepository;
 import kr.webgori.lolien.discord.bot.repository.user.RoleRepository;
 import kr.webgori.lolien.discord.bot.repository.user.UserRepository;
 import kr.webgori.lolien.discord.bot.repository.user.UserRoleRepository;
@@ -44,7 +57,19 @@ import kr.webgori.lolien.discord.bot.response.UserInfoResponse;
 import kr.webgori.lolien.discord.bot.response.user.AccessTokenResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.rithms.riot.api.ApiConfig;
+import net.rithms.riot.api.RiotApi;
+import net.rithms.riot.api.RiotApiException;
+import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
+import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
+import net.rithms.riot.constant.Platform;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.logging.log4j.util.Strings;
+import org.jetbrains.annotations.NotNull;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpEntity;
@@ -87,6 +112,8 @@ public class UserService {
   private final ObjectMapper objectMapper;
   private final RestTemplate restTemplate;
   private final MailComponent mailComponent;
+  private final UserTransactionComponent userTransactionComponent;
+  private final ClienUserRepository clienUserRepository;
 
   @Value("${clien.service.url}")
   private String clienUrl;
@@ -112,29 +139,25 @@ public class UserService {
       throw new IllegalArgumentException("이미 가입되어 있는 이메일 입니다.");
     }
 
-    String password = request.getPassword();
-    String encryptedPassword = passwordEncoder.encode(password);
-    String nickname = request.getNickname();
+    verifyEmailAuthNumber(request);
 
-    User user = User
-        .builder()
-        .email(email)
-        .emailVerified(false)
-        .password(encryptedPassword)
-        .nickname(nickname)
-        .build();
+    ClienUser clienUser = getClienUser(request);
+    LolienSummoner lolienSummoner = getLolienSummoner(request);
+    List<League> leagues = getLeagues(request, lolienSummoner);
 
-    userRepository.save(user);
-
+    User user = getUser(request, clienUser, lolienSummoner);
     Role role = getUserRole();
+    UserRole userRole = getUserRole(user, role);
 
-    UserRole userRole = UserRole
-        .builder()
-        .role(role)
-        .user(user)
-        .build();
+    userTransactionComponent.register(user, userRole, clienUser, lolienSummoner, leagues);
+  }
 
-    userRoleRepository.save(userRole);
+  private UserRole getUserRole(User user, Role role) {
+    return UserRole
+          .builder()
+          .user(user)
+          .role(role)
+          .build();
   }
 
   private Role getUserRole() {
@@ -145,6 +168,290 @@ public class UserService {
     }
 
     return role;
+  }
+
+  private User getUser(RegisterRequest request, ClienUser clienUser,
+                       LolienSummoner lolienSummoner) {
+    String email = request.getEmail();
+    String nickname = request.getNickname();
+    String password = request.getPassword();
+    String encryptedPassword = passwordEncoder.encode(password);
+
+    return User
+        .builder()
+        .email(email)
+        .nickname(nickname)
+        .emailVerified(true)
+        .password(encryptedPassword)
+        .clienUser(clienUser)
+        .lolienSummoner(lolienSummoner)
+        .build();
+  }
+
+  private void verifyEmailAuthNumber(RegisterRequest request) {
+    VerifyAuthNumberDto verifyAuthNumberDto = getVerifyEmailAuthNumberDtoFromRedis(request);
+    String authNumber = verifyAuthNumberDto.getAuthNumber();
+    String emailAuthNumber = request.getEmailAuthNumber();
+
+    if (!authNumber.equals(emailAuthNumber)) {
+      throw new IllegalArgumentException("인증 번호가 올바르지 않습니다.");
+    }
+  }
+
+  private VerifyAuthNumberDto getVerifyEmailAuthNumberDtoFromRedis(RegisterRequest request) {
+    String verifyEmailRedisKey = getVerifyEmailRedisKey(request);
+
+    Object object = redisTemplate.opsForValue().get(verifyEmailRedisKey);
+    return objectMapper.convertValue(object, VerifyAuthNumberDto.class);
+  }
+
+  private LolienSummoner getLolienSummoner(RegisterRequest request) {
+    String summerName = request.getSummonerName();
+    LolienSummoner lolienSummoner = lolienSummonerRepository.findBySummonerName(summerName);
+
+    if (Objects.isNull(lolienSummoner)) {
+      return getNewLolienSummoner(request);
+    }
+
+    checkExistsUser(lolienSummoner);
+
+    return lolienSummoner;
+  }
+
+  private LolienSummoner getNewLolienSummoner(RegisterRequest request) {
+    Summoner summoner = getSummoner(request);
+    String summonerId = summoner.getId();
+    String accountId = summoner.getAccountId();
+    String summonerName = request.getSummonerName();
+    int summonerLevel = summoner.getSummonerLevel();
+
+    return LolienSummoner
+        .builder()
+        .id(summonerId)
+        .accountId(accountId)
+        .summonerName(summonerName)
+        .summonerLevel(summonerLevel)
+        .build();
+  }
+
+  private List<League> getLeagues(RegisterRequest request, LolienSummoner lolienSummoner) {
+    List<League> leagues = lolienSummoner.getLeagues();
+
+    if (Objects.isNull(leagues)) {
+      leagues = Lists.newArrayList();
+      addCurrentSeasonLeague(request, lolienSummoner, leagues);
+      addOtherSeasonLeague(request, lolienSummoner, leagues);
+    }
+
+    return leagues;
+  }
+
+  private void addCurrentSeasonLeague(RegisterRequest request, LolienSummoner lolienSummoner,
+                                      List<League> leagues) {
+    String currentSeasonTier = getCurrentSeasonTier(request);
+
+    League league = League
+        .builder()
+        .season(CURRENT_SEASON)
+        .tier(currentSeasonTier)
+        .lolienSummoner(lolienSummoner)
+        .build();
+
+    leagues.add(league);
+  }
+
+  private String getCurrentSeasonTier(RegisterRequest request) {
+    Summoner summoner = getSummoner(request);
+    RiotApi riotApi = getRiotApi();
+
+    try {
+      String summonerId = summoner.getId();
+      Set<LeagueEntry> leagueEntrySet = riotApi
+          .getLeagueEntriesBySummonerId(Platform.KR, summonerId);
+
+      List<LeagueEntry> leagueEntries = Lists.newArrayList(leagueEntrySet);
+
+      String tier = DEFAULT_TIER;
+
+      for (LeagueEntry leagueEntry : leagueEntries) {
+        if (leagueEntry.getQueueType().equals("RANKED_SOLO_5x5")) {
+          tier = leagueEntry.getTier() + "-" + leagueEntry.getRank();
+        }
+      }
+
+      return tier;
+    } catch (RiotApiException e) {
+      int errorCode = e.getErrorCode();
+      if (errorCode == RiotApiException.FORBIDDEN) {
+        throw new IllegalArgumentException(
+            "Riot API Key가 만료되어 기능이 정상적으로 작동하지 않습니다. 개발자에게 알려주세요.");
+      } else if (errorCode == RiotApiException.DATA_NOT_FOUND) {
+        String summonerName = request.getSummonerName();
+        String errorMessage = String.format("%s 소환사가 존재하지 않습니다.", summonerName);
+        throw new IllegalArgumentException(errorMessage);
+      } else {
+        logger.error("", e);
+        throw new IllegalArgumentException("riotApiException");
+      }
+    }
+  }
+
+  private void addOtherSeasonLeague(RegisterRequest request, LolienSummoner lolienSummoner,
+                                    List<League> leagues) {
+    String summonerName = request.getSummonerName();
+
+    Map<String, String> tiersFromOpGg = getTiersFromOpGg(summonerName);
+
+    for (Map.Entry<String, String> entry : tiersFromOpGg.entrySet()) {
+      String key = entry.getKey();
+      String value = entry.getValue();
+
+      League league = League
+          .builder()
+          .lolienSummoner(lolienSummoner)
+          .season(key)
+          .tier(value)
+          .build();
+
+      leagues.add(league);
+    }
+  }
+
+  /**
+   * getTiersFromOpGg.
+   * @param summonerName summonerName
+   * @return Map map
+   */
+  private Map<String, String> getTiersFromOpGg(String summonerName) {
+    Map<String, String> tiersMap = Maps.newHashMap();
+
+    String opGgUrl = String.format("https://www.op.gg/summoner/userName=%s", summonerName);
+
+    try {
+      Document document = Jsoup.connect(opGgUrl).timeout(600000).get();
+      Elements pastRankList = document.getElementsByClass("PastRankList");
+
+      for (Element element : pastRankList) {
+        Elements tierElements = element.getElementsByTag("li");
+        for (Element tierElement : tierElements) {
+          Elements seasonElements = tierElement.getElementsByTag("b");
+
+          String prevSeason = Strings.EMPTY;
+
+          for (Element seasonElement : seasonElements) {
+            prevSeason = getSeasonFormat(seasonElement.text());
+          }
+
+          boolean title = tierElement.hasAttr("title");
+
+          if (!title) {
+            continue;
+          }
+
+          String prevTierLeaguePoints = tierElement.attr("title");
+          List<String> prevTierSplitList = Lists.newArrayList(prevTierLeaguePoints.split(" "));
+
+          if (prevTierSplitList.size() > 2) {
+            prevTierSplitList.remove(2);
+          }
+
+          prevTierSplitList.set(0, prevTierSplitList.get(0).toUpperCase(Locale.KOREAN));
+
+          if (prevTierSplitList.get(1).equals("5")) {
+            prevTierSplitList.set(1, "4");
+          }
+
+          if (!prevTierSplitList.get(1).equals("1") && !prevTierSplitList.get(1).equals("2")
+              && !prevTierSplitList.get(1).equals("3") && !prevTierSplitList.get(1).equals("4")) {
+            logger.error(prevTierSplitList.get(1));
+            prevTierSplitList.set(1, "1");
+          }
+
+          prevTierSplitList.set(1, numberToRomanNumeral(prevTierSplitList.get(1)));
+          String prevTier = String.join("-", prevTierSplitList);
+
+          tiersMap.put(prevSeason, prevTier);
+        }
+      }
+    } catch (IOException e) {
+      logger.error("", e);
+    }
+
+    return tiersMap;
+  }
+
+  private Summoner getSummoner(RegisterRequest request) {
+    RiotApi riotApi = getRiotApi();
+    String summonerName = request.getSummonerName();
+
+    try {
+      return riotApi.getSummonerByName(Platform.KR, summonerName);
+    } catch (RiotApiException e) {
+      int errorCode = e.getErrorCode();
+      if (errorCode == RiotApiException.FORBIDDEN) {
+        throw new IllegalArgumentException(
+            "Riot API Key가 만료되어 기능이 정상적으로 작동하지 않습니다. 개발자에게 알려주세요.");
+      } else if (errorCode == RiotApiException.DATA_NOT_FOUND) {
+        String errorMessage = String.format("%s 소환사가 존재하지 않습니다.", summonerName);
+        throw new IllegalArgumentException(errorMessage);
+      } else {
+        logger.error("", e);
+        throw new IllegalArgumentException("riotApiException");
+      }
+    }
+  }
+
+  @NotNull
+  private RiotApi getRiotApi() {
+    String riotApiKey = ConfigComponent.getRiotApiKey();
+    ApiConfig config = new ApiConfig().setKey(riotApiKey);
+    return new RiotApi(config);
+  }
+
+  private void checkExistsUser(LolienSummoner lolienSummoner) {
+    User user = lolienSummoner.getUser();
+
+    if (Objects.nonNull(user)) {
+      throw new IllegalArgumentException("이미 등록되어 있는 소환사 이름 입니다.");
+    }
+  }
+
+  private ClienUser getClienUser(RegisterRequest request) {
+    checkExistsClienUser(request);
+    verifyClienIdAuthNumber(request);
+
+    String clienId = request.getClienId();
+
+    return ClienUser
+        .builder()
+        .clienId(clienId)
+        .build();
+  }
+
+  private void checkExistsClienUser(RegisterRequest request) {
+    String clienId = request.getClienId();
+    boolean existsByClienId = clienUserRepository.existsByClienId(clienId);
+
+    if (existsByClienId) {
+      throw new IllegalArgumentException("이미 등록되어 있는 클리앙 아이디 입니다.");
+    }
+  }
+
+  private void verifyClienIdAuthNumber(RegisterRequest request) {
+    VerifyAuthNumberDto verifyAuthNumberDto = getVerifyClienIdAuthNumberDtoFromRedis(request);
+    String authNumber = verifyAuthNumberDto.getAuthNumber();
+    String clienIdAuthNumber = request.getClienIdAuthNumber();
+
+    if (!authNumber.equals(clienIdAuthNumber)) {
+      throw new IllegalArgumentException("인증 번호가 올바르지 않습니다.");
+    }
+  }
+
+  private VerifyAuthNumberDto getVerifyClienIdAuthNumberDtoFromRedis(RegisterRequest request) {
+    String verifyEmailRedisKey = getVerifyClienIdRedisKey(request);
+
+    Object object = redisTemplate.opsForValue().get(verifyEmailRedisKey);
+    return objectMapper.convertValue(object, VerifyAuthNumberDto.class);
   }
 
   /**
@@ -328,8 +635,17 @@ public class UserService {
     redisTemplate.expire(verifyEmailRedisKey, 5L, TimeUnit.MINUTES);
   }
 
+  private String getVerifyEmailRedisKey(RegisterRequest request) {
+    String email = request.getEmail();
+    return getVerifyEmailRedisKey(email);
+  }
+
   private String getVerifyEmailRedisKey(VerifyEmailRequest request) {
     String email = request.getEmail();
+    return getVerifyEmailRedisKey(email);
+  }
+
+  private String getVerifyEmailRedisKey(String email) {
     return String.format(REGISTER_VERIFY_EMAIL_REDIS_KEY, email);
   }
 
@@ -358,8 +674,17 @@ public class UserService {
     redisTemplate.expire(verifyClienIdRedisKey, 5L, TimeUnit.MINUTES);
   }
 
+  private String getVerifyClienIdRedisKey(RegisterRequest request) {
+    String clienId = request.getClienId();
+    return getVerifyClienIdRedisKey(clienId);
+  }
+
   private String getVerifyClienIdRedisKey(VerifyClienIdRequest request) {
     String clienId = request.getClienId();
+    return getVerifyClienIdRedisKey(clienId);
+  }
+
+  private String getVerifyClienIdRedisKey(String clienId) {
     return String.format(REGISTER_VERIFY_CLIEN_ID_REDIS_KEY, clienId);
   }
 

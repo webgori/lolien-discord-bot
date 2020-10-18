@@ -53,7 +53,7 @@ public class TeamGenerateComponent {
   private static final String[] TIER_LIST = {"IRON", "BRONZE", "SILVER", "GOLD", "PLATINUM",
       "DIAMOND", "MASTER", "GRANDMASTER", "CHALLENGE"};
   private static final String[] RANK_LIST = {"IV", "III", "II", "I"};
-  static final String CURRENT_SEASON = "S10";
+  public static final String CURRENT_SEASON = "S10";
   private static final String DEFAULT_TIER = "UNRANKED";
   private static final String REDIS_GENERATED_TEAM_USERS_INFO_KEY
       = "lolien-discord-bot:generated-team-users-info";

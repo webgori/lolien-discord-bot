@@ -40,7 +40,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Component
 public class SummonerComponent {
-  private static final String DEFAULT_TIER = "UNRANKED";
+  public static final String DEFAULT_TIER = "UNRANKED";
 
   private final LolienSummonerRepository lolienSummonerRepository;
   private final LeagueRepository leagueRepository;
