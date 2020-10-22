@@ -13,9 +13,11 @@ import kr.webgori.lolien.discord.bot.entity.LolienSummoner;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
+@EqualsAndHashCode(exclude = "userRole")
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
