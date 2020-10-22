@@ -17,7 +17,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
-@EqualsAndHashCode(exclude = "userRole")
+@EqualsAndHashCode(exclude = {"userRole", "lolienSummoner"})
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
