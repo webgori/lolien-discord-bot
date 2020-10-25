@@ -262,17 +262,7 @@ public class LeagueService {
     Map<String, JsonArray> runesJsonArrayMap = Maps.newHashMap();
 
     for (LolienLeagueMatch lolienLeagueMatch : lolienLeagueMatches) {
-      int idx = lolienLeagueMatch.getIdx();
-      long gameCreation = lolienLeagueMatch.getGameCreation();
-      long gameDuration = lolienLeagueMatch.getGameDuration();
-      long gameId = lolienLeagueMatch.getGameId();
-      String gameMode = lolienLeagueMatch.getGameMode();
-      String gameType = lolienLeagueMatch.getGameType();
       String gameVersion = lolienLeagueMatch.getGameVersion();
-      int mapId = lolienLeagueMatch.getMapId();
-      String platformId = lolienLeagueMatch.getPlatformId();
-      int queueId = lolienLeagueMatch.getQueueId();
-      int seasonId = lolienLeagueMatch.getSeasonId();
 
       List<LolienLeagueParticipant> participants = lolienLeagueMatch
           .getParticipants()
@@ -515,6 +505,17 @@ public class LeagueService {
       if (Objects.nonNull(user) && matchUser.equals(user)) {
         deleteAble = true;
       }
+
+      int idx = lolienLeagueMatch.getIdx();
+      long gameCreation = lolienLeagueMatch.getGameCreation();
+      long gameDuration = lolienLeagueMatch.getGameDuration();
+      long gameId = lolienLeagueMatch.getGameId();
+      String gameMode = lolienLeagueMatch.getGameMode();
+      String gameType = lolienLeagueMatch.getGameType();
+      int mapId = lolienLeagueMatch.getMapId();
+      String platformId = lolienLeagueMatch.getPlatformId();
+      int queueId = lolienLeagueMatch.getQueueId();
+      int seasonId = lolienLeagueMatch.getSeasonId();
 
       ResultDto resultDto = ResultDto
           .builder()

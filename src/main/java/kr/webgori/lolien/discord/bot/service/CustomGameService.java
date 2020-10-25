@@ -191,17 +191,7 @@ public class CustomGameService {
     }
 
     for (LolienMatch lolienMatch : lolienMatches) {
-      int idx = lolienMatch.getIdx();
-      long gameCreation = lolienMatch.getGameCreation();
-      long gameDuration = lolienMatch.getGameDuration();
-      long gameId = lolienMatch.getGameId();
-      String gameMode = lolienMatch.getGameMode();
-      String gameType = lolienMatch.getGameType();
       String gameVersion = lolienMatch.getGameVersion();
-      int mapId = lolienMatch.getMapId();
-      String platformId = lolienMatch.getPlatformId();
-      int queueId = lolienMatch.getQueueId();
-      int seasonId = lolienMatch.getSeasonId();
 
       List<LolienParticipant> participants = lolienMatch
           .getParticipants()
@@ -436,6 +426,17 @@ public class CustomGameService {
       if (Objects.nonNull(user) && matchUser.equals(user)) {
         deleteAble = true;
       }
+
+      int idx = lolienMatch.getIdx();
+      long gameCreation = lolienMatch.getGameCreation();
+      long gameDuration = lolienMatch.getGameDuration();
+      long gameId = lolienMatch.getGameId();
+      String gameMode = lolienMatch.getGameMode();
+      String gameType = lolienMatch.getGameType();
+      int mapId = lolienMatch.getMapId();
+      String platformId = lolienMatch.getPlatformId();
+      int queueId = lolienMatch.getQueueId();
+      int seasonId = lolienMatch.getSeasonId();
 
       CustomGameDto customGameDto = CustomGameDto
           .builder()
