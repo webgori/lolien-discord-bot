@@ -14,6 +14,7 @@ import com.google.common.collect.Maps;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.Comparator;
@@ -186,7 +187,7 @@ public class CustomGameService {
 
     try {
       user = authenticationComponent.getUser(httpServletRequest);
-    } catch (ExpiredJwtException | BadCredentialsException e) {
+    } catch (ExpiredJwtException | BadCredentialsException | MalformedJwtException e) {
       logger.error("", e);
     }
 

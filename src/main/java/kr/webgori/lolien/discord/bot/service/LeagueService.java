@@ -10,6 +10,7 @@ import com.google.common.collect.Maps;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -62,6 +63,7 @@ import kr.webgori.lolien.discord.bot.response.league.TeamResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -471,7 +473,7 @@ public class LeagueService {
 
       try {
         user = authenticationComponent.getUser(httpServletRequest);
-      } catch (ExpiredJwtException e) {
+      } catch (ExpiredJwtException | BadCredentialsException | MalformedJwtException e) {
         logger.error("", e);
       }
 
