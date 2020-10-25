@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import java.util.List;
 import kr.webgori.lolien.discord.bot.request.LeagueAddRequest;
 import kr.webgori.lolien.discord.bot.request.LeagueAddResultRequest;
@@ -47,7 +48,10 @@ public class LeagueController {
   }
 
   @Operation(
-      summary = "리그 추가")
+      summary = "리그 추가",
+      security = {
+          @SecurityRequirement(name = "JWT")
+      })
   @ApiResponses(
       value = {
           @ApiResponse(
@@ -63,7 +67,10 @@ public class LeagueController {
   }
 
   @Operation(
-      summary = "리그 제거")
+      summary = "리그 제거",
+      security = {
+          @SecurityRequirement(name = "JWT")
+      })
   @ApiResponses(
       value = {
           @ApiResponse(
@@ -80,6 +87,7 @@ public class LeagueController {
 
   @Operation(
       summary = "리그 결과 등록",
+      deprecated = true,
       hidden = true)
   @ApiResponses(
       value = {
@@ -96,7 +104,9 @@ public class LeagueController {
 
   @Operation(
       summary = "리플레이 파일로 리그 결과 등록",
-      hidden = true)
+      security = {
+          @SecurityRequirement(name = "JWT")
+      })
   @ApiResponses(
       value = {
           @ApiResponse(
@@ -111,7 +121,10 @@ public class LeagueController {
   }
 
   @Operation(
-      summary = "리그 결과 제거")
+      summary = "리그 결과 제거",
+      security = {
+          @SecurityRequirement(name = "JWT")
+      })
   @ApiResponses(
       value = {
           @ApiResponse(

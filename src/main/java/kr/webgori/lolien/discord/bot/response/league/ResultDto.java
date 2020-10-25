@@ -40,4 +40,6 @@ public class ResultDto {
 
   @Schema(description = "팀 정보")
   private List<CustomGameTeamDto> teams;
+
+  private boolean deleteAble;
 }

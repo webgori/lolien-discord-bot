@@ -6,6 +6,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.util.List;
 import java.util.Set;
+import javax.servlet.http.HttpServletRequest;
 import kr.webgori.lolien.discord.bot.entity.LolienSummoner;
 import kr.webgori.lolien.discord.bot.entity.league.LolienLeague;
 import kr.webgori.lolien.discord.bot.entity.league.LolienLeagueMatch;
@@ -14,6 +15,7 @@ import kr.webgori.lolien.discord.bot.entity.league.LolienLeagueParticipantStats;
 import kr.webgori.lolien.discord.bot.entity.league.LolienLeagueSchedule;
 import kr.webgori.lolien.discord.bot.entity.league.LolienLeagueTeamBans;
 import kr.webgori.lolien.discord.bot.entity.league.LolienLeagueTeamStats;
+import kr.webgori.lolien.discord.bot.entity.user.User;
 import kr.webgori.lolien.discord.bot.exception.LeagueNotFoundException;
 import kr.webgori.lolien.discord.bot.repository.LolienSummonerRepository;
 import kr.webgori.lolien.discord.bot.repository.league.LolienLeagueMatchRepository;
@@ -37,6 +39,8 @@ public class LeagueComponent {
   private final LolienSummonerRepository lolienSummonerRepository;
   private final LolienLeagueMatchRepository lolienLeagueMatchRepository;
   private final LolienLeagueScheduleRepository lolienLeagueScheduleRepository;
+  private final AuthenticationComponent authenticationComponent;
+  private final HttpServletRequest httpServletRequest;
 
   /**
    * addResult.
@@ -71,12 +75,15 @@ public class LeagueComponent {
     Set<LolienLeagueParticipant> lolienLeagueParticipantSet = Sets.newHashSet();
     Set<LolienLeagueTeamStats> lolienLeagueTeamStatsSet = Sets.newHashSet();
 
+    User user = authenticationComponent.getUser(httpServletRequest);
+
     LolienLeagueMatch lolienLeagueMatch = LolienLeagueMatch
         .builder()
         .lolienLeague(lolienLeague)
         .schedule(schedule)
         .participants(lolienLeagueParticipantSet)
         .teams(lolienLeagueTeamStatsSet)
+        .user(user)
         .build();
 
     BeanUtils.copyProperties(match, lolienLeagueMatch);

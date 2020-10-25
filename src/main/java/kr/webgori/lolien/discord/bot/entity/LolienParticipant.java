@@ -22,7 +22,7 @@ import lombok.ToString;
 @Data
 @Entity
 @Table(name = "participant")
-@ToString(exclude = {"match"})
+@ToString(exclude = {"match", "lolienSummoner"})
 public class LolienParticipant {
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)

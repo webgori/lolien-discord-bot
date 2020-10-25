@@ -5,6 +5,8 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import java.util.List;
 import kr.webgori.lolien.discord.bot.request.CustomGameAddResultRequest;
 import kr.webgori.lolien.discord.bot.response.CustomGamesResponse;
 import kr.webgori.lolien.discord.bot.response.CustomGamesStatisticsResponse;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RequiredArgsConstructor
 @RestController
@@ -27,7 +30,9 @@ public class CustomGameController {
 
   @Operation(
       summary = "내전 결과 등록",
-      hidden = true)
+      security = {
+          @SecurityRequirement(name = "JWT")
+      })
   @ApiResponses(
       value = {
           @ApiResponse(
@@ -96,7 +101,10 @@ public class CustomGameController {
   }
 
   @Operation(
-      summary = "내전 결과 제거")
+      summary = "내전 결과 제거",
+      security = {
+          @SecurityRequirement(name = "JWT")
+      })
   @ApiResponses(
       value = {
           @ApiResponse(
@@ -109,5 +117,23 @@ public class CustomGameController {
   @ResponseStatus(value = HttpStatus.NO_CONTENT)
   public void deleteResult(@PathVariable("game-id") long gameId) {
     customGameService.deleteResult(gameId);
+  }
+
+  @Operation(
+      summary = "리플레이 파일로 결과 등록",
+      security = {
+          @SecurityRequirement(name = "JWT")
+      })
+  @ApiResponses(
+      value = {
+          @ApiResponse(
+              responseCode = "401",
+              description = "Unauthorized. 인증 정보를 찾을 수 없을 때"),
+          @ApiResponse(
+              responseCode = "204",
+              description = "No Content")})
+  @PostMapping("v1/custom-game/result/files")
+  public void addResultByFiles(List<MultipartFile> files) {
+    customGameService.addResultByFiles(files);
   }
 }

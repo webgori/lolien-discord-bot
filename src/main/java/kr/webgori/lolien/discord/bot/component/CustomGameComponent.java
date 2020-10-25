@@ -25,6 +25,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import javax.servlet.http.HttpServletRequest;
 import kr.webgori.lolien.discord.bot.dto.SummonerMostChampDto;
 import kr.webgori.lolien.discord.bot.dto.SummonerMostChampsDto;
 import kr.webgori.lolien.discord.bot.entity.LolienMatch;
@@ -33,6 +34,7 @@ import kr.webgori.lolien.discord.bot.entity.LolienParticipantStats;
 import kr.webgori.lolien.discord.bot.entity.LolienSummoner;
 import kr.webgori.lolien.discord.bot.entity.LolienTeamBans;
 import kr.webgori.lolien.discord.bot.entity.LolienTeamStats;
+import kr.webgori.lolien.discord.bot.entity.user.User;
 import kr.webgori.lolien.discord.bot.repository.LolienMatchRepository;
 import kr.webgori.lolien.discord.bot.repository.LolienParticipantRepository;
 import kr.webgori.lolien.discord.bot.repository.LolienSummonerRepository;
@@ -64,6 +66,8 @@ public class CustomGameComponent {
   private final RiotComponent riotComponent;
   private final CommonComponent commonComponent;
   private final ObjectMapper objectMapper;
+  private final AuthenticationComponent authenticationComponent;
+  private final HttpServletRequest httpServletRequest;
 
   /**
    * execute.
@@ -383,11 +387,13 @@ public class CustomGameComponent {
 
     Set<LolienParticipant> lolienParticipantSet = Sets.newHashSet();
     Set<LolienTeamStats> lolienTeamStatsSet = Sets.newHashSet();
+    User user = authenticationComponent.getUser(httpServletRequest);
 
     LolienMatch lolienMatch = LolienMatch
         .builder()
         .participants(lolienParticipantSet)
         .teams(lolienTeamStatsSet)
+        .user(user)
         .build();
 
     BeanUtils.copyProperties(match, lolienMatch);

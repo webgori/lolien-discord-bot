@@ -9,6 +9,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import io.jsonwebtoken.ExpiredJwtException;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -23,6 +24,8 @@ import java.util.StringJoiner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import javax.servlet.http.HttpServletRequest;
+import kr.webgori.lolien.discord.bot.component.AuthenticationComponent;
 import kr.webgori.lolien.discord.bot.component.LeagueComponent;
 import kr.webgori.lolien.discord.bot.component.RiotComponent;
 import kr.webgori.lolien.discord.bot.dto.CustomGameSummonerDto;
@@ -43,6 +46,7 @@ import kr.webgori.lolien.discord.bot.entity.league.LolienLeagueSchedule;
 import kr.webgori.lolien.discord.bot.entity.league.LolienLeagueTeam;
 import kr.webgori.lolien.discord.bot.entity.league.LolienLeagueTeamBans;
 import kr.webgori.lolien.discord.bot.entity.league.LolienLeagueTeamStats;
+import kr.webgori.lolien.discord.bot.entity.user.User;
 import kr.webgori.lolien.discord.bot.repository.league.LolienLeagueMatchRepository;
 import kr.webgori.lolien.discord.bot.repository.league.LolienLeagueRepository;
 import kr.webgori.lolien.discord.bot.repository.league.LolienLeagueScheduleRepository;
@@ -75,6 +79,8 @@ public class LeagueService {
   private final RiotComponent riotComponent;
   private final LolienLeagueTeamRepository lolienLeagueTeamRepository;
   private final LolienLeagueScheduleRepository lolienLeagueScheduleRepository;
+  private final AuthenticationComponent authenticationComponent;
+  private final HttpServletRequest httpServletRequest;
 
   /**
    * getLeagues.
@@ -471,6 +477,14 @@ public class LeagueService {
           .sorted(Comparator.comparing(LolienLeagueTeamStats::getIdx))
           .collect(Collectors.toList());
 
+      User user = null;
+
+      try {
+        user = authenticationComponent.getUser(httpServletRequest);
+      } catch (ExpiredJwtException e) {
+        logger.error("", e);
+      }
+
       for (LolienLeagueTeamStats team : teams) {
         List<LolienLeagueTeamBans> bans = team.getBans();
 
@@ -495,6 +509,13 @@ public class LeagueService {
         teamDtoList.add(teamDto);
       }
 
+      User matchUser = lolienLeagueMatch.getUser();
+      boolean deleteAble = false;
+
+      if (Objects.nonNull(user) && matchUser.equals(user)) {
+        deleteAble = true;
+      }
+
       ResultDto resultDto = ResultDto
           .builder()
           .idx(idx)
@@ -511,6 +532,7 @@ public class LeagueService {
           .blueTeamSummoners(blueTeamSummoners)
           .redTeamSummoners(redTeamSummoners)
           .teams(teamDtoList)
+          .deleteAble(deleteAble)
           .build();
 
       resultsDto.add(resultDto);

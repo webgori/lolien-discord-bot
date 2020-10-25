@@ -1,5 +1,7 @@
 package kr.webgori.lolien.discord.bot.config;
 
+import static org.springframework.http.HttpMethod.GET;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Collections;
 import kr.webgori.lolien.discord.bot.component.AuthenticationComponent;
@@ -78,7 +80,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers("/v3/api-docs/**", "/swagger-ui/**")
         .antMatchers("/v*/users/register", "/v*/users/register/verify/clien-id",
             "/v*/users/register/verify/email", "/v*/users/access-token", "/v*/users/logout")
-        .antMatchers("/v*/summoners/**", "/v*/custom-game/**", "/v*/leagues/**");
+        .antMatchers("/v*/summoners/**")
+        .antMatchers(GET, "/v*/leagues/**")
+        .antMatchers(GET, "/v*/custom-game/**");
   }
 
   @Override

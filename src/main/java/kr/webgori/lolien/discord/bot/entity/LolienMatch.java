@@ -8,8 +8,11 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import kr.webgori.lolien.discord.bot.entity.user.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -57,4 +60,8 @@ public class LolienMatch {
 
   @OneToMany(mappedBy = "match", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   private Set<LolienTeamStats> teams;
+
+  @ManyToOne
+  @JoinColumn(name = "user_idx", nullable = false)
+  private User user;
 }

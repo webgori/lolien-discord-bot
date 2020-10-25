@@ -7,6 +7,6 @@ import lombok.Data;
 @Builder
 @Data
 public class CustomGamesResponse {
-  private List<CustomGameResponse> customGames;
+  private List<CustomGameDto> customGames;
   private int totalPages;
 }

@@ -12,6 +12,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import kr.webgori.lolien.discord.bot.entity.user.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -75,4 +76,8 @@ public class LolienLeagueMatch {
   @ManyToOne
   @JoinColumn(name = "lolien_league_schedule_idx", nullable = false)
   private LolienLeagueSchedule schedule;
+
+  @ManyToOne
+  @JoinColumn(name = "user_idx", nullable = false)
+  private User user;
 }

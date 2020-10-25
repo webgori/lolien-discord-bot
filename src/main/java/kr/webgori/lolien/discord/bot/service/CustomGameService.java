@@ -1,6 +1,7 @@
 package kr.webgori.lolien.discord.bot.service;
 
 import static java.util.Collections.reverseOrder;
+import static kr.webgori.lolien.discord.bot.util.CommonUtil.DEFAULT_CHARSET;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.getEndDateOfMonth;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.getEndDateOfPrevMonth;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.getStartDateOfMonth;
@@ -12,13 +13,20 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import io.jsonwebtoken.ExpiredJwtException;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.StringJoiner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import javax.servlet.http.HttpServletRequest;
+import kr.webgori.lolien.discord.bot.component.AuthenticationComponent;
 import kr.webgori.lolien.discord.bot.component.CustomGameComponent;
 import kr.webgori.lolien.discord.bot.component.RiotComponent;
 import kr.webgori.lolien.discord.bot.dto.ChampDto;
@@ -50,19 +58,23 @@ import kr.webgori.lolien.discord.bot.entity.LolienParticipantStats;
 import kr.webgori.lolien.discord.bot.entity.LolienSummoner;
 import kr.webgori.lolien.discord.bot.entity.LolienTeamBans;
 import kr.webgori.lolien.discord.bot.entity.LolienTeamStats;
+import kr.webgori.lolien.discord.bot.entity.user.User;
 import kr.webgori.lolien.discord.bot.exception.SummonerNotFoundException;
 import kr.webgori.lolien.discord.bot.repository.LolienMatchRepository;
 import kr.webgori.lolien.discord.bot.repository.LolienSummonerRepository;
 import kr.webgori.lolien.discord.bot.request.CustomGameAddResultRequest;
-import kr.webgori.lolien.discord.bot.response.CustomGameResponse;
+import kr.webgori.lolien.discord.bot.response.CustomGameDto;
 import kr.webgori.lolien.discord.bot.response.CustomGamesResponse;
 import kr.webgori.lolien.discord.bot.response.CustomGamesStatisticsResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FilenameUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -75,6 +87,8 @@ public class CustomGameService {
   private final CustomGameComponent customGameComponent;
   private final LolienSummonerRepository lolienSummonerRepository;
   private final RiotComponent riotComponent;
+  private final AuthenticationComponent authenticationComponent;
+  private final HttpServletRequest httpServletRequest;
 
   /**
    * addResult.
@@ -158,7 +172,7 @@ public class CustomGameService {
   private CustomGamesResponse getCustomGamesResponse(List<LolienMatch> lolienMatches,
                                                      int totalPages) {
 
-    List<CustomGameResponse> customGames = Lists.newArrayList();
+    List<CustomGameDto> customGamesDto = Lists.newArrayList();
     List<CustomGameTeamDto> teamDtoList = Lists.newArrayList();
     List<CustomGameTeamBanDto> teamBanDtoList = Lists.newArrayList();
 
@@ -167,6 +181,14 @@ public class CustomGameService {
     Map<String, JsonObject> championsJsonObjectMap = Maps.newHashMap();
     Map<String, JsonObject> itemsJsonObjectMap = Maps.newHashMap();
     Map<String, JsonArray> runesJsonArrayMap = Maps.newHashMap();
+
+    User user = null;
+
+    try {
+      user = authenticationComponent.getUser(httpServletRequest);
+    } catch (ExpiredJwtException | BadCredentialsException e) {
+      logger.error("", e);
+    }
 
     for (LolienMatch lolienMatch : lolienMatches) {
       int idx = lolienMatch.getIdx();
@@ -408,7 +430,14 @@ public class CustomGameService {
         teamDtoList.add(teamDto);
       }
 
-      CustomGameResponse customGameResponse = CustomGameResponse
+      User matchUser = lolienMatch.getUser();
+      boolean deleteAble = false;
+
+      if (Objects.nonNull(user) && matchUser.equals(user)) {
+        deleteAble = true;
+      }
+
+      CustomGameDto customGameDto = CustomGameDto
           .builder()
           .idx(idx)
           .gameCreation(gameCreation)
@@ -424,14 +453,15 @@ public class CustomGameService {
           .blueTeamSummoners(blueTeamSummoners)
           .redTeamSummoners(redTeamSummoners)
           .teams(teamDtoList)
+          .deleteAble(deleteAble)
           .build();
 
-      customGames.add(customGameResponse);
+      customGamesDto.add(customGameDto);
     }
 
     return CustomGamesResponse
         .builder()
-        .customGames(customGames)
+        .customGames(customGamesDto)
         .totalPages(totalPages)
         .build();
   }
@@ -534,7 +564,7 @@ public class CustomGameService {
    * @param endDateOfMonth endDateOfMonth
    * @return lolienMatches
    */
-  public List<LolienMatch> getLolienMatches(LocalDate startDateOfMonth, LocalDate endDateOfMonth) {
+  List<LolienMatch> getLolienMatches(LocalDate startDateOfMonth, LocalDate endDateOfMonth) {
     long startTimestamp = localDateToTimestamp(startDateOfMonth);
     long endTimestamp = localDateToTimestamp(endDateOfMonth);
 
@@ -1243,5 +1273,66 @@ public class CustomGameService {
     }
 
     lolienMatchRepository.deleteByGameId(gameId);
+  }
+
+  /**
+   * addLeagueResultByFiles.
+   * @param files files
+   */
+  public void addResultByFiles(List<MultipartFile> files) {
+    Pattern pattern = Pattern.compile("\\\\\"NAME\\\\\":\\\\\"([A-Za-z0-9가-힣 ]*)\\\\\"");
+
+    for (MultipartFile file : files) {
+      CustomGameAddResultRequest request = new CustomGameAddResultRequest();
+
+      long gameId = getGameId(file);
+      request.setMatchId(gameId);
+
+      String entries = getEntries(file, pattern);
+      request.setEntries(entries);
+
+      addResult(request);
+    }
+  }
+
+  private long getGameId(MultipartFile multipartFile) {
+    String originalFilename = multipartFile.getOriginalFilename();
+    originalFilename = FilenameUtils.removeExtension(originalFilename);
+
+    if (Objects.isNull(originalFilename)) {
+      throw new IllegalArgumentException("invalid league result file");
+    }
+
+    return Long.parseLong(originalFilename.replace("KR-", ""));
+  }
+
+  private String getEntries(MultipartFile file, Pattern pattern) {
+    StringJoiner entryStringJoiner = new StringJoiner(",");
+
+    try {
+      String contents = new String(file.getBytes(), DEFAULT_CHARSET);
+      Matcher matcher = pattern.matcher(contents);
+
+      while (matcher.find()) {
+        String summonerName = stripSummonerName(matcher.group());
+        entryStringJoiner.add(summonerName);
+      }
+    } catch (IOException e) {
+      logger.error("", e);
+    }
+
+    if (entryStringJoiner.toString().split(",").length != 10) {
+      throw new IllegalArgumentException("invalid league result file");
+    }
+
+    return entryStringJoiner.toString();
+  }
+
+  private String stripSummonerName(String summonerName) {
+    summonerName = summonerName.replace("NAME", "");
+    summonerName = summonerName.replace("\"", "");
+    summonerName = summonerName.replace("\\", "");
+    summonerName = summonerName.replace(":", "");
+    return summonerName.replaceAll("\\s+", "");
   }
 }
