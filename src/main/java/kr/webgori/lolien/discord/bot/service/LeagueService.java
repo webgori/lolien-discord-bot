@@ -213,7 +213,6 @@ public class LeagueService {
 
     return summonersForParticipationDto
         .stream()
-        .filter(s -> s.getNumberOfParticipation() >= 10)
         .sorted(Comparator.comparing(SummonerForParticipationDto::getNumberOfParticipation)
             .reversed())
         .collect(Collectors.toList());
