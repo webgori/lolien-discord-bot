@@ -38,7 +38,7 @@ public class RegisterRequest {
   private String clienIdAuthNumber;
 
   @Schema(description = "소환사 이름")
-  @Size(min = 3, max = 12)
+  @Size(min = 3, max = 20)
   @NotBlank
   private String summonerName;
 }

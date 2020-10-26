@@ -209,7 +209,7 @@ public class UserService {
   }
 
   private LolienSummoner getLolienSummoner(RegisterRequest request) {
-    String summerName = request.getSummonerName();
+    String summerName = request.getSummonerName().replaceAll("\\s+", "");
     LolienSummoner lolienSummoner = lolienSummonerRepository.findBySummonerName(summerName);
 
     if (Objects.isNull(lolienSummoner)) {
