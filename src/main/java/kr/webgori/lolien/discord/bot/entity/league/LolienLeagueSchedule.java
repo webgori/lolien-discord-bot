@@ -41,4 +41,13 @@ public class LolienLeagueSchedule {
 
   @Column(name = "match_date_time", nullable = false)
   private LocalDateTime matchDateTime;
+
+  @Column(nullable = false)
+  private String description1;
+
+  @Column(nullable = false)
+  private String description2;
+
+  @Column(nullable = false)
+  private String description3;
 }

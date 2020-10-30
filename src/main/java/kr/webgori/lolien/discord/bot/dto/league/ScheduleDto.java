@@ -12,4 +12,7 @@ public class ScheduleDto {
   private LolienLeagueTeam team;
   private LolienLeagueTeam enemyTeam;
   private LocalDateTime matchDateTime;
+  private String description1;
+  private String description2;
+  private String description3;
 }

@@ -651,6 +651,9 @@ public class LeagueService {
       LolienLeagueTeam team = schedule.getTeam();
       LolienLeagueTeam enemyTeam = schedule.getEnemyTeam();
       LocalDateTime matchDateTime = schedule.getMatchDateTime();
+      String description1 = schedule.getDescription1();
+      String description2 = schedule.getDescription2();
+      String description3 = schedule.getDescription3();
 
       ScheduleDto scheduleDto = ScheduleDto
           .builder()
@@ -658,6 +661,9 @@ public class LeagueService {
           .team(team)
           .enemyTeam(enemyTeam)
           .matchDateTime(matchDateTime)
+          .description1(description1)
+          .description2(description2)
+          .description3(description3)
           .build();
 
       schedulesDto.add(scheduleDto);
