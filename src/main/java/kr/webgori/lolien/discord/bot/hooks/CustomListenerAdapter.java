@@ -42,9 +42,9 @@ public class CustomListenerAdapter extends ListenerAdapter {
           case "!도움말":
             helpComponent.execute(event);
             break;
-          case "!소환사":
+          /*case "!소환사":
             summonerComponent.execute(event);
-            break;
+            break;*/
           case "!팀구성":
             teamGenerateComponent.execute(event);
             break;

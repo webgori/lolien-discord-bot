@@ -110,9 +110,12 @@ public class TeamGenerateComponent {
     boolean existsSummoner = lolienSummonerRepository.existsBySummonerName(nonSpaceDiscordNickname);
 
     if (!existsSummoner) {
-      sendErrorMessage(textChannel,
-          "디스코드 별명과 등록한 소환사명이 다르거나 소환사 등록이 되지 않은 사용자 입니다.",
-          Color.RED);
+      String errorMessage = String
+          .format("디스코드 별명 %s 을 (를) 찾을 수 없습니다. "
+              + "https://lolien.kr 에 회원가입 해주시거나 소환사 이름을 맞춰주시기 바랍니다.",
+              nonSpaceDiscordNickname);
+
+      sendErrorMessage(textChannel, errorMessage, Color.RED);
       return;
     }
 
@@ -265,8 +268,8 @@ public class TeamGenerateComponent {
 
     if (!hasSummonerName) {
       String errorMessage = String
-          .format("\"!소환사 등록 %s\" 명령어로 소환사 등록을 먼저 해주시기 바랍니다.",
-              summonerName);
+          .format("%s 소환사를 찾을 수  없습니다. "
+              + "https://lolien.kr 에서 회원가입 해주세요.", summonerName);
       sendErrorMessage(textChannel, errorMessage, Color.BLUE);
       throw new IllegalArgumentException("register summoner first");
     }
