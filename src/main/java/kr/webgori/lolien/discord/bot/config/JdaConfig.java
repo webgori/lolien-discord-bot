@@ -10,8 +10,8 @@ import kr.webgori.lolien.discord.bot.component.TeamGenerateComponent;
 import kr.webgori.lolien.discord.bot.hooks.CustomEventListener;
 import kr.webgori.lolien.discord.bot.hooks.CustomListenerAdapter;
 import lombok.RequiredArgsConstructor;
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.JDABuilder;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.JDABuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -44,9 +44,9 @@ public class JdaConfig {
   public JDA jda() throws LoginException {
     String discordToken = ConfigComponent.getDiscordToken();
 
-    JDA jda = new JDABuilder(discordToken)
-        .addEventListener(new CustomEventListener())
-        .addEventListener(new CustomListenerAdapter(
+    JDA jda = JDABuilder
+        .createDefault(discordToken)
+        .addEventListeners(new CustomEventListener(), new CustomListenerAdapter(
             helpComponent, summonerComponent, teamGenerateComponent, customGameComponent,
             memoComponent))
         .build();
