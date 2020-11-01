@@ -18,6 +18,7 @@ import kr.webgori.lolien.discord.bot.request.user.VerifyEmailRequest;
 import kr.webgori.lolien.discord.bot.response.UserInfoResponse;
 import kr.webgori.lolien.discord.bot.response.user.AccessTokenResponse;
 import kr.webgori.lolien.discord.bot.response.user.LoginResponse;
+import kr.webgori.lolien.discord.bot.response.user.UserResponse;
 import kr.webgori.lolien.discord.bot.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -188,7 +189,7 @@ public class UserController {
               responseCode = "403",
               description = "Forbidden. 세션이 만료 됬을 때")
       })
-  @GetMapping("v1/users")
+  @GetMapping("v1/users/info")
   public UserInfoResponse getUserInfo() {
     return userService.getUserInfo();
   }
@@ -242,5 +243,21 @@ public class UserController {
   @ResponseStatus(value = HttpStatus.NO_CONTENT)
   public void verifyClienId(@RequestBody @Valid VerifyClienIdRequest request) {
     userService.verifyClienId(request);
+  }
+
+  @Operation(
+      summary = "사용자 목록")
+  @ApiResponses(
+      value = {
+          @ApiResponse(
+              responseCode = "200",
+              description = "OK",
+              content = @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = UserInfoResponse.class)))
+      })
+  @GetMapping("v1/users")
+  public UserResponse getUsers() {
+    return userService.getUsers();
   }
 }

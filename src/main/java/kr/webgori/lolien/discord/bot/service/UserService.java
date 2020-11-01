@@ -18,6 +18,7 @@ import com.gargoylesoftware.htmlunit.util.Cookie;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -29,10 +30,11 @@ import kr.webgori.lolien.discord.bot.component.AuthenticationComponent;
 import kr.webgori.lolien.discord.bot.component.ConfigComponent;
 import kr.webgori.lolien.discord.bot.component.MailComponent;
 import kr.webgori.lolien.discord.bot.component.UserTransactionComponent;
-import kr.webgori.lolien.discord.bot.dto.UserDto;
+import kr.webgori.lolien.discord.bot.dto.UserInfoDto;
 import kr.webgori.lolien.discord.bot.dto.UserSessionDto;
 import kr.webgori.lolien.discord.bot.dto.user.ClienSendMessageDto;
 import kr.webgori.lolien.discord.bot.dto.user.ClienSessionDto;
+import kr.webgori.lolien.discord.bot.dto.user.UserDto;
 import kr.webgori.lolien.discord.bot.dto.user.VerifyAuthNumberDto;
 import kr.webgori.lolien.discord.bot.entity.League;
 import kr.webgori.lolien.discord.bot.entity.LolienSummoner;
@@ -54,6 +56,7 @@ import kr.webgori.lolien.discord.bot.request.user.VerifyClienIdRequest;
 import kr.webgori.lolien.discord.bot.request.user.VerifyEmailRequest;
 import kr.webgori.lolien.discord.bot.response.UserInfoResponse;
 import kr.webgori.lolien.discord.bot.response.user.AccessTokenResponse;
+import kr.webgori.lolien.discord.bot.response.user.UserResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.rithms.riot.api.ApiConfig;
@@ -524,7 +527,7 @@ public class UserService {
       summonerName = lolienSummoner.getSummonerName();
     }
 
-    UserDto userInfo = getUserDto(email, nickname, emailVerified, clienId, summonerName);
+    UserInfoDto userInfo = getUserDto(email, nickname, emailVerified, clienId, summonerName);
 
     return UserInfoResponse
         .builder()
@@ -532,12 +535,12 @@ public class UserService {
         .build();
   }
 
-  private UserDto getUserDto(String email,
-                             String nickname,
-                             boolean emailVerified,
-                             String clienId,
-                             String summerName) {
-    return UserDto
+  private UserInfoDto getUserDto(String email,
+                                 String nickname,
+                                 boolean emailVerified,
+                                 String clienId,
+                                 String summerName) {
+    return UserInfoDto
         .builder()
         .email(email)
         .nickname(nickname)
@@ -838,5 +841,32 @@ public class UserService {
 
   private String getEmailVerifyText(String authNumber) {
     return String.format(REGISTER_VERIFY_EMAIL_TEXT, authNumber);
+  }
+
+  public UserResponse getUsers() {
+    List<UserDto> usersDto = getUsersDto();
+    return UserResponse.builder().users(usersDto).build();
+  }
+
+  private List<UserDto> getUsersDto() {
+    List<User> users = userRepository.findAll();
+    List<UserDto> usersDto = Lists.newArrayList();
+
+    for (User user : users) {
+      String nickname = user.getNickname();
+      String summonerName = user.getLolienSummoner().getSummonerName();
+      LocalDateTime createdAt = user.getCreatedAt();
+
+      UserDto userDto = UserDto
+          .builder()
+          .nickname(nickname)
+          .summonerName(summonerName)
+          .createdAt(createdAt)
+          .build();
+
+      usersDto.add(userDto);
+    }
+
+    return usersDto;
   }
 }
