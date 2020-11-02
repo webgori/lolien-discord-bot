@@ -702,6 +702,10 @@ public class LeagueService {
         .build();
   }
 
+  /**
+   * 통계 조회.
+   * @return StatisticsResponse
+   */
   public StatisticsResponse getStatistics() {
     LocalDate startDateOfMonth = getStartDateOfMonth();
     LocalDate endDateOfMonth = getEndDateOfMonth();
@@ -1199,7 +1203,8 @@ public class LeagueService {
    * @param lolienMatches lolienMatches
    * @return 총 받은 피해량이 가장 높은 소환사
    */
-  private MostTotalDamageTakenDto getMostTotalDamageTakenDto(List<LolienLeagueMatch> lolienMatches) {
+  private MostTotalDamageTakenDto getMostTotalDamageTakenDto(
+      List<LolienLeagueMatch> lolienMatches) {
     long gameId = 0;
     String summonerName = "";
     long mostTotalDamageTaken = 0;
