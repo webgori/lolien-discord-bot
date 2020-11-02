@@ -25,6 +25,7 @@ import kr.webgori.lolien.discord.bot.dto.SummonerMostChampDto;
 import kr.webgori.lolien.discord.bot.dto.SummonerMostChampsDto;
 import kr.webgori.lolien.discord.bot.entity.League;
 import kr.webgori.lolien.discord.bot.entity.LolienSummoner;
+import kr.webgori.lolien.discord.bot.entity.user.User;
 import kr.webgori.lolien.discord.bot.repository.LeagueRepository;
 import kr.webgori.lolien.discord.bot.repository.LolienSummonerRepository;
 import lombok.RequiredArgsConstructor;
@@ -149,7 +150,7 @@ public class TeamGenerateComponent {
       List<LolienSummoner> team2 = Lists.newArrayList();
 
       for (String summonerName : entryList) {
-        checkSummonerRegister(textChannel, summonerName);
+        checkRegister(textChannel, summonerName);
 
         LolienSummoner lolienSummoner = lolienSummonerRepository.findBySummonerName(summonerName);
 
@@ -263,13 +264,35 @@ public class TeamGenerateComponent {
     }
   }
 
-  private void checkSummonerRegister(TextChannel textChannel, String summonerName) {
-    boolean hasSummonerName = lolienSummonerRepository.existsBySummonerName(summonerName);
+  private void checkRegister(TextChannel textChannel, String summonerName) {
+    LolienSummoner lolienSummoner = lolienSummonerRepository.findBySummonerName(summonerName);
 
-    if (!hasSummonerName) {
+    checkSummonerRegister(textChannel, summonerName, lolienSummoner);
+    checkUserRegister(textChannel, summonerName, lolienSummoner);
+  }
+
+  private void checkSummonerRegister(TextChannel textChannel, String summonerName,
+                                               LolienSummoner lolienSummoner) {
+
+    if (Objects.isNull(lolienSummoner)) {
       String errorMessage = String
-          .format("%s 소환사를 찾을 수  없습니다. "
+          .format("\"%s\" 소환사를 찾을 수 없습니다. "
               + "https://lolien.kr 에서 회원가입 해주세요.", summonerName);
+      sendErrorMessage(textChannel, errorMessage, Color.BLUE);
+      throw new IllegalArgumentException("register summoner first");
+    }
+  }
+
+  private void checkUserRegister(TextChannel textChannel, String summonerName,
+                                 LolienSummoner lolienSummoner) {
+
+    User user = lolienSummoner.getUser();
+
+    if (Objects.isNull(user)) {
+      String errorMessage = String
+          .format("\"%s\" 소환사는 https://lolien.kr 회원가입이 되어 있지 않습니다. "
+              + "회원가입을 해주시기 바랍니다.", summonerName);
+
       sendErrorMessage(textChannel, errorMessage, Color.BLUE);
       throw new IllegalArgumentException("register summoner first");
     }
