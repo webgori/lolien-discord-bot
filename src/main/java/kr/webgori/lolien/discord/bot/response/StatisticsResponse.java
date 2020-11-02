@@ -23,7 +23,7 @@ import lombok.Data;
 
 @Builder
 @Data
-public class CustomGamesStatisticsResponse {
+public class StatisticsResponse {
   private LocalDate startDateOfMonth;
   private LocalDate endDateOfMonth;
   private List<MatchDto> matches;

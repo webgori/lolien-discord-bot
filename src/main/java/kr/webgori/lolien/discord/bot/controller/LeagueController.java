@@ -12,6 +12,7 @@ import kr.webgori.lolien.discord.bot.request.LeagueAddResultRequest;
 import kr.webgori.lolien.discord.bot.response.league.LeagueResponse;
 import kr.webgori.lolien.discord.bot.response.league.ResultResponse;
 import kr.webgori.lolien.discord.bot.response.league.ScheduleResponse;
+import kr.webgori.lolien.discord.bot.response.league.StatisticsResponse;
 import kr.webgori.lolien.discord.bot.response.league.SummonerForParticipationResponse;
 import kr.webgori.lolien.discord.bot.response.league.TeamResponse;
 import kr.webgori.lolien.discord.bot.service.LeagueService;
@@ -204,5 +205,21 @@ public class LeagueController {
   @GetMapping("v1/leagues/schedule")
   public ScheduleResponse getSchedules() {
     return leagueService.getSchedules();
+  }
+
+  @Operation(
+      summary = "통계 조회")
+  @ApiResponses(
+      value = {
+          @ApiResponse(
+              responseCode = "200",
+              description = "OK",
+              content = @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = StatisticsResponse.class)))
+      })
+  @GetMapping("v1/leagues/statistics")
+  public StatisticsResponse getStatistics() {
+    return leagueService.getStatistics();
   }
 }

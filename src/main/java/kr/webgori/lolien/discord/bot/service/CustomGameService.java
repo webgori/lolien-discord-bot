@@ -66,7 +66,7 @@ import kr.webgori.lolien.discord.bot.repository.LolienSummonerRepository;
 import kr.webgori.lolien.discord.bot.request.CustomGameAddResultRequest;
 import kr.webgori.lolien.discord.bot.response.CustomGameDto;
 import kr.webgori.lolien.discord.bot.response.CustomGamesResponse;
-import kr.webgori.lolien.discord.bot.response.CustomGamesStatisticsResponse;
+import kr.webgori.lolien.discord.bot.response.StatisticsResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
@@ -472,7 +472,7 @@ public class CustomGameService {
    * getStatistics.
    * @return CustomGamesStatisticsResponse
    */
-  public CustomGamesStatisticsResponse getStatistics() {
+  public StatisticsResponse getStatistics() {
     LocalDate startDateOfMonth = getStartDateOfMonth();
     LocalDate endDateOfMonth = getEndDateOfMonth();
 
@@ -519,7 +519,7 @@ public class CustomGameService {
     MostFirstTowerKillDto mostFirstTowerKillDto = getMostFirstTowerKillDto(lolienMatches);
     MostFirstBloodKillDto mostFirstBloodKillDto = getMostFirstBloodKillDto(lolienMatches);
 
-    return CustomGamesStatisticsResponse
+    return StatisticsResponse
         .builder()
         .startDateOfMonth(startDateOfMonth)
         .endDateOfMonth(endDateOfMonth)

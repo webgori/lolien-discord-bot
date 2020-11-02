@@ -9,7 +9,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import java.util.List;
 import kr.webgori.lolien.discord.bot.request.CustomGameAddResultRequest;
 import kr.webgori.lolien.discord.bot.response.CustomGamesResponse;
-import kr.webgori.lolien.discord.bot.response.CustomGamesStatisticsResponse;
+import kr.webgori.lolien.discord.bot.response.StatisticsResponse;
 import kr.webgori.lolien.discord.bot.service.CustomGameService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -93,10 +93,10 @@ public class CustomGameController {
               description = "OK",
               content = @Content(
                   mediaType = "application/json",
-                  schema = @Schema(implementation = CustomGamesResponse.class)))
+                  schema = @Schema(implementation = StatisticsResponse.class)))
       })
   @GetMapping("v1/custom-game/statistics")
-  public CustomGamesStatisticsResponse getStatistics() {
+  public StatisticsResponse getStatistics() {
     return customGameService.getStatistics();
   }
 
