@@ -706,7 +706,11 @@ public class LeagueService {
     for (LolienLeagueSchedule schedule : schedules) {
       int idx = schedule.getIdx();
       LolienLeagueTeam team = schedule.getTeam();
+      TeamDto teamDto = lolienLeagueTeamToTeamDto(team);
+
       LolienLeagueTeam enemyTeam = schedule.getEnemyTeam();
+      TeamDto enemyTeamDto = lolienLeagueTeamToTeamDto(enemyTeam);
+
       LocalDateTime matchDateTime = schedule.getMatchDateTime();
       String description1 = schedule.getDescription1();
       String description2 = schedule.getDescription2();
@@ -715,8 +719,8 @@ public class LeagueService {
       ScheduleDto scheduleDto = ScheduleDto
           .builder()
           .idx(idx)
-          .team(team)
-          .enemyTeam(enemyTeam)
+          .team(teamDto)
+          .enemyTeam(enemyTeamDto)
           .matchDateTime(matchDateTime)
           .description1(description1)
           .description2(description2)
@@ -729,6 +733,17 @@ public class LeagueService {
     return ScheduleResponse
         .builder()
         .schedules(schedulesDto)
+        .build();
+  }
+
+  private TeamDto lolienLeagueTeamToTeamDto(LolienLeagueTeam lolienLeagueTeam) {
+    String englishName = lolienLeagueTeam.getEnglishName();
+    String koreanName = lolienLeagueTeam.getKoreanName();
+
+    return TeamDto
+        .builder()
+        .englishName(englishName)
+        .koreanName(koreanName)
         .build();
   }
 
