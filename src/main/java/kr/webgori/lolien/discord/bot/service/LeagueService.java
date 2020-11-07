@@ -1527,6 +1527,11 @@ public class LeagueService {
     return (float) Math.floor((float) (kills + assists) / deaths * 100.0) / 100.0f;
   }
 
+  /**
+   * 픽 통계 조회.
+   * @param leagueIdx 리그 인덱스
+   * @return 픽 통계 조회
+   */
   public StatisticsPickResponse getStatisticsPick(int leagueIdx) {
     List<LolienLeagueMatch> matches = lolienLeagueMatchRepository.findByLolienLeagueIdx(leagueIdx);
     List<PickTeamDto> pickTeamsDto = getPickTeamsDto(matches);

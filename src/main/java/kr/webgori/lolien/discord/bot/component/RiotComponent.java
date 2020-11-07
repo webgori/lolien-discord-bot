@@ -176,6 +176,11 @@ public class RiotComponent {
         .getName();
   }
 
+  /**
+   * 챔피언 아이디로 챔피언 이름 조회.
+   * @param champId 챔피언 아이디
+   * @return 챔피언 이름
+   */
   public String getChampionNameByChampId(int champId) {
     DataDragonVersionDto latestDataDragonVersionDto = getLatestDataDragonVersion();
     String clientVersion = latestDataDragonVersionDto.getVersion();
