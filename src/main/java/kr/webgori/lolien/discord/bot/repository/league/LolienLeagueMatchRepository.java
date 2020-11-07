@@ -11,4 +11,6 @@ public interface LolienLeagueMatchRepository extends JpaRepository<LolienLeagueM
 
   List<LolienLeagueMatch> findByGameCreationGreaterThanEqualAndGameCreationLessThanEqual(
       long startTimestamp, long endTimestamp);
+
+  List<LolienLeagueMatch> findByLolienLeagueIdx(int leagueIdx);
 }

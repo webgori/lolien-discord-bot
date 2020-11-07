@@ -176,7 +176,7 @@ public class RiotComponent {
         .getName();
   }
 
-  String getChampionNameByChampId(int champId) {
+  public String getChampionNameByChampId(int champId) {
     DataDragonVersionDto latestDataDragonVersionDto = getLatestDataDragonVersion();
     String clientVersion = latestDataDragonVersionDto.getVersion();
 

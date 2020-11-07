@@ -1,8 +1,10 @@
 package kr.webgori.lolien.discord.bot.entity.league;
 
+import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,4 +26,7 @@ public class LolienLeagueTeam {
 
   @Column(name = "english_name", nullable = false)
   private String englishName;
+
+  @OneToMany(mappedBy = "team")
+  private List<LolienLeagueTeamSummoner> teamSummoners;
 }

@@ -12,6 +12,7 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import kr.webgori.lolien.discord.bot.entity.league.LolienLeagueTeamSummoner;
 import kr.webgori.lolien.discord.bot.entity.user.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -27,7 +28,7 @@ import lombok.ToString;
 @Entity
 @Table(name = "summoner")
 @ToString(exclude = {"leagues", "participants"})
-@EqualsAndHashCode(exclude = {"participants"})
+@EqualsAndHashCode(exclude = {"participants", "leagueTeamSummoner"})
 public class LolienSummoner {
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
@@ -55,6 +56,9 @@ public class LolienSummoner {
 
   @OneToOne(mappedBy = "lolienSummoner")
   private User user;
+
+  @OneToOne(mappedBy = "summoner")
+  private LolienLeagueTeamSummoner leagueTeamSummoner;
 
   public void plusMmr(Integer mmr) {
     this.mmr += mmr;

@@ -62,6 +62,10 @@ import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostWinningDto;
 import kr.webgori.lolien.discord.bot.dto.league.LeagueDto;
 import kr.webgori.lolien.discord.bot.dto.league.ScheduleDto;
 import kr.webgori.lolien.discord.bot.dto.league.SummonerForParticipationDto;
+import kr.webgori.lolien.discord.bot.dto.league.statistics.PickChampDto;
+import kr.webgori.lolien.discord.bot.dto.league.statistics.PickSummonerDto;
+import kr.webgori.lolien.discord.bot.dto.league.statistics.PickTeamDto;
+import kr.webgori.lolien.discord.bot.dto.league.team.TeamDto;
 import kr.webgori.lolien.discord.bot.entity.LolienMatch;
 import kr.webgori.lolien.discord.bot.entity.LolienParticipant;
 import kr.webgori.lolien.discord.bot.entity.LolienSummoner;
@@ -73,6 +77,7 @@ import kr.webgori.lolien.discord.bot.entity.league.LolienLeagueSchedule;
 import kr.webgori.lolien.discord.bot.entity.league.LolienLeagueTeam;
 import kr.webgori.lolien.discord.bot.entity.league.LolienLeagueTeamBans;
 import kr.webgori.lolien.discord.bot.entity.league.LolienLeagueTeamStats;
+import kr.webgori.lolien.discord.bot.entity.league.LolienLeagueTeamSummoner;
 import kr.webgori.lolien.discord.bot.entity.user.User;
 import kr.webgori.lolien.discord.bot.repository.league.LolienLeagueMatchRepository;
 import kr.webgori.lolien.discord.bot.repository.league.LolienLeagueRepository;
@@ -84,6 +89,7 @@ import kr.webgori.lolien.discord.bot.response.league.LeagueResponse;
 import kr.webgori.lolien.discord.bot.response.league.ResultDto;
 import kr.webgori.lolien.discord.bot.response.league.ResultResponse;
 import kr.webgori.lolien.discord.bot.response.league.ScheduleResponse;
+import kr.webgori.lolien.discord.bot.response.league.StatisticsPickResponse;
 import kr.webgori.lolien.discord.bot.response.league.StatisticsResponse;
 import kr.webgori.lolien.discord.bot.response.league.SummonerForParticipationResponse;
 import kr.webgori.lolien.discord.bot.response.league.TeamResponse;
@@ -657,12 +663,36 @@ public class LeagueService {
    * @return 팀 정보
    */
   public TeamResponse getTeams() {
-    List<LolienLeagueTeam> teams = lolienLeagueTeamRepository.findAll();
+    List<TeamDto> teamsDto = getTeamsDto();
 
     return TeamResponse
         .builder()
-        .teams(teams)
+        .teams(teamsDto)
         .build();
+  }
+
+  private List<TeamDto> getTeamsDto() {
+    List<LolienLeagueTeam> teams = getLeagueTeams();
+    List<TeamDto> teamsDto = Lists.newArrayList();
+
+    for (LolienLeagueTeam team : teams) {
+      String englishName = team.getEnglishName();
+      String koreanName = team.getKoreanName();
+
+      TeamDto teamDto = TeamDto
+          .builder()
+          .englishName(englishName)
+          .koreanName(koreanName)
+          .build();
+
+      teamsDto.add(teamDto);
+    }
+
+    return teamsDto;
+  }
+
+  private List<LolienLeagueTeam> getLeagueTeams() {
+    return lolienLeagueTeamRepository.findAll();
   }
 
   /**
@@ -1495,5 +1525,98 @@ public class LeagueService {
     }
 
     return (float) Math.floor((float) (kills + assists) / deaths * 100.0) / 100.0f;
+  }
+
+  public StatisticsPickResponse getStatisticsPick(int leagueIdx) {
+    List<LolienLeagueMatch> matches = lolienLeagueMatchRepository.findByLolienLeagueIdx(leagueIdx);
+    List<PickTeamDto> pickTeamsDto = getPickTeamsDto(matches);
+
+    return StatisticsPickResponse
+        .builder()
+        .teams(pickTeamsDto)
+        .build();
+  }
+
+  private List<PickTeamDto> getPickTeamsDto(List<LolienLeagueMatch> matches) {
+    List<LolienLeagueTeam> leagueTeams = getLeagueTeams();
+    List<PickTeamDto> pickTeamsDto = Lists.newArrayList();
+
+    for (LolienLeagueTeam leagueTeam : leagueTeams) {
+      List<LolienLeagueTeamSummoner> teamSummoners = leagueTeam.getTeamSummoners();
+      List<PickSummonerDto> pickSummonersDto = Lists.newArrayList();
+
+      for (LolienLeagueTeamSummoner teamSummoner : teamSummoners) {
+        LolienSummoner lolienSummoner = teamSummoner.getSummoner();
+        increasePickChampsDtoBySummoner(matches, lolienSummoner, pickSummonersDto);
+      }
+
+      String koreanName = leagueTeam.getKoreanName();
+
+      PickTeamDto pickTeamDto = PickTeamDto
+          .builder()
+          .teamName(koreanName)
+          .summoners(pickSummonersDto)
+          .build();
+
+      pickTeamsDto.add(pickTeamDto);
+    }
+
+    return pickTeamsDto;
+  }
+
+  private void increasePickChampsDtoBySummoner(List<LolienLeagueMatch> matches,
+                                               LolienSummoner lolienSummoner,
+                                               List<PickSummonerDto> pickSummonersDto) {
+
+    for (LolienLeagueMatch lolienLeagueMatch : matches) {
+      Set<LolienLeagueParticipant> participants = lolienLeagueMatch.getParticipants();
+
+      for (LolienLeagueParticipant lolienLeagueParticipant : participants) {
+        LolienSummoner summoner = lolienLeagueParticipant.getLolienSummoner();
+
+        if (lolienSummoner.equals(summoner)) {
+          String summonerName = lolienSummoner.getSummonerName();
+
+          PickSummonerDto pickSummonerDto = pickSummonersDto
+              .stream()
+              .filter(psd -> psd.getSummonerName().equals(summonerName))
+              .findFirst()
+              .orElse(null);
+
+          if (Objects.isNull(pickSummonerDto)) {
+            pickSummonerDto = PickSummonerDto
+                .builder()
+                .summonerName(summonerName)
+                .champs(Lists.newArrayList())
+                .build();
+
+            pickSummonersDto.add(pickSummonerDto);
+          }
+
+          List<PickChampDto> champs = pickSummonerDto.getChamps();
+
+          int championId = lolienLeagueParticipant.getChampionId();
+
+          PickChampDto pickChampDto = champs
+              .stream()
+              .filter(c -> c.getChampId() == championId)
+              .findFirst()
+              .orElse(null);
+
+          if (Objects.isNull(pickChampDto)) {
+            pickChampDto = PickChampDto
+                .builder()
+                .champId(championId)
+                .champName(riotComponent.getChampionNameByChampId(championId))
+                .pickCount(0)
+                .build();
+
+            champs.add(pickChampDto);
+          }
+
+          pickChampDto.increasePickCount();
+        }
+      }
+    }
   }
 }

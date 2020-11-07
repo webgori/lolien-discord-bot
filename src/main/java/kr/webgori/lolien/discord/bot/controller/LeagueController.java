@@ -12,6 +12,7 @@ import kr.webgori.lolien.discord.bot.request.LeagueAddResultRequest;
 import kr.webgori.lolien.discord.bot.response.league.LeagueResponse;
 import kr.webgori.lolien.discord.bot.response.league.ResultResponse;
 import kr.webgori.lolien.discord.bot.response.league.ScheduleResponse;
+import kr.webgori.lolien.discord.bot.response.league.StatisticsPickResponse;
 import kr.webgori.lolien.discord.bot.response.league.StatisticsResponse;
 import kr.webgori.lolien.discord.bot.response.league.SummonerForParticipationResponse;
 import kr.webgori.lolien.discord.bot.response.league.TeamResponse;
@@ -221,5 +222,21 @@ public class LeagueController {
   @GetMapping("v1/leagues/statistics")
   public StatisticsResponse getStatistics() {
     return leagueService.getStatistics();
+  }
+
+  @Operation(
+      summary = "픽 통계 조회")
+  @ApiResponses(
+      value = {
+          @ApiResponse(
+              responseCode = "200",
+              description = "OK",
+              content = @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = StatisticsPickResponse.class)))
+      })
+  @GetMapping("v1/leagues/{league-idx}/statistics/pick")
+  public StatisticsPickResponse getStatisticsPick(@PathVariable("league-idx") int leagueIdx) {
+    return leagueService.getStatisticsPick(leagueIdx);
   }
 }
