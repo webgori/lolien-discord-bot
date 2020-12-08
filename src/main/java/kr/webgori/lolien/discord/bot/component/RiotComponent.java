@@ -6,12 +6,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import kr.webgori.lolien.discord.bot.dto.ChampDto;
 import kr.webgori.lolien.discord.bot.dto.ChampsDto;
 import kr.webgori.lolien.discord.bot.dto.DataDragonVersionDto;
@@ -21,6 +15,13 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -518,10 +519,24 @@ public class RiotComponent {
     boolean hasKey = data.has(key);
 
     if (!hasKey) {
-      throw new IllegalArgumentException("invalid item key " + key);
+      logger.error("invalid item key {}", key);
+      return getItemEmptyJsonObject();
     }
 
     return data.get(key).getAsJsonObject();
+  }
+
+  private JsonObject getItemEmptyJsonObject() {
+    JsonObject jsonObject = new JsonObject();
+    jsonObject.addProperty("name", "");
+    jsonObject.addProperty("description", "");
+
+    JsonObject imageJsonObject = new JsonObject();
+    imageJsonObject.addProperty("full", "");
+
+    jsonObject.add("image", imageJsonObject);
+
+    return jsonObject;
   }
 
   /**
