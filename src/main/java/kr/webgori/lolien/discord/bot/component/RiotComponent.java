@@ -6,6 +6,12 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import kr.webgori.lolien.discord.bot.dto.ChampDto;
 import kr.webgori.lolien.discord.bot.dto.ChampsDto;
 import kr.webgori.lolien.discord.bot.dto.DataDragonVersionDto;
@@ -15,13 +21,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -526,6 +525,22 @@ public class RiotComponent {
     return data.get(key).getAsJsonObject();
   }
 
+  /**
+   * getItemJsonObject.
+   *
+   * @param dataDragonVersion dataDragonVersion
+   * @return itemJsonObject
+   */
+  public JsonObject getItemJsonObject(String dataDragonVersion) {
+    String responseBody = Optional.ofNullable(restTemplate
+            .getForObject("https://ddragon.leagueoflegends"
+                            + ".com/cdn/{data-dragon-version}/data/ko_KR/item.json",
+                    String.class, dataDragonVersion))
+            .orElseThrow(() -> new IllegalStateException("riot champions api result is empty"));
+
+    return gson.fromJson(responseBody, JsonObject.class);
+  }
+
   private JsonObject getItemEmptyJsonObject() {
     JsonObject jsonObject = new JsonObject();
     jsonObject.addProperty("name", "");
@@ -537,22 +552,6 @@ public class RiotComponent {
     jsonObject.add("image", imageJsonObject);
 
     return jsonObject;
-  }
-
-  /**
-   * getItemJsonObject.
-   *
-   * @param dataDragonVersion dataDragonVersion
-   * @return itemJsonObject
-   */
-  public JsonObject getItemJsonObject(String dataDragonVersion) {
-    String responseBody = Optional.ofNullable(restTemplate
-        .getForObject("https://ddragon.leagueoflegends"
-                + ".com/cdn/{data-dragon-version}/data/ko_KR/item.json",
-            String.class, dataDragonVersion))
-        .orElseThrow(() -> new IllegalStateException("riot champions api result is empty"));
-
-    return gson.fromJson(responseBody, JsonObject.class);
   }
 
   private JsonObject getRuneJsonArray(JsonArray runesJsonArray, int runeId) {
