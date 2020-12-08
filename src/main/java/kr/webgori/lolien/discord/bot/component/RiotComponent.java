@@ -518,7 +518,7 @@ public class RiotComponent {
     boolean hasKey = data.has(key);
 
     if (!hasKey) {
-      throw new IllegalArgumentException();
+      throw new IllegalArgumentException("invalid item key " + key);
     }
 
     return data.get(key).getAsJsonObject();
