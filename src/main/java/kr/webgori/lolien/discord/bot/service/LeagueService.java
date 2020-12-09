@@ -1,17 +1,6 @@
 package kr.webgori.lolien.discord.bot.service;
 
-import static java.util.Collections.reverseOrder;
-import static kr.webgori.lolien.discord.bot.service.CustomGameService.BLUE_TEAM;
-import static kr.webgori.lolien.discord.bot.service.CustomGameService.RED_TEAM;
-import static kr.webgori.lolien.discord.bot.util.CommonUtil.getEndDateOfMonth;
-import static kr.webgori.lolien.discord.bot.util.CommonUtil.getEndDateOfPrevMonth;
-import static kr.webgori.lolien.discord.bot.util.CommonUtil.getEndDateOfYear;
-import static kr.webgori.lolien.discord.bot.util.CommonUtil.getStartDateOfMonth;
-import static kr.webgori.lolien.discord.bot.util.CommonUtil.getStartDateOfPrevMonth;
-import static kr.webgori.lolien.discord.bot.util.CommonUtil.getStartDateOfYear;
-import static kr.webgori.lolien.discord.bot.util.CommonUtil.localDateToTimestamp;
-import static kr.webgori.lolien.discord.bot.util.CommonUtil.timestampToLocalDateTime;
-
+import javax.servlet.http.HttpServletRequest;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.gson.JsonArray;
@@ -23,45 +12,19 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.StringJoiner;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletRequest;
 import kr.webgori.lolien.discord.bot.component.AuthenticationComponent;
 import kr.webgori.lolien.discord.bot.component.LeagueComponent;
 import kr.webgori.lolien.discord.bot.component.RiotComponent;
-import kr.webgori.lolien.discord.bot.dto.ChampDto;
-import kr.webgori.lolien.discord.bot.dto.CustomGameSummonerDto;
-import kr.webgori.lolien.discord.bot.dto.CustomGameTeamBanDto;
-import kr.webgori.lolien.discord.bot.dto.CustomGameTeamDto;
-import kr.webgori.lolien.discord.bot.dto.DataDragonVersionDto;
-import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MatchDto;
-import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostAssistDto;
-import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostBannedDto;
-import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostDeathDto;
-import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostFirstBloodKillDto;
-import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostFirstTowerKillDto;
-import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostGoldEarnedDto;
-import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostKillDeathAssistDto;
-import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostKillDeathAssistInfoDto;
-import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostKillDto;
-import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostNeutralMinionsKilledDto;
-import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostPlayedChampionDto;
-import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostPlayedSummonerDto;
-import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostTotalDamageDealtToChampionsDto;
-import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostTotalDamageTakenDto;
-import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostVisionScoreDto;
-import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostWinningChampionDto;
-import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostWinningDto;
+import kr.webgori.lolien.discord.bot.dto.*;
+import kr.webgori.lolien.discord.bot.dto.customgame.statistics.*;
 import kr.webgori.lolien.discord.bot.dto.league.LeagueDto;
 import kr.webgori.lolien.discord.bot.dto.league.ScheduleDto;
 import kr.webgori.lolien.discord.bot.dto.league.SummonerForParticipationDto;
+import kr.webgori.lolien.discord.bot.dto.league.statistics.MostDeathSummonerDto;
 import kr.webgori.lolien.discord.bot.dto.league.statistics.PickChampDto;
 import kr.webgori.lolien.discord.bot.dto.league.statistics.PickSummonerDto;
 import kr.webgori.lolien.discord.bot.dto.league.statistics.PickTeamDto;
@@ -69,15 +32,7 @@ import kr.webgori.lolien.discord.bot.dto.league.team.TeamDto;
 import kr.webgori.lolien.discord.bot.entity.LolienMatch;
 import kr.webgori.lolien.discord.bot.entity.LolienParticipant;
 import kr.webgori.lolien.discord.bot.entity.LolienSummoner;
-import kr.webgori.lolien.discord.bot.entity.league.LolienLeague;
-import kr.webgori.lolien.discord.bot.entity.league.LolienLeagueMatch;
-import kr.webgori.lolien.discord.bot.entity.league.LolienLeagueParticipant;
-import kr.webgori.lolien.discord.bot.entity.league.LolienLeagueParticipantStats;
-import kr.webgori.lolien.discord.bot.entity.league.LolienLeagueSchedule;
-import kr.webgori.lolien.discord.bot.entity.league.LolienLeagueTeam;
-import kr.webgori.lolien.discord.bot.entity.league.LolienLeagueTeamBans;
-import kr.webgori.lolien.discord.bot.entity.league.LolienLeagueTeamStats;
-import kr.webgori.lolien.discord.bot.entity.league.LolienLeagueTeamSummoner;
+import kr.webgori.lolien.discord.bot.entity.league.*;
 import kr.webgori.lolien.discord.bot.entity.user.User;
 import kr.webgori.lolien.discord.bot.repository.league.LolienLeagueMatchRepository;
 import kr.webgori.lolien.discord.bot.repository.league.LolienLeagueRepository;
@@ -85,14 +40,7 @@ import kr.webgori.lolien.discord.bot.repository.league.LolienLeagueScheduleRepos
 import kr.webgori.lolien.discord.bot.repository.league.LolienLeagueTeamRepository;
 import kr.webgori.lolien.discord.bot.request.LeagueAddRequest;
 import kr.webgori.lolien.discord.bot.request.LeagueAddResultRequest;
-import kr.webgori.lolien.discord.bot.response.league.LeagueResponse;
-import kr.webgori.lolien.discord.bot.response.league.ResultDto;
-import kr.webgori.lolien.discord.bot.response.league.ResultResponse;
-import kr.webgori.lolien.discord.bot.response.league.ScheduleResponse;
-import kr.webgori.lolien.discord.bot.response.league.StatisticsPickResponse;
-import kr.webgori.lolien.discord.bot.response.league.StatisticsResponse;
-import kr.webgori.lolien.discord.bot.response.league.SummonerForParticipationResponse;
-import kr.webgori.lolien.discord.bot.response.league.TeamResponse;
+import kr.webgori.lolien.discord.bot.response.league.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
@@ -100,6 +48,12 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
+import static java.util.Collections.reverseOrder;
+import static java.util.stream.Collectors.groupingBy;
+import static kr.webgori.lolien.discord.bot.service.CustomGameService.BLUE_TEAM;
+import static kr.webgori.lolien.discord.bot.service.CustomGameService.RED_TEAM;
+import static kr.webgori.lolien.discord.bot.util.CommonUtil.*;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -793,8 +747,7 @@ public class LeagueService {
 
     MostTotalDamageTakenDto mostTotalDamageTakenDto = getMostTotalDamageTakenDto(lolienMatches);
     MostGoldEarnedDto mostGoldEarnedDto = getMostGoldEarnedDto(lolienMatches);
-    MostNeutralMinionsKilledDto mostNeutralMinionsKilledDto = getMostNeutralMinionsKilledDto(
-        lolienMatches);
+    MostMinionsKilledDto mostMinionsKilledDto = getMostMinionsKilledDto(lolienMatches);
     MostFirstTowerKillDto mostFirstTowerKillDto = getMostFirstTowerKillDto(lolienMatches);
     MostFirstBloodKillDto mostFirstBloodKillDto = getMostFirstBloodKillDto(lolienMatches);
 
@@ -815,7 +768,7 @@ public class LeagueService {
         .mostTotalDamageDealtToChampions(mostTotalDamageDealtToChampions)
         .mostTotalDamageTaken(mostTotalDamageTakenDto)
         .mostGoldEarned(mostGoldEarnedDto)
-        .mostNeutralMinionsKilled(mostNeutralMinionsKilledDto)
+        .mostNeutralMinionsKilled(mostMinionsKilledDto)
         .mostFirstTowerKill(mostFirstTowerKillDto)
         .mostFirstBloodKill(mostFirstBloodKillDto)
         .build();
@@ -841,8 +794,7 @@ public class LeagueService {
 
     return lolienMatches
         .stream()
-        .collect(Collectors
-            .groupingBy(lm -> timestampToLocalDateTime(lm.getGameCreation()).toLocalDate()))
+        .collect(groupingBy(lm -> timestampToLocalDateTime(lm.getGameCreation()).toLocalDate()))
         .entrySet()
         .stream()
         .map(entry -> MatchDto
@@ -994,8 +946,7 @@ public class LeagueService {
     Map<Integer, List<MostWinningChampionDto>> groupingBy =
         mostWinningChampionDtoList
             .stream()
-            .collect(Collectors
-                .groupingBy(MostWinningChampionDto::getChampionId));
+            .collect(groupingBy(MostWinningChampionDto::getChampionId));
 
     List<MostWinningDto> mostWinningDtoList = Lists.newArrayList();
 
@@ -1110,14 +1061,14 @@ public class LeagueService {
   }
 
   /**
-   * 가장 많이 죽은 소환사 조회.
+   * 가장 많이 죽은 소환사 조회 (소환사별 모든 경기의 Death 를 더한 후 MAX 를 뽑음).
    * @param lolienMatches lolienMatches
    * @return 가장 많이 죽은 소환사
    */
   private MostDeathDto getMostDeathDto(List<LolienLeagueMatch> lolienMatches) {
-    long gameId = 0;
-    String summonerName = "";
-    int mostDeaths = 0;
+    String mostSumOfSummonerName = "";
+    int mostSumOfDeaths = 0;
+    List<MostDeathSummonerDto> mostDeathSummonersDto = Lists.newArrayList();
 
     for (LolienLeagueMatch lolienMatch : lolienMatches) {
       Set<LolienLeagueParticipant> participants = lolienMatch.getParticipants();
@@ -1125,20 +1076,37 @@ public class LeagueService {
       for (LolienLeagueParticipant participant : participants) {
         LolienLeagueParticipantStats stats = participant.getStats();
         int deaths = stats.getDeaths();
+        String summonerName = participant.getLolienSummoner().getSummonerName();
 
-        if (mostDeaths < deaths) {
-          gameId = lolienMatch.getGameId();
-          summonerName = participant.getLolienSummoner().getSummonerName();
-          mostDeaths = deaths;
-        }
+        MostDeathSummonerDto mostDeathSummonerDto = mostDeathSummonersDto
+                .stream()
+                .filter(s -> s.getSummonerName().equals(summonerName))
+                .findFirst()
+                .orElseGet(() -> MostDeathSummonerDto
+                        .builder()
+                        .summonerName(summonerName)
+                        .build());
+
+        mostDeathSummonerDto.addDeath(deaths);
+        mostDeathSummonersDto.add(mostDeathSummonerDto);
+      }
+    }
+
+    for (MostDeathSummonerDto mostDeathSummonerDto : mostDeathSummonersDto) {
+      String summonerName = mostDeathSummonerDto.getSummonerName();
+      List<Integer> deaths = mostDeathSummonerDto.getDeaths();
+      int sumOfDeath = deaths.stream().mapToInt(Integer::intValue).sum();
+
+      if (mostSumOfDeaths < sumOfDeath) {
+        mostSumOfSummonerName = summonerName;
+        mostSumOfDeaths = sumOfDeath;
       }
     }
 
     return MostDeathDto
         .builder()
-        .gameId(gameId)
-        .summonerName(summonerName)
-        .deaths(mostDeaths)
+        .summonerName(mostSumOfSummonerName)
+        .deaths(mostSumOfDeaths)
         .build();
   }
 
@@ -1315,33 +1283,33 @@ public class LeagueService {
    * @param lolienMatches lolienMatches
    * @return CS가 가장 높은 소환사
    */
-  private MostNeutralMinionsKilledDto getMostNeutralMinionsKilledDto(
-      List<LolienLeagueMatch> lolienMatches) {
-
+  private MostMinionsKilledDto getMostMinionsKilledDto(List<LolienLeagueMatch> lolienMatches) {
     long gameId = 0;
     String summonerName = "";
-    long mostNeutralMinionsKilled = 0;
+    long mostMinionsKilled = 0;
 
     for (LolienLeagueMatch lolienMatch : lolienMatches) {
       Set<LolienLeagueParticipant> participants = lolienMatch.getParticipants();
 
       for (LolienLeagueParticipant participant : participants) {
         LolienLeagueParticipantStats stats = participant.getStats();
+        int totalMinionsKilled = stats.getTotalMinionsKilled();
         long neutralMinionsKilled = stats.getNeutralMinionsKilled();
+        long minionsKilled = totalMinionsKilled + neutralMinionsKilled;
 
-        if (mostNeutralMinionsKilled < neutralMinionsKilled) {
+        if (mostMinionsKilled < minionsKilled) {
           gameId = lolienMatch.getGameId();
           summonerName = participant.getLolienSummoner().getSummonerName();
-          mostNeutralMinionsKilled = neutralMinionsKilled;
+          mostMinionsKilled = minionsKilled;
         }
       }
     }
 
-    return MostNeutralMinionsKilledDto
+    return MostMinionsKilledDto
         .builder()
         .gameId(gameId)
         .summonerName(summonerName)
-        .neutralMinionsKilled(mostNeutralMinionsKilled)
+        .neutralMinionsKilled(mostMinionsKilled)
         .build();
   }
 

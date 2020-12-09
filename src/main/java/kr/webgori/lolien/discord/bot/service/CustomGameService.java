@@ -45,7 +45,7 @@ import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostGoldEarnedDto
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostKillDeathAssistDto;
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostKillDeathAssistInfoDto;
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostKillDto;
-import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostNeutralMinionsKilledDto;
+import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostMinionsKilledDto;
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostPlayedChampionDto;
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostPlayedSummonerDto;
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostTotalDamageDealtToChampionsDto;
@@ -514,8 +514,7 @@ public class CustomGameService {
 
     MostTotalDamageTakenDto mostTotalDamageTakenDto = getMostTotalDamageTakenDto(lolienMatches);
     MostGoldEarnedDto mostGoldEarnedDto = getMostGoldEarnedDto(lolienMatches);
-    MostNeutralMinionsKilledDto mostNeutralMinionsKilledDto = getMostNeutralMinionsKilledDto(
-        lolienMatches);
+    MostMinionsKilledDto mostMinionsKilledDto = getMostMinionsKilledDto(lolienMatches);
     MostFirstTowerKillDto mostFirstTowerKillDto = getMostFirstTowerKillDto(lolienMatches);
     MostFirstBloodKillDto mostFirstBloodKillDto = getMostFirstBloodKillDto(lolienMatches);
 
@@ -536,7 +535,7 @@ public class CustomGameService {
         .mostTotalDamageDealtToChampions(mostTotalDamageDealtToChampions)
         .mostTotalDamageTaken(mostTotalDamageTakenDto)
         .mostGoldEarned(mostGoldEarnedDto)
-        .mostNeutralMinionsKilled(mostNeutralMinionsKilledDto)
+        .mostNeutralMinionsKilled(mostMinionsKilledDto)
         .mostFirstTowerKill(mostFirstTowerKillDto)
         .mostFirstBloodKill(mostFirstBloodKillDto)
         .build();
@@ -1130,33 +1129,33 @@ public class CustomGameService {
    * @param lolienMatches lolienMatches
    * @return CS가 가장 높은 소환사
    */
-  private MostNeutralMinionsKilledDto getMostNeutralMinionsKilledDto(
-      List<LolienMatch> lolienMatches) {
-
+  private MostMinionsKilledDto getMostMinionsKilledDto(List<LolienMatch> lolienMatches) {
     long gameId = 0;
     String summonerName = "";
-    long mostNeutralMinionsKilled = 0;
+    long mostMinionsKilled = 0;
 
     for (LolienMatch lolienMatch : lolienMatches) {
       Set<LolienParticipant> participants = lolienMatch.getParticipants();
 
       for (LolienParticipant participant : participants) {
         LolienParticipantStats stats = participant.getStats();
+        int totalMinionsKilled = stats.getTotalMinionsKilled();
         long neutralMinionsKilled = stats.getNeutralMinionsKilled();
+        long minionsKilled = totalMinionsKilled + neutralMinionsKilled;
 
-        if (mostNeutralMinionsKilled < neutralMinionsKilled) {
+        if (mostMinionsKilled < minionsKilled) {
           gameId = lolienMatch.getGameId();
           summonerName = participant.getLolienSummoner().getSummonerName();
-          mostNeutralMinionsKilled = neutralMinionsKilled;
+          mostMinionsKilled = minionsKilled;
         }
       }
     }
 
-    return MostNeutralMinionsKilledDto
+    return MostMinionsKilledDto
         .builder()
         .gameId(gameId)
         .summonerName(summonerName)
-        .neutralMinionsKilled(mostNeutralMinionsKilled)
+        .neutralMinionsKilled(mostMinionsKilled)
         .build();
   }
 

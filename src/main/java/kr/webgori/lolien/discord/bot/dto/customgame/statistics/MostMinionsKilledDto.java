@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Builder
 @Data
-public class MostNeutralMinionsKilledDto {
+public class MostMinionsKilledDto {
   private long gameId;
   private String summonerName;
   private long neutralMinionsKilled;
