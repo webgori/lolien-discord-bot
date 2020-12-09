@@ -64,6 +64,7 @@ import kr.webgori.lolien.discord.bot.dto.league.LeagueDto;
 import kr.webgori.lolien.discord.bot.dto.league.ScheduleDto;
 import kr.webgori.lolien.discord.bot.dto.league.SummonerForParticipationDto;
 import kr.webgori.lolien.discord.bot.dto.league.statistics.MostDeathSummonerDto;
+import kr.webgori.lolien.discord.bot.dto.league.statistics.MostVisionScoreSummonerDto;
 import kr.webgori.lolien.discord.bot.dto.league.statistics.PickChampDto;
 import kr.webgori.lolien.discord.bot.dto.league.statistics.PickSummonerDto;
 import kr.webgori.lolien.discord.bot.dto.league.statistics.PickTeamDto;
@@ -1198,29 +1199,49 @@ public class LeagueService {
    */
   private MostVisionScoreDto getMostVisionScoreDto(List<LolienLeagueMatch> lolienMatches) {
     long gameId = 0;
-    String summonerName = "";
-    long mostVisionScore = 0;
+    String mostAverageOfSummonerName = "";
+    float mostAverageOfVisionScore = 0;
+    List<MostVisionScoreSummonerDto> mostVisionScoreSummonersDto = Lists.newArrayList();
 
     for (LolienLeagueMatch lolienMatch : lolienMatches) {
       Set<LolienLeagueParticipant> participants = lolienMatch.getParticipants();
 
       for (LolienLeagueParticipant participant : participants) {
         LolienLeagueParticipantStats stats = participant.getStats();
+        String summonerName = participant.getLolienSummoner().getSummonerName();
         long visionScore = stats.getVisionScore();
 
-        if (mostVisionScore < visionScore) {
-          gameId = lolienMatch.getGameId();
-          summonerName = participant.getLolienSummoner().getSummonerName();
-          mostVisionScore = visionScore;
-        }
+        MostVisionScoreSummonerDto mostVisionScoreSummonerDto = mostVisionScoreSummonersDto
+                .stream()
+                .filter(s -> s.getSummonerName().equals(summonerName))
+                .findFirst()
+                .orElseGet(() -> MostVisionScoreSummonerDto
+                        .builder()
+                        .summonerName(summonerName)
+                        .build());
+
+        mostVisionScoreSummonerDto.addVisionScore(visionScore);
+        mostVisionScoreSummonersDto.add(mostVisionScoreSummonerDto);
+      }
+    }
+
+    for (MostVisionScoreSummonerDto mostVisionScoreSummonerDto : mostVisionScoreSummonersDto) {
+      String summonerName = mostVisionScoreSummonerDto.getSummonerName();
+      List<Long> visionScores = mostVisionScoreSummonerDto.getVisionScores();
+      long sumOfVisionScore = visionScores.stream().mapToLong(Long::longValue).sum();
+      float averageOfVisionScore = sumOfVisionScore / (float) 12;
+
+      if (mostAverageOfVisionScore < averageOfVisionScore) {
+        mostAverageOfSummonerName = summonerName;
+        mostAverageOfVisionScore = averageOfVisionScore;
       }
     }
 
     return MostVisionScoreDto
         .builder()
         .gameId(gameId)
-        .summonerName(summonerName)
-        .visionScore(mostVisionScore)
+        .summonerName(mostAverageOfSummonerName)
+        .visionScore(mostAverageOfVisionScore)
         .build();
   }
 

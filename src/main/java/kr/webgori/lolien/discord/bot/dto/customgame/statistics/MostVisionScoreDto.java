@@ -8,5 +8,5 @@ import lombok.Data;
 public class MostVisionScoreDto {
   private long gameId;
   private String summonerName;
-  private long visionScore;
+  private float visionScore;
 }
