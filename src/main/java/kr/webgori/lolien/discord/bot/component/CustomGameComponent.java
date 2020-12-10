@@ -375,9 +375,8 @@ public class CustomGameComponent {
       boolean hasSummonerName = lolienSummonerRepository.existsBySummonerName(nonSpaceSummonerName);
 
       if (!hasSummonerName) {
-        String errorMessage = String.format(
-            "Discord에서 \"!소환사 등록 %s\" 명령어로 소환사 등록을 먼저 해주시기 바랍니다.",
-            nonSpaceSummonerName);
+        String errorMessage = String.format("\"%s\" 소환사를 찾을 수 없습니다. "
+                + "https://lolien.kr 에서 회원가입 해주세요.", summonerName);
 
         throw new IllegalArgumentException(errorMessage);
       }
