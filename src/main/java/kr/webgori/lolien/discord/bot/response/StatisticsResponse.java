@@ -3,6 +3,7 @@ package kr.webgori.lolien.discord.bot.response;
 import java.time.LocalDate;
 import java.util.List;
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MatchDto;
+import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MmrDto;
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostAssistDto;
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostBannedDto;
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostDeathDto;
@@ -42,4 +43,6 @@ public class StatisticsResponse {
   private MostMinionsKilledDto mostNeutralMinionsKilled;
   private MostFirstTowerKillDto mostFirstTowerKill;
   private MostFirstBloodKillDto mostFirstBloodKill;
+  private MmrDto minMmr;
+  private MmrDto maxMmr;
 }

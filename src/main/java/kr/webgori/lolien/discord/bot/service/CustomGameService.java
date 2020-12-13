@@ -36,6 +36,7 @@ import kr.webgori.lolien.discord.bot.dto.CustomGameTeamBanDto;
 import kr.webgori.lolien.discord.bot.dto.CustomGameTeamDto;
 import kr.webgori.lolien.discord.bot.dto.DataDragonVersionDto;
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MatchDto;
+import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MmrDto;
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostAssistDto;
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostBannedDto;
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostDeathDto;
@@ -517,28 +518,78 @@ public class CustomGameService {
     MostMinionsKilledDto mostMinionsKilledDto = getMostMinionsKilledDto(lolienMatches);
     MostFirstTowerKillDto mostFirstTowerKillDto = getMostFirstTowerKillDto(lolienMatches);
     MostFirstBloodKillDto mostFirstBloodKillDto = getMostFirstBloodKillDto(lolienMatches);
+    MmrDto minMmrDto = getMinMmr();
+    MmrDto maxMmrDto = getMaxMmr();
 
     return StatisticsResponse
-        .builder()
-        .startDateOfMonth(startDateOfMonth)
-        .endDateOfMonth(endDateOfMonth)
-        .matches(matchesDto)
-        .mostBannedList(mostBannedDtoList)
-        .mostPlayedChampionList(mostPlayedChampionDtoList)
-        .mostWinningList(mostWinningDtoList)
-        .mostPlayedSummonerList(mostPlayedSummonerDtoList)
-        .mostKillDeathAssistList(mostKillDeathAssistDtoList)
-        .mostKill(mostKillDto)
-        .mostDeath(mostDeathDto)
-        .mostAssist(mostAssistDto)
-        .mostVisionScore(mostVisionScoreDto)
-        .mostTotalDamageDealtToChampions(mostTotalDamageDealtToChampions)
-        .mostTotalDamageTaken(mostTotalDamageTakenDto)
-        .mostGoldEarned(mostGoldEarnedDto)
-        .mostNeutralMinionsKilled(mostMinionsKilledDto)
-        .mostFirstTowerKill(mostFirstTowerKillDto)
-        .mostFirstBloodKill(mostFirstBloodKillDto)
-        .build();
+            .builder()
+            .startDateOfMonth(startDateOfMonth)
+            .endDateOfMonth(endDateOfMonth)
+            .matches(matchesDto)
+            .mostBannedList(mostBannedDtoList)
+            .mostPlayedChampionList(mostPlayedChampionDtoList)
+            .mostWinningList(mostWinningDtoList)
+            .mostPlayedSummonerList(mostPlayedSummonerDtoList)
+            .mostKillDeathAssistList(mostKillDeathAssistDtoList)
+            .mostKill(mostKillDto)
+            .mostDeath(mostDeathDto)
+            .mostAssist(mostAssistDto)
+            .mostVisionScore(mostVisionScoreDto)
+            .mostTotalDamageDealtToChampions(mostTotalDamageDealtToChampions)
+            .mostTotalDamageTaken(mostTotalDamageTakenDto)
+            .mostGoldEarned(mostGoldEarnedDto)
+            .mostNeutralMinionsKilled(mostMinionsKilledDto)
+            .mostFirstTowerKill(mostFirstTowerKillDto)
+            .mostFirstBloodKill(mostFirstBloodKillDto)
+            .minMmr(minMmrDto)
+            .maxMmr(maxMmrDto)
+            .build();
+  }
+
+  private MmrDto getMaxMmr() {
+    List<LolienSummoner> lolienSummoners = lolienSummonerRepository.findTopByOrderByMmrDesc();
+    for (LolienSummoner lolienSummoner : lolienSummoners) {
+      Set<LolienParticipant> participants = lolienSummoner.getParticipants();
+      if (!participants.isEmpty()) {
+        String summonerName = lolienSummoner.getSummonerName();
+        int mmr = lolienSummoner.getMmr();
+
+        return MmrDto
+                .builder()
+                .summonerName(summonerName)
+                .mmr(mmr)
+                .build();
+      }
+    }
+
+    return MmrDto
+            .builder()
+            .summonerName("")
+            .mmr(0)
+            .build();
+  }
+
+  private MmrDto getMinMmr() {
+    List<LolienSummoner> lolienSummoners = lolienSummonerRepository.findTopByOrderByMmrAsc();
+    for (LolienSummoner lolienSummoner : lolienSummoners) {
+      Set<LolienParticipant> participants = lolienSummoner.getParticipants();
+      if (!participants.isEmpty()) {
+        String summonerName = lolienSummoner.getSummonerName();
+        int mmr = lolienSummoner.getMmr();
+
+        return MmrDto
+                .builder()
+                .summonerName(summonerName)
+                .mmr(mmr)
+                .build();
+      }
+    }
+
+    return MmrDto
+            .builder()
+            .summonerName("")
+            .mmr(0)
+            .build();
   }
 
   private List<MatchDto> getStatisticsMatchesDto(
