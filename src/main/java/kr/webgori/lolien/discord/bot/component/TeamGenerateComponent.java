@@ -224,7 +224,7 @@ public class TeamGenerateComponent {
       int mmr = Optional.ofNullable(summoner.getMmr()).orElse(0);
       int winResultMmr = getResultMmr(mmr, true, enemyTeamMmr);
       int loseResultMmr = getResultMmr(mmr, false, enemyTeamMmr);
-      String mmrInfo = String.format("승리시 획득 MMR %s, 패배시 차감 MMR %s", winResultMmr, loseResultMmr);
+      String mmrInfo = String.format("W MMR %s, L MMR %s", winResultMmr, loseResultMmr);
       String summonerInfo = String.format(" (%s, %s)", tier, mmrInfo);
       message.append(summonerInfo);
 
