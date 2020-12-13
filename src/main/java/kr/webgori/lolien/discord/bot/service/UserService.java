@@ -863,7 +863,7 @@ public class UserService {
       String summonerName = lolienSummoner.getSummonerName();
       int mmr = lolienSummoner.getMmr();
 
-      League latestTier = teamGenerateComponent.getMostTierInLatest3Month(lolienSummoner);
+      League latestTier = teamGenerateComponent.getMostTierInLatest3Seasons(lolienSummoner);
       String tier = latestTier.getTier();
 
       UserDto userDto = UserDto

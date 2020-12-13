@@ -208,7 +208,7 @@ public class TeamGenerateComponent {
       String summonerName = summoner.getSummonerName();
       message.append(summonerName);
 
-      League latestTier = getMostTierInLatest3Month(summoner);
+      League latestTier = getMostTierInLatest3Seasons(summoner);
 
       if (Objects.nonNull(latestTier)) {
         message.append(" (");
@@ -480,7 +480,12 @@ public class TeamGenerateComponent {
     }
   }
 
-  public League getMostTierInLatest3Month(LolienSummoner lolienSummoner) {
+  /**
+   * 가장 마지막 3개의 시즌 중에 최고 티어를 조회.
+   * @param lolienSummoner lolienSummoner
+   * @return League
+   */
+  public League getMostTierInLatest3Seasons(LolienSummoner lolienSummoner) {
     Map<String, Integer> tiers = getTiers();
 
     return leagueRepository
