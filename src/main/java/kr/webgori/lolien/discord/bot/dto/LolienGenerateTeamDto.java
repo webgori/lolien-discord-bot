@@ -15,4 +15,6 @@ public class LolienGenerateTeamDto {
   private List<LolienSummoner> summonersTeam1;
   private List<LolienSummoner> summonersTeam2;
   private int mmrDifference;
+  private int team1Mmr;
+  private int team2Mmr;
 }

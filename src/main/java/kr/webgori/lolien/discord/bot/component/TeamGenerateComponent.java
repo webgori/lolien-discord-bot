@@ -169,11 +169,13 @@ public class TeamGenerateComponent {
       int mmrDifference = Math.abs(team1Mmr - team2Mmr);
 
       LolienGenerateTeamDto lolienGenerateTeamDto = LolienGenerateTeamDto
-          .builder()
-          .summonersTeam1(team1)
-          .summonersTeam2(team2)
-          .mmrDifference(mmrDifference)
-          .build();
+              .builder()
+              .summonersTeam1(team1)
+              .summonersTeam2(team2)
+              .mmrDifference(mmrDifference)
+              .team1Mmr(team1Mmr)
+              .team2Mmr(team2Mmr)
+              .build();
 
       lolienGenerateTeamDtoList.add(lolienGenerateTeamDto);
     }
@@ -189,22 +191,26 @@ public class TeamGenerateComponent {
     StringBuilder message = new StringBuilder("1팀: ");
 
     List<LolienSummoner> summonersTeam1 = lolienGenerateTeamDto.getSummonersTeam1();
+    int team1Mmr = lolienGenerateTeamDto.getTeam1Mmr();
 
-    message = getTeamGenerateMessageByTeam(message, summonersTeam1);
+    message = getTeamGenerateMessageByTeam(message, summonersTeam1, team1Mmr);
 
     message.append("\n\n");
 
     message.append("2팀: ");
 
     List<LolienSummoner> summonersTeam2 = lolienGenerateTeamDto.getSummonersTeam2();
+    int team2Mmr = lolienGenerateTeamDto.getTeam2Mmr();
 
-    return getTeamGenerateMessageByTeam(message, summonersTeam2).toString();
+    return getTeamGenerateMessageByTeam(message, summonersTeam2, team2Mmr).toString();
   }
 
   @NotNull
   private StringBuilder getTeamGenerateMessageByTeam(StringBuilder message,
-                                                     List<LolienSummoner> summonersTeam2) {
-    for (LolienSummoner summoner : summonersTeam2) {
+                                                     List<LolienSummoner> teamSummoners,
+                                                     int teamMmr) {
+
+    for (LolienSummoner summoner : teamSummoners) {
       String summonerName = summoner.getSummonerName();
       message.append(summonerName);
 
@@ -223,9 +229,12 @@ public class TeamGenerateComponent {
 
     message = new StringBuilder(message.substring(0, message.length() - 2));
 
+    String teamMmrMessage = String.format(" - 평균 MMR %s", teamMmr);
+    message.append(teamMmrMessage);
+
     message.append("\n");
 
-    List<String> team2SummonerName = summonersTeam2
+    List<String> team2SummonerName = teamSummoners
         .stream()
         .map(LolienSummoner::getSummonerName)
         .collect(Collectors.toList());
