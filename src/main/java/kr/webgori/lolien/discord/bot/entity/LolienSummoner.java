@@ -65,6 +65,10 @@ public class LolienSummoner {
   }
 
   public void minusMmr(Integer mmr) {
-    this.mmr -= mmr;
+    if (this.mmr - mmr < 50) {
+      this.mmr = 50;
+    } else {
+      this.mmr -= mmr;
+    }
   }
 }

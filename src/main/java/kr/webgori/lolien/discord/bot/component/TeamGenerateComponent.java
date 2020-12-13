@@ -225,7 +225,7 @@ public class TeamGenerateComponent {
       int winResultMmr = getResultMmr(mmr, true, enemyTeamMmr);
       int loseResultMmr = getResultMmr(mmr, false, enemyTeamMmr);
       String mmrInfo = String.format("승리시 획득 MMR %s, 패배시 차감 MMR %s", winResultMmr, loseResultMmr);
-      String summonerInfo = String.format(" (%s, %s), ", tier, mmrInfo);
+      String summonerInfo = String.format(" (%s, %s)", tier, mmrInfo);
       message.append(summonerInfo);
 
       message.append(", ");
@@ -253,9 +253,9 @@ public class TeamGenerateComponent {
       int resultMmr = 0;
 
       if (mmr > enemyTeamMmr) {
-        resultMmr = (int) (mmr / enemyTeamMmr * 10);
+        resultMmr = mmr / enemyTeamMmr * 10;
       } else if (mmr < enemyTeamMmr) {
-        resultMmr = (int) (enemyTeamMmr / mmr * 15);
+        resultMmr = enemyTeamMmr / mmr * 15;
       }
 
       return resultMmr;
