@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import javax.servlet.http.HttpServletRequest;
@@ -861,9 +862,12 @@ public class UserService {
 
       LolienSummoner lolienSummoner = user.getLolienSummoner();
       String summonerName = lolienSummoner.getSummonerName();
-      int mmr = lolienSummoner.getMmr();
+      Integer mmr = lolienSummoner.getMmr();
 
-      League latestTier = teamGenerateComponent.getMostTierInLatest3Seasons(lolienSummoner);
+      Optional<League> optionalLatestTier = teamGenerateComponent
+              .getMostTierInLatest3Seasons(lolienSummoner);
+
+      League latestTier = optionalLatestTier.orElseGet(() -> League.builder().tier("").build());
       String tier = latestTier.getTier();
 
       UserDto userDto = UserDto

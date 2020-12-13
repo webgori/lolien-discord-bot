@@ -208,14 +208,13 @@ public class TeamGenerateComponent {
       String summonerName = summoner.getSummonerName();
       message.append(summonerName);
 
-      League latestTier = getMostTierInLatest3Seasons(summoner);
+      Optional<League> optionalLatestTier = getMostTierInLatest3Seasons(summoner);
+      League latestTier = optionalLatestTier.orElseGet(() -> League.builder().tier("").build());
+      String tier = latestTier.getTier();
 
-      if (Objects.nonNull(latestTier)) {
+      if (!tier.equals("")) {
         message.append(" (");
-
-        String tier = latestTier.getTier();
         message.append(tier);
-
         message.append(")");
       }
 
@@ -485,7 +484,7 @@ public class TeamGenerateComponent {
    * @param lolienSummoner lolienSummoner
    * @return League
    */
-  public League getMostTierInLatest3Seasons(LolienSummoner lolienSummoner) {
+  public Optional<League> getMostTierInLatest3Seasons(LolienSummoner lolienSummoner) {
     Map<String, Integer> tiers = getTiers();
 
     return leagueRepository
@@ -494,7 +493,6 @@ public class TeamGenerateComponent {
         .filter(l -> l.getSeason().equals("S08") || l.getSeason().equals("S09")
             || l.getSeason().equals("S10"))
         .filter(l -> !l.getTier().equals(DEFAULT_TIER))
-        .max(Comparator.comparing(l -> tiers.get(l.getTier())))
-        .orElse(null);
+        .max(Comparator.comparing(l -> tiers.get(l.getTier())));
   }
 }
