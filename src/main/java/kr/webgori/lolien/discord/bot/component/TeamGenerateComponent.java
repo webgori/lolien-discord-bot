@@ -192,37 +192,41 @@ public class TeamGenerateComponent {
 
     List<LolienSummoner> summonersTeam1 = lolienGenerateTeamDto.getSummonersTeam1();
     int team1Mmr = lolienGenerateTeamDto.getTeam1Mmr();
+    int team2Mmr = lolienGenerateTeamDto.getTeam2Mmr();
 
-    message = getTeamGenerateMessageByTeam(message, summonersTeam1, team1Mmr);
+    message = getTeamGenerateMessageByTeam(message, summonersTeam1, team1Mmr, team2Mmr);
 
     message.append("\n\n");
 
     message.append("2팀: ");
 
     List<LolienSummoner> summonersTeam2 = lolienGenerateTeamDto.getSummonersTeam2();
-    int team2Mmr = lolienGenerateTeamDto.getTeam2Mmr();
 
-    return getTeamGenerateMessageByTeam(message, summonersTeam2, team2Mmr).toString();
+    return getTeamGenerateMessageByTeam(message, summonersTeam2, team2Mmr, team1Mmr).toString();
   }
 
   @NotNull
   private StringBuilder getTeamGenerateMessageByTeam(StringBuilder message,
                                                      List<LolienSummoner> teamSummoners,
-                                                     int teamMmr) {
+                                                     int teamMmr,
+                                                     int enemyTeamMmr) {
 
     for (LolienSummoner summoner : teamSummoners) {
       String summonerName = summoner.getSummonerName();
       message.append(summonerName);
 
       Optional<League> optionalLatestTier = getMostTierInLatest3Seasons(summoner);
-      League latestTier = optionalLatestTier.orElseGet(() -> League.builder().tier("").build());
+      League latestTier = optionalLatestTier
+              .orElseGet(() -> League.builder().tier(DEFAULT_TIER).build());
+
       String tier = latestTier.getTier();
 
-      if (!tier.equals("")) {
-        message.append(" (");
-        message.append(tier);
-        message.append(")");
-      }
+      int mmr = Optional.ofNullable(summoner.getMmr()).orElse(0);
+      int winResultMmr = getResultMmr(mmr, true, enemyTeamMmr);
+      int loseResultMmr = getResultMmr(mmr, false, enemyTeamMmr);
+      String mmrInfo = String.format("승리시 획득 MMR %s, 패배시 차감 MMR %s", winResultMmr, loseResultMmr);
+      String summonerInfo = String.format(" (%s, %s), ", tier, mmrInfo);
+      message.append(summonerInfo);
 
       message.append(", ");
     }
@@ -242,6 +246,30 @@ public class TeamGenerateComponent {
     String team2SummonerMostTop3 = setTeamSummonerMostTop3(team2SummonerName);
     message.append(team2SummonerMostTop3);
     return message;
+  }
+
+  private int getResultMmr(int mmr, boolean win, int enemyTeamMmr) {
+    if (win) {
+      int resultMmr = 0;
+
+      if (mmr > enemyTeamMmr) {
+        resultMmr = (int) (mmr / enemyTeamMmr * 10);
+      } else if (mmr < enemyTeamMmr) {
+        resultMmr = (int) (enemyTeamMmr / mmr * 15);
+      }
+
+      return resultMmr;
+    } else {
+      int resultMmr = 0;
+
+      if (mmr > enemyTeamMmr) {
+        resultMmr = mmr / enemyTeamMmr * 15;
+      } else if (mmr < enemyTeamMmr) {
+        resultMmr = enemyTeamMmr / mmr * 10;
+      }
+
+      return -resultMmr;
+    }
   }
 
   private int getTeamMmr(List<LolienSummoner> team1) {
