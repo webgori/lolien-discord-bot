@@ -253,9 +253,9 @@ public class TeamGenerateComponent {
       int resultMmr = 0;
 
       if (mmr > enemyTeamMmr) {
-        resultMmr = mmr / enemyTeamMmr * 10;
+        resultMmr = (int) ((float) mmr / enemyTeamMmr) * 10;
       } else if (mmr < enemyTeamMmr) {
-        resultMmr = enemyTeamMmr / mmr * 15;
+        resultMmr = (int) ((float) enemyTeamMmr / mmr) * 15;
       }
 
       return resultMmr;

@@ -288,7 +288,7 @@ public class CustomGameComponent {
 
           long lose = count - wins;
 
-          int winRate = (int) ((double) wins / count * 100);
+          int winRate = (int) ((float) wins / count * 100);
 
           String message = String
               .format("%s (%s회, %s승 %s패, 승률 %s)", championName, count, wins, lose, winRate);
@@ -515,7 +515,7 @@ public class CustomGameComponent {
         .map(LolienParticipant::getLolienSummoner)
         .collect(Collectors.toList());
 
-    double team1MmrAverage = team1Summoners
+    float team1MmrAverage = (float) team1Summoners
         .stream()
         .mapToInt(LolienSummoner::getMmr)
         .average()
@@ -527,7 +527,7 @@ public class CustomGameComponent {
         .map(LolienParticipant::getLolienSummoner)
         .collect(Collectors.toList());
 
-    double team2MmrAverage = team2Summoners
+    float team2MmrAverage = (float) team2Summoners
         .stream()
         .mapToInt(LolienSummoner::getMmr)
         .average()
@@ -554,7 +554,7 @@ public class CustomGameComponent {
     }
   }
 
-  private void applyMmr(double team1MmrAverage, double team2MmrAverage,
+  private void applyMmr(float team1MmrAverage, float team2MmrAverage,
                         LolienParticipant lolienParticipant) {
 
     LolienParticipantStats stats = lolienParticipant.getStats();
