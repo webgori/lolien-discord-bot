@@ -480,7 +480,7 @@ public class TeamGenerateComponent {
     }
   }
 
-  private League getMostTierInLatest3Month(LolienSummoner lolienSummoner) {
+  public League getMostTierInLatest3Month(LolienSummoner lolienSummoner) {
     Map<String, Integer> tiers = getTiers();
 
     return leagueRepository

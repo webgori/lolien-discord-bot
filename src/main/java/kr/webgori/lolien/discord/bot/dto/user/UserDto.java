@@ -13,5 +13,7 @@ import lombok.NoArgsConstructor;
 public class UserDto {
   private String nickname;
   private String summonerName;
+  private String tier;
+  private int mmr;
   private LocalDateTime createdAt;
 }

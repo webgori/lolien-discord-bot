@@ -29,6 +29,7 @@ import javax.servlet.http.HttpServletRequest;
 import kr.webgori.lolien.discord.bot.component.AuthenticationComponent;
 import kr.webgori.lolien.discord.bot.component.ConfigComponent;
 import kr.webgori.lolien.discord.bot.component.MailComponent;
+import kr.webgori.lolien.discord.bot.component.TeamGenerateComponent;
 import kr.webgori.lolien.discord.bot.component.UserTransactionComponent;
 import kr.webgori.lolien.discord.bot.dto.UserInfoDto;
 import kr.webgori.lolien.discord.bot.dto.UserSessionDto;
@@ -114,6 +115,7 @@ public class UserService {
   private final MailComponent mailComponent;
   private final UserTransactionComponent userTransactionComponent;
   private final ClienUserRepository clienUserRepository;
+  private final TeamGenerateComponent teamGenerateComponent;
 
   @Value("${clien.service.url}")
   private String clienUrl;
@@ -854,15 +856,24 @@ public class UserService {
 
     for (User user : users) {
       String nickname = user.getNickname();
-      String summonerName = user.getLolienSummoner().getSummonerName();
+
       LocalDateTime createdAt = user.getCreatedAt();
 
+      LolienSummoner lolienSummoner = user.getLolienSummoner();
+      String summonerName = lolienSummoner.getSummonerName();
+      int mmr = lolienSummoner.getMmr();
+
+      League latestTier = teamGenerateComponent.getMostTierInLatest3Month(lolienSummoner);
+      String tier = latestTier.getTier();
+
       UserDto userDto = UserDto
-          .builder()
-          .nickname(nickname)
-          .summonerName(summonerName)
-          .createdAt(createdAt)
-          .build();
+              .builder()
+              .nickname(nickname)
+              .summonerName(summonerName)
+              .tier(tier)
+              .mmr(mmr)
+              .createdAt(createdAt)
+              .build();
 
       usersDto.add(userDto);
     }
