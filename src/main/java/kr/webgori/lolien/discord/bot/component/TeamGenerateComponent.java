@@ -164,9 +164,9 @@ public class TeamGenerateComponent {
         }
       }
 
-      int team1Mmr = getTeamMmr(team1);
-      int team2Mmr = getTeamMmr(team2);
-      int mmrDifference = Math.abs(team1Mmr - team2Mmr);
+      float team1Mmr = getTeamMmr(team1);
+      float team2Mmr = getTeamMmr(team2);
+      float mmrDifference = Math.abs(team1Mmr - team2Mmr);
 
       LolienGenerateTeamDto lolienGenerateTeamDto = LolienGenerateTeamDto
               .builder()
@@ -191,8 +191,8 @@ public class TeamGenerateComponent {
     StringBuilder message = new StringBuilder("1팀: ");
 
     List<LolienSummoner> summonersTeam1 = lolienGenerateTeamDto.getSummonersTeam1();
-    int team1Mmr = lolienGenerateTeamDto.getTeam1Mmr();
-    int team2Mmr = lolienGenerateTeamDto.getTeam2Mmr();
+    float team1Mmr = lolienGenerateTeamDto.getTeam1Mmr();
+    float team2Mmr = lolienGenerateTeamDto.getTeam2Mmr();
 
     message = getTeamGenerateMessageByTeam(message, summonersTeam1, team1Mmr, team2Mmr);
 
@@ -208,8 +208,8 @@ public class TeamGenerateComponent {
   @NotNull
   private StringBuilder getTeamGenerateMessageByTeam(StringBuilder message,
                                                      List<LolienSummoner> teamSummoners,
-                                                     int teamMmr,
-                                                     int enemyTeamMmr) {
+                                                     float teamMmr,
+                                                     float enemyTeamMmr) {
 
     for (LolienSummoner summoner : teamSummoners) {
       String summonerName = summoner.getSummonerName();
@@ -248,14 +248,14 @@ public class TeamGenerateComponent {
     return message;
   }
 
-  private int getResultMmr(int mmr, boolean win, int enemyTeamMmr) {
+  private int getResultMmr(int mmr, boolean win, float enemyTeamMmr) {
     if (win) {
       int resultMmr = 0;
 
       if (mmr > enemyTeamMmr) {
-        resultMmr = (int) ((float) mmr / enemyTeamMmr) * 10;
+        resultMmr = (int) (mmr / enemyTeamMmr * 10);
       } else if (mmr < enemyTeamMmr) {
-        resultMmr = (int) ((float) enemyTeamMmr / mmr) * 15;
+        resultMmr = (int) (enemyTeamMmr / mmr * 15);
       }
 
       return resultMmr;
@@ -263,17 +263,17 @@ public class TeamGenerateComponent {
       int resultMmr = 0;
 
       if (mmr > enemyTeamMmr) {
-        resultMmr = mmr / enemyTeamMmr * 15;
+        resultMmr = (int) (mmr / enemyTeamMmr * 15);
       } else if (mmr < enemyTeamMmr) {
-        resultMmr = enemyTeamMmr / mmr * 10;
+        resultMmr = (int) (enemyTeamMmr / mmr * 10);
       }
 
       return -resultMmr;
     }
   }
 
-  private int getTeamMmr(List<LolienSummoner> team1) {
-    return (int) team1
+  private float getTeamMmr(List<LolienSummoner> team1) {
+    return (float) team1
         .stream()
         .mapToInt(LolienSummoner::getMmr)
         .average()
