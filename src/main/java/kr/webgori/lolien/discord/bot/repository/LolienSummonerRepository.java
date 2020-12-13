@@ -20,9 +20,9 @@ public interface LolienSummonerRepository extends JpaRepository<LolienSummoner, 
 
   List<LolienSummoner> findTop5ByOrderByMmrDesc();
 
-  List<LolienSummoner> findTopByOrderByMmrAsc();
+  List<LolienSummoner> findTopByMmrNotNullOrderByMmrAsc();
 
-  List<LolienSummoner> findTopByOrderByMmrDesc();
+  List<LolienSummoner> findTopByMmrNotNullOrderByMmrDesc();
 
   long countByIdIn(List<String> ids);
 }

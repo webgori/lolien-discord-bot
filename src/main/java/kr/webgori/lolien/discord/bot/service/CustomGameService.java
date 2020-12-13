@@ -547,7 +547,7 @@ public class CustomGameService {
   }
 
   private MmrDto getMaxMmr() {
-    List<LolienSummoner> lolienSummoners = lolienSummonerRepository.findTopByOrderByMmrDesc();
+    List<LolienSummoner> lolienSummoners = lolienSummonerRepository.findTopByMmrNotNullOrderByMmrDesc();
     for (LolienSummoner lolienSummoner : lolienSummoners) {
       Set<LolienParticipant> participants = lolienSummoner.getParticipants();
       if (!participants.isEmpty()) {
@@ -570,7 +570,7 @@ public class CustomGameService {
   }
 
   private MmrDto getMinMmr() {
-    List<LolienSummoner> lolienSummoners = lolienSummonerRepository.findTopByOrderByMmrAsc();
+    List<LolienSummoner> lolienSummoners = lolienSummonerRepository.findTopByMmrNotNullOrderByMmrAsc();
     for (LolienSummoner lolienSummoner : lolienSummoners) {
       Set<LolienParticipant> participants = lolienSummoner.getParticipants();
       if (!participants.isEmpty()) {
