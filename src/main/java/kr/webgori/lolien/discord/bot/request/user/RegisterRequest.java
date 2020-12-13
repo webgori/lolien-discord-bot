@@ -18,7 +18,7 @@ public class RegisterRequest {
   private String emailAuthNumber;
 
   @Schema(description = "닉네임")
-  @Size(min = 3, max = 12)
+  @Size(min = 2, max = 12)
   @NotBlank
   private String nickname;
 
@@ -38,7 +38,7 @@ public class RegisterRequest {
   private String clienIdAuthNumber;
 
   @Schema(description = "소환사 이름")
-  @Size(min = 3, max = 20)
+  @Size(min = 2, max = 20)
   @NotBlank
   private String summonerName;
 }
