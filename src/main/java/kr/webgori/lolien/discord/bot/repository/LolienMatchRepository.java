@@ -16,5 +16,7 @@ public interface LolienMatchRepository extends JpaRepository<LolienMatch, Intege
   List<LolienMatch> findByGameCreationGreaterThanEqualAndGameCreationLessThanEqual(
       long startGameCreation, long endGameCreation);
 
+  List<LolienMatch> findByGameCreationGreaterThanEqual(long startGameCreation);
+
   void deleteByGameId(long gameId);
 }

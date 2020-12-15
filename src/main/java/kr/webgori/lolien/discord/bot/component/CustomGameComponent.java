@@ -1,6 +1,8 @@
 package kr.webgori.lolien.discord.bot.component;
 
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.getMatch;
+import static kr.webgori.lolien.discord.bot.util.CommonUtil.localDateTimeToTimestamp;
+import static kr.webgori.lolien.discord.bot.util.CommonUtil.localDateToTimestamp;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.sendErrorMessage;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.sendMessage;
 
@@ -12,6 +14,7 @@ import java.awt.Color;
 import java.text.DecimalFormat;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
@@ -310,8 +313,23 @@ public class CustomGameComponent {
         break;
       case "MMR":
         if (commands.size() == 2) {
-          List<LolienSummoner> top5ByOrderByMmrDesc = lolienSummonerRepository
-              .findTop5ByOrderByMmrDesc();
+          LocalDateTime threeMonthAgoDateTime = LocalDateTime.now().minusMonths(3);
+          long threeMonthAgoTimestamp = localDateTimeToTimestamp(threeMonthAgoDateTime);
+
+          List<LolienMatch> latestMatches = lolienMatchRepository
+              .findByGameCreationGreaterThanEqual(threeMonthAgoTimestamp);
+
+          List<LolienSummoner> latestMatchSummoners = latestMatches
+              .stream()
+              .map(LolienMatch::getUser)
+              .map(User::getLolienSummoner)
+              .collect(Collectors.toList());
+
+          List<LolienSummoner> top5ByOrderByMmrDesc = latestMatchSummoners
+              .stream()
+              .sorted(Comparator.comparing(LolienSummoner::getMmr).reversed())
+              .limit(5)
+              .collect(Collectors.toList());
 
           StringBuilder messageBuilder = new StringBuilder();
 
