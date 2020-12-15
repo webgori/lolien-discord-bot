@@ -319,11 +319,11 @@ public class CustomGameComponent {
           List<LolienMatch> latestMatches = lolienMatchRepository
               .findByGameCreationGreaterThanEqual(threeMonthAgoTimestamp);
 
-          List<LolienSummoner> latestMatchSummoners = latestMatches
+          Set<LolienSummoner> latestMatchSummoners = latestMatches
               .stream()
               .map(LolienMatch::getUser)
               .map(User::getLolienSummoner)
-              .collect(Collectors.toList());
+              .collect(Collectors.toSet());
 
           List<LolienSummoner> top5ByOrderByMmrDesc = latestMatchSummoners
               .stream()
