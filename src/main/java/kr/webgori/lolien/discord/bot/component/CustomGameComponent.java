@@ -28,6 +28,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.servlet.http.HttpServletRequest;
 import kr.webgori.lolien.discord.bot.dto.SummonerMostChampDto;
 import kr.webgori.lolien.discord.bot.dto.SummonerMostChampsDto;
@@ -319,14 +320,19 @@ public class CustomGameComponent {
           List<LolienMatch> latestMatches = lolienMatchRepository
               .findByGameCreationGreaterThanEqual(threeMonthAgoTimestamp);
 
-          Set<LolienSummoner> latestMatchSummoners = latestMatches
-              .stream()
-              .map(LolienMatch::getUser)
-              .map(User::getLolienSummoner)
-              .collect(Collectors.toSet());
+          Set<LolienSummoner> latestMatchSummoners = Sets.newHashSet();
+
+          for (LolienMatch latestMatch : latestMatches) {
+            Set<LolienParticipant> participants = latestMatch.getParticipants();
+            for (LolienParticipant participant : participants) {
+              LolienSummoner lolienSummoner = participant.getLolienSummoner();
+              latestMatchSummoners.add(lolienSummoner);
+            }
+          }
 
           List<LolienSummoner> top5ByOrderByMmrDesc = latestMatchSummoners
               .stream()
+              .filter(ls -> ls.getMmr() != null)
               .sorted(Comparator.comparing(LolienSummoner::getMmr).reversed())
               .limit(5)
               .collect(Collectors.toList());
