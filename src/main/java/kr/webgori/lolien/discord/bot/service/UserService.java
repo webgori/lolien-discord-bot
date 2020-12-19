@@ -881,6 +881,8 @@ public class UserService {
 
           if (isGameCreationBeforeThreeMonth(lolienMatch)) {
             mmrString = "휴면";
+          } else {
+            mmrString = String.valueOf(mmr);
           }
         }
       }
