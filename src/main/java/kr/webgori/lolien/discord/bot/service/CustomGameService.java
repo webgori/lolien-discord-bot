@@ -6,6 +6,7 @@ import static kr.webgori.lolien.discord.bot.util.CommonUtil.getEndDateOfMonth;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.getEndDateOfPrevMonth;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.getStartDateOfMonth;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.getStartDateOfPrevMonth;
+import static kr.webgori.lolien.discord.bot.util.CommonUtil.localDateTimeToTimestamp;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.localDateToTimestamp;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.timestampToLocalDateTime;
 
@@ -17,6 +18,7 @@ import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -552,7 +554,18 @@ public class CustomGameService {
 
     for (LolienSummoner lolienSummoner : lolienSummoners) {
       Set<LolienParticipant> participants = lolienSummoner.getParticipants();
+
       if (!participants.isEmpty()) {
+        LolienMatch lolienMatch = participants
+            .stream()
+            .map(LolienParticipant::getMatch)
+            .max(Comparator.comparing(LolienMatch::getGameCreation))
+            .orElseThrow(() -> new IllegalArgumentException(""));
+
+        if (isGameCreationBeforeThreeMonth(lolienMatch)) {
+          continue;
+        }
+
         String summonerName = lolienSummoner.getSummonerName();
         int mmr = lolienSummoner.getMmr();
 
@@ -577,7 +590,18 @@ public class CustomGameService {
 
     for (LolienSummoner lolienSummoner : lolienSummoners) {
       Set<LolienParticipant> participants = lolienSummoner.getParticipants();
+
       if (!participants.isEmpty()) {
+        LolienMatch lolienMatch = participants
+            .stream()
+            .map(LolienParticipant::getMatch)
+            .max(Comparator.comparing(LolienMatch::getGameCreation))
+            .orElseThrow(() -> new IllegalArgumentException(""));
+
+        if (isGameCreationBeforeThreeMonth(lolienMatch)) {
+          continue;
+        }
+
         String summonerName = lolienSummoner.getSummonerName();
         int mmr = lolienSummoner.getMmr();
 
@@ -596,9 +620,16 @@ public class CustomGameService {
             .build();
   }
 
-  private List<MatchDto> getStatisticsMatchesDto(
-      List<LolienMatch> lolienMatches) {
+  private boolean isGameCreationBeforeThreeMonth(LolienMatch lolienMatch) {
+    long gameCreation = lolienMatch.getGameCreation();
 
+    LocalDateTime threeMonthAgoDateTime = LocalDateTime.now().minusMonths(3);
+    long threeMonthAgoTimestamp = localDateTimeToTimestamp(threeMonthAgoDateTime);
+
+    return threeMonthAgoTimestamp >= gameCreation;
+  }
+
+  private List<MatchDto> getStatisticsMatchesDto(List<LolienMatch> lolienMatches) {
     return lolienMatches
         .stream()
         .collect(Collectors
