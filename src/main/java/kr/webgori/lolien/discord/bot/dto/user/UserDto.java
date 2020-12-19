@@ -14,6 +14,6 @@ public class UserDto {
   private String nickname;
   private String summonerName;
   private String tier;
-  private int mmr;
+  private String mmr;
   private LocalDateTime createdAt;
 }

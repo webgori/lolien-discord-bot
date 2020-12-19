@@ -3,6 +3,7 @@ package kr.webgori.lolien.discord.bot.service;
 import static kr.webgori.lolien.discord.bot.component.SummonerComponent.DEFAULT_TIER;
 import static kr.webgori.lolien.discord.bot.component.TeamGenerateComponent.CURRENT_SEASON;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.getSeasonFormat;
+import static kr.webgori.lolien.discord.bot.util.CommonUtil.localDateTimeToTimestamp;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.numberToRomanNumeral;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.objectToJsonString;
 
@@ -19,6 +20,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -39,6 +41,8 @@ import kr.webgori.lolien.discord.bot.dto.user.ClienSessionDto;
 import kr.webgori.lolien.discord.bot.dto.user.UserDto;
 import kr.webgori.lolien.discord.bot.dto.user.VerifyAuthNumberDto;
 import kr.webgori.lolien.discord.bot.entity.League;
+import kr.webgori.lolien.discord.bot.entity.LolienMatch;
+import kr.webgori.lolien.discord.bot.entity.LolienParticipant;
 import kr.webgori.lolien.discord.bot.entity.LolienSummoner;
 import kr.webgori.lolien.discord.bot.entity.user.ClienUser;
 import kr.webgori.lolien.discord.bot.entity.user.Role;
@@ -863,25 +867,52 @@ public class UserService {
       LolienSummoner lolienSummoner = user.getLolienSummoner();
       String summonerName = lolienSummoner.getSummonerName();
       Integer mmr = lolienSummoner.getMmr();
+      String mmrString = "-";
+
+      if (mmr != null) {
+        Set<LolienParticipant> participants = lolienSummoner.getParticipants();
+
+        if (!participants.isEmpty()) {
+          LolienMatch lolienMatch = participants
+              .stream()
+              .map(LolienParticipant::getMatch)
+              .max(Comparator.comparing(LolienMatch::getGameCreation))
+              .orElseThrow(() -> new IllegalArgumentException(""));
+
+          if (isGameCreationBeforeThreeMonth(lolienMatch)) {
+            mmrString = "휴면";
+          }
+        }
+      }
 
       Optional<League> optionalLatestTier = teamGenerateComponent
-              .getMostTierInLatest3Seasons(lolienSummoner);
+          .getMostTierInLatest3Seasons(lolienSummoner);
 
       League latestTier = optionalLatestTier.orElseGet(() -> League.builder().tier("").build());
       String tier = latestTier.getTier();
 
       UserDto userDto = UserDto
-              .builder()
-              .nickname(nickname)
-              .summonerName(summonerName)
-              .tier(tier)
-              .mmr(mmr)
-              .createdAt(createdAt)
-              .build();
+          .builder()
+          .nickname(nickname)
+          .summonerName(summonerName)
+          .tier(tier)
+          .mmr(mmrString)
+          .createdAt(createdAt)
+          .build();
 
       usersDto.add(userDto);
     }
 
     return usersDto;
   }
+
+  private boolean isGameCreationBeforeThreeMonth(LolienMatch lolienMatch) {
+    long gameCreation = lolienMatch.getGameCreation();
+
+    LocalDateTime threeMonthAgoDateTime = LocalDateTime.now().minusMonths(3);
+    long threeMonthAgoTimestamp = localDateTimeToTimestamp(threeMonthAgoDateTime);
+
+    return threeMonthAgoTimestamp >= gameCreation;
+  }
 }
+
