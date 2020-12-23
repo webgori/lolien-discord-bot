@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -267,7 +268,7 @@ public class CustomGameComponent {
           summonerNameBuilder.append(commands.get(i));
         }
 
-        String summonerName = summonerNameBuilder.toString();
+        String summonerName = summonerNameBuilder.toString().toUpperCase();
         if (checkSummonerName(textChannel, summonerName)) {
           return;
         }
@@ -358,7 +359,7 @@ public class CustomGameComponent {
             summonerNameBuilder.append(commands.get(i));
           }
 
-          summonerName = summonerNameBuilder.toString();
+          summonerName = summonerNameBuilder.toString().toUpperCase();
           if (checkSummonerName(textChannel, summonerName)) {
             return;
           }
