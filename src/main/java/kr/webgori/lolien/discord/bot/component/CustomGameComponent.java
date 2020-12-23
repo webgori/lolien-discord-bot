@@ -268,7 +268,7 @@ public class CustomGameComponent {
           summonerNameBuilder.append(commands.get(i));
         }
 
-        String summonerName = summonerNameBuilder.toString().toUpperCase();
+        String summonerName = summonerNameBuilder.toString();
         if (checkSummonerName(textChannel, summonerName)) {
           return;
         }
@@ -359,7 +359,7 @@ public class CustomGameComponent {
             summonerNameBuilder.append(commands.get(i));
           }
 
-          summonerName = summonerNameBuilder.toString().toUpperCase();
+          summonerName = summonerNameBuilder.toString();
           if (checkSummonerName(textChannel, summonerName)) {
             return;
           }
@@ -378,6 +378,8 @@ public class CustomGameComponent {
   }
 
   private boolean checkSummonerName(TextChannel textChannel, String summonerName) {
+    summonerName = summonerName.toUpperCase();
+
     boolean existsSummonerName = lolienSummonerRepository.existsBySummonerName(summonerName);
 
     if (!existsSummonerName) {
@@ -630,6 +632,8 @@ public class CustomGameComponent {
   }
 
   SummonerMostChampsDto getMostChamp(String summonerName) {
+    summonerName = summonerName.toUpperCase();
+
     ValueOperations<String, Object> opsForValue = redisTemplate.opsForValue();
 
     String key = String.format("%s:%s", REDIS_MOST_CHAMPS_KEY, summonerName);

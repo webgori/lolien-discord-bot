@@ -368,7 +368,7 @@ public class UserService {
             prevTierSplitList.remove(2);
           }
 
-          prevTierSplitList.set(0, prevTierSplitList.get(0).toUpperCase(Locale.KOREAN));
+          prevTierSplitList.set(0, prevTierSplitList.get(0).toUpperCase());
 
           if (prevTierSplitList.get(1).equals("5")) {
             prevTierSplitList.set(1, "4");
