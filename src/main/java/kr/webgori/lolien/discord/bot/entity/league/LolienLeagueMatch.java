@@ -1,5 +1,7 @@
 package kr.webgori.lolien.discord.bot.entity.league;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -54,6 +56,7 @@ public class LolienLeagueMatch {
   @Column(name = "map_id")
   private Integer mapId;
 
+  @JsonBackReference(value = "lolienLeagueParticipantMatch")
   @OneToMany(mappedBy = "match", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
   private Set<LolienLeagueParticipant> participants;
 
@@ -66,17 +69,21 @@ public class LolienLeagueMatch {
   @Column(name = "season_id")
   private Integer seasonId;
 
+  @JsonBackReference(value = "lolienLeagueTeamStatsMatch")
   @OneToMany(mappedBy = "match", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   private Set<LolienLeagueTeamStats> teams;
 
+  @JsonManagedReference(value = "lolienLeagueMatchLolienLeague")
   @ManyToOne
   @JoinColumn(name = "lolien_league_idx", nullable = false)
   private LolienLeague lolienLeague;
 
+  @JsonManagedReference(value = "lolienLeagueMatchSchedule")
   @ManyToOne
   @JoinColumn(name = "lolien_league_schedule_idx", nullable = false)
   private LolienLeagueSchedule schedule;
 
+  @JsonManagedReference(value = "lolienLeagueMatchUser")
   @ManyToOne
   @JoinColumn(name = "user_idx", nullable = false)
   private User user;

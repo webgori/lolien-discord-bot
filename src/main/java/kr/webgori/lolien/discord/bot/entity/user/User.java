@@ -1,5 +1,6 @@
 package kr.webgori.lolien.discord.bot.entity.user;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import java.time.LocalDateTime;
 import java.util.List;
 import javax.persistence.Column;
@@ -61,9 +62,11 @@ public class User {
   @Column(name = "created_at", nullable = false)
   private LocalDateTime createdAt;
 
+  @JsonBackReference(value = "lolienMatchUser")
   @OneToMany(mappedBy = "user")
   private List<LolienMatch> matches;
 
+  @JsonBackReference(value = "lolienLeagueMatchUser")
   @OneToMany(mappedBy = "user")
   private List<LolienLeagueMatch> leagueMatches;
 }

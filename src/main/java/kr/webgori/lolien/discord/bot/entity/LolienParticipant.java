@@ -1,5 +1,6 @@
 package kr.webgori.lolien.discord.bot.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -28,6 +29,7 @@ public class LolienParticipant {
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Integer idx;
 
+  @JsonManagedReference(value = "lolienParticipantMatch")
   @ManyToOne
   @JoinColumn(name = "match_idx", nullable = false)
   private LolienMatch match;
@@ -48,6 +50,7 @@ public class LolienParticipant {
   @Column(name = "team_id")
   private Integer teamId;
 
+  @JsonManagedReference(value = "lolienParticipantLolienSummoner")
   @ManyToOne
   @JoinColumn(name = "summoner_idx", nullable = false)
   private LolienSummoner lolienSummoner;

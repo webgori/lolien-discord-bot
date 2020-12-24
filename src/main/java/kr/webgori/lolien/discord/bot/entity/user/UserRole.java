@@ -1,5 +1,6 @@
 package kr.webgori.lolien.discord.bot.entity.user;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -25,6 +26,7 @@ public class UserRole {
   @Column(name = "`index`")
   private Integer index;
 
+  @JsonIgnore
   @OneToOne
   @JoinColumn(name = "user_index", unique = true, nullable = false)
   private User user;

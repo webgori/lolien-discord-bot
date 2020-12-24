@@ -1,5 +1,6 @@
 package kr.webgori.lolien.discord.bot.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -27,6 +28,7 @@ public class LolienParticipantStats {
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Integer idx;
 
+  @JsonIgnore
   @OneToOne
   private LolienParticipant participant;
 
