@@ -1,7 +1,5 @@
 package kr.webgori.lolien.discord.bot.entity.league;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -32,12 +30,10 @@ public class LolienLeagueTeamStats {
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Integer idx;
 
-  @JsonManagedReference(value = "lolienLeagueTeamStatsMatch")
   @ManyToOne
   @JoinColumn(name = "match_idx", nullable = false)
   private LolienLeagueMatch match;
 
-  @JsonBackReference(value = "lolienLeagueTeamBansTeamStats")
   @OneToMany(mappedBy = "teamStats", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   private List<LolienLeagueTeamBans> bans;
 

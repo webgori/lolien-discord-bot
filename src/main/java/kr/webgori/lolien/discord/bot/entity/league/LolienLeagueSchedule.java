@@ -1,6 +1,5 @@
 package kr.webgori.lolien.discord.bot.entity.league;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import java.time.LocalDateTime;
 import java.util.List;
 import javax.persistence.CascadeType;
@@ -37,7 +36,6 @@ public class LolienLeagueSchedule {
   @JoinColumn(name = "enemy_team_idx", nullable = false)
   private LolienLeagueTeam enemyTeam;
 
-  @JsonBackReference(value = "lolienLeagueMatchSchedule")
   @OneToMany(mappedBy = "schedule", cascade = CascadeType.ALL)
   private List<LolienLeagueMatch> match;
 

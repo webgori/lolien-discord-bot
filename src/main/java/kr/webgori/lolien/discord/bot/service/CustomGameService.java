@@ -9,6 +9,7 @@ import static kr.webgori.lolien.discord.bot.util.CommonUtil.getStartDateOfPrevMo
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.localDateTimeToTimestamp;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.timestampToLocalDateTime;
 
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -484,6 +485,8 @@ public class CustomGameService {
   public StatisticsResponse getStatistics() {
     LocalDate startDateOfMonth = getStartDateOfMonth();
     LocalDate endDateOfMonth = getEndDateOfMonth();
+
+
 
     List<LolienMatch> lolienMatches = getLolienMatchesFromCache(startDateOfMonth, endDateOfMonth);
 

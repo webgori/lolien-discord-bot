@@ -1,6 +1,5 @@
 package kr.webgori.lolien.discord.bot.entity.league;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -28,7 +27,6 @@ public class LolienLeagueTeam {
   @Column(name = "english_name", nullable = false)
   private String englishName;
 
-  @JsonBackReference(value = "lolienLeagueTeamSummonerTeam")
   @OneToMany(mappedBy = "team")
   private List<LolienLeagueTeamSummoner> teamSummoners;
 }

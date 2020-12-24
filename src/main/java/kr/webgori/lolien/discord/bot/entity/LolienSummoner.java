@@ -1,6 +1,5 @@
 package kr.webgori.lolien.discord.bot.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.List;
 import java.util.Set;
@@ -47,11 +46,9 @@ public class LolienSummoner {
   @Column(name = "summoner_name")
   private String summonerName;
 
-  @JsonBackReference(value = "leagueLolienSummoner")
   @OneToMany(mappedBy = "lolienSummoner", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
   private List<League> leagues;
 
-  @JsonBackReference(value = "lolienParticipantLolienSummoner")
   @OneToMany(mappedBy = "lolienSummoner", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   private Set<LolienParticipant> participants;
 
