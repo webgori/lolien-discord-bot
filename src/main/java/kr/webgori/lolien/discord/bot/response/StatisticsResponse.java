@@ -20,9 +20,13 @@ import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostTotalDamageDe
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostTotalDamageTakenDto;
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostVisionScoreDto;
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostWinningDto;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@AllArgsConstructor
+@NoArgsConstructor
 @Builder
 @Data
 public class StatisticsResponse {
