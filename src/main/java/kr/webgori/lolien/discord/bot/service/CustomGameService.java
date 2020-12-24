@@ -7,7 +7,6 @@ import static kr.webgori.lolien.discord.bot.util.CommonUtil.getEndDateOfPrevMont
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.getStartDateOfMonth;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.getStartDateOfPrevMonth;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.localDateTimeToTimestamp;
-import static kr.webgori.lolien.discord.bot.util.CommonUtil.localDateToTimestamp;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.timestampToLocalDateTime;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,6 +23,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.regex.Matcher;
@@ -34,7 +34,6 @@ import kr.webgori.lolien.discord.bot.component.AuthenticationComponent;
 import kr.webgori.lolien.discord.bot.component.CustomGameComponent;
 import kr.webgori.lolien.discord.bot.component.RiotComponent;
 import kr.webgori.lolien.discord.bot.dto.ChampDto;
-import kr.webgori.lolien.discord.bot.dto.ChampsDto;
 import kr.webgori.lolien.discord.bot.dto.CustomGameSummonerDto;
 import kr.webgori.lolien.discord.bot.dto.CustomGameTeamBanDto;
 import kr.webgori.lolien.discord.bot.dto.CustomGameTeamDto;
@@ -79,6 +78,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -488,18 +488,10 @@ public class CustomGameService {
     List<LolienMatch> lolienMatches = getLolienMatchesFromCache(startDateOfMonth, endDateOfMonth);
 
     if (lolienMatches.isEmpty()) {
-      lolienMatches = getLolienMatches(startDateOfMonth, endDateOfMonth);
+      startDateOfMonth = getStartDateOfPrevMonth();
+      endDateOfMonth = getEndDateOfPrevMonth();
 
-      if (lolienMatches.isEmpty()) {
-        startDateOfMonth = getStartDateOfPrevMonth();
-        endDateOfMonth = getEndDateOfPrevMonth();
-
-        lolienMatches = getLolienMatchesFromCache(startDateOfMonth, endDateOfMonth);
-
-        if (lolienMatches.isEmpty()) {
-          lolienMatches = getLolienMatches(startDateOfMonth, endDateOfMonth);
-        }
-      }
+      lolienMatches = getLolienMatchesFromCache(startDateOfMonth, endDateOfMonth);
     }
 
     List<ChampDto> championNames = riotComponent.getChampionNames();
@@ -667,39 +659,23 @@ public class CustomGameService {
    */
   List<LolienMatch> getLolienMatchesFromCache(LocalDate startDateOfMonth,
                                               LocalDate endDateOfMonth) {
-    String key = "lolien-discord-bot:matches-%s-%s";
+
+    ValueOperations<String, Object> opsForValue = redisTemplate.opsForValue();
+
+    String key = "lolien-discord-bot:custom-game:matches-%s-%s";
     String redisKey = String.format(key, startDateOfMonth, endDateOfMonth);
 
-    Object obj = redisTemplate.opsForValue().get(redisKey);
-    MatchCacheDto matchCacheDto = objectMapper.convertValue(obj, MatchCacheDto.class);
-    return matchCacheDto.getMatches();
-  }
+    boolean hasKey = Optional
+        .ofNullable(opsForValue.getOperations().hasKey(redisKey))
+        .orElse(false);
 
-  /**
-   * getLolienMatches.
-   * @param startDateOfMonth startDateOfMonth
-   * @param endDateOfMonth endDateOfMonth
-   * @return lolienMatches
-   */
-  List<LolienMatch> getLolienMatches(LocalDate startDateOfMonth, LocalDate endDateOfMonth) {
-    long startTimestamp = localDateToTimestamp(startDateOfMonth);
-    long endTimestamp = localDateToTimestamp(endDateOfMonth);
-
-    List<LolienMatch> lolienMatches = lolienMatchRepository
-        .findByGameCreationGreaterThanEqualAndGameCreationLessThanEqual(startTimestamp,
-            endTimestamp);
-
-    MatchCacheDto matchCacheDto = MatchCacheDto
-        .builder()
-        .matches(lolienMatches)
-        .build();
-
-    String key = "lolien-discord-bot:matches-%s-%s";
-    String redisKey = String.format(key, startDateOfMonth, endDateOfMonth);
-
-    redisTemplate.opsForValue().set(redisKey, matchCacheDto);
-
-    return lolienMatches;
+    if (hasKey) {
+      Object obj = redisTemplate.opsForValue().get(redisKey);
+      MatchCacheDto matchCacheDto = objectMapper.convertValue(obj, MatchCacheDto.class);
+      return matchCacheDto.getMatches();
+    } else {
+      return customGameComponent.getLolienMatches(startDateOfMonth, endDateOfMonth);
+    }
   }
 
   private List<MostBannedDto> getStatisticsMostBannedDto(List<LolienMatch> lolienMatches,

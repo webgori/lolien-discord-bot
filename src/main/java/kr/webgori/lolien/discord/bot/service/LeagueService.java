@@ -206,10 +206,6 @@ public class LeagueService {
     List<LolienMatch> lolienMatches = customGameService
         .getLolienMatchesFromCache(startDateOfYear, endDateOfYear);
 
-    if (lolienMatches.isEmpty()) {
-      lolienMatches = customGameService.getLolienMatches(startDateOfYear, endDateOfYear);
-    }
-
     List<SummonerForParticipationDto> summonersForParticipationDto =
         getSummonersForParticipationDto(lolienMatches);
 

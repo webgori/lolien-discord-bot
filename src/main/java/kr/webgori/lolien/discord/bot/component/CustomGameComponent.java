@@ -1,6 +1,8 @@
 package kr.webgori.lolien.discord.bot.component;
 
+import static kr.webgori.lolien.discord.bot.util.CommonUtil.getEndDateOfMonth;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.getMatch;
+import static kr.webgori.lolien.discord.bot.util.CommonUtil.getStartDateOfMonth;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.localDateTimeToTimestamp;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.localDateToTimestamp;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.sendErrorMessage;
@@ -14,6 +16,7 @@ import java.awt.Color;
 import java.text.DecimalFormat;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -21,7 +24,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -29,10 +31,10 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.servlet.http.HttpServletRequest;
 import kr.webgori.lolien.discord.bot.dto.SummonerMostChampDto;
 import kr.webgori.lolien.discord.bot.dto.SummonerMostChampsDto;
+import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MatchCacheDto;
 import kr.webgori.lolien.discord.bot.entity.LolienMatch;
 import kr.webgori.lolien.discord.bot.entity.LolienParticipant;
 import kr.webgori.lolien.discord.bot.entity.LolienParticipantStats;
@@ -519,9 +521,9 @@ public class CustomGameComponent {
 
     addResultMmr(lolienMatch);
 
-    for (String summonerName : entries) {
-      ValueOperations<String, Object> opsForValue = redisTemplate.opsForValue();
+    ValueOperations<String, Object> opsForValue = redisTemplate.opsForValue();
 
+    for (String summonerName : entries) {
       String nonSpaceSummonerName = summonerName.replaceAll("\\s+", "");
       String key = String.format("%s:%s", REDIS_MOST_CHAMPS_KEY, nonSpaceSummonerName);
       boolean hasKey = Optional.ofNullable(opsForValue.getOperations().hasKey(key)).orElse(false);
@@ -532,6 +534,51 @@ public class CustomGameComponent {
 
       getMostChamp(nonSpaceSummonerName);
     }
+
+    updateCustomGameMatchesFromCache();
+  }
+
+  private void updateCustomGameMatchesFromCache() {
+    LocalDate startDateOfMonth = getStartDateOfMonth();
+    LocalDate endDateOfMonth = getEndDateOfMonth();
+
+    deleteCustomGameMatchesFromCache(startDateOfMonth, endDateOfMonth);
+    getLolienMatches(startDateOfMonth, endDateOfMonth);
+  }
+
+  private void deleteCustomGameMatchesFromCache(LocalDate startDateOfMonth,
+                                                LocalDate endDateOfMonth) {
+    String key = "lolien-discord-bot:custom-game:matches-%s-%s";
+    String redisKey = String.format(key, startDateOfMonth, endDateOfMonth);
+    ValueOperations<String, Object> opsForValue = redisTemplate.opsForValue();
+    opsForValue.getOperations().delete(redisKey);
+  }
+
+  /**
+   * getLolienMatches.
+   * @param startDateOfMonth startDateOfMonth
+   * @param endDateOfMonth endDateOfMonth
+   * @return lolienMatches
+   */
+  public List<LolienMatch> getLolienMatches(LocalDate startDateOfMonth, LocalDate endDateOfMonth) {
+    long startTimestamp = localDateToTimestamp(startDateOfMonth);
+    long endTimestamp = localDateToTimestamp(endDateOfMonth);
+
+    List<LolienMatch> lolienMatches = lolienMatchRepository
+        .findByGameCreationGreaterThanEqualAndGameCreationLessThanEqual(startTimestamp,
+            endTimestamp);
+
+    MatchCacheDto matchCacheDto = MatchCacheDto
+        .builder()
+        .matches(lolienMatches)
+        .build();
+
+    String key = "lolien-discord-bot:custom-game:matches-%s-%s";
+    String redisKey = String.format(key, startDateOfMonth, endDateOfMonth);
+
+    redisTemplate.opsForValue().set(redisKey, matchCacheDto);
+
+    return lolienMatches;
   }
 
   private void addResultMmr(LolienMatch lolienMatch) {
