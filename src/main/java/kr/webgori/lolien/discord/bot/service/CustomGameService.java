@@ -7,7 +7,9 @@ import static kr.webgori.lolien.discord.bot.util.CommonUtil.getEndDateOfPrevMont
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.getStartDateOfMonth;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.getStartDateOfPrevMonth;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.localDateTimeToTimestamp;
+import static kr.webgori.lolien.discord.bot.util.CommonUtil.localDateToTimestamp;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.timestampToLocalDateTime;
+
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
@@ -38,7 +40,6 @@ import kr.webgori.lolien.discord.bot.dto.CustomGameSummonerDto;
 import kr.webgori.lolien.discord.bot.dto.CustomGameTeamBanDto;
 import kr.webgori.lolien.discord.bot.dto.CustomGameTeamDto;
 import kr.webgori.lolien.discord.bot.dto.DataDragonVersionDto;
-import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MatchCacheDto;
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MatchDto;
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MmrDto;
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostAssistDto;
@@ -485,15 +486,36 @@ public class CustomGameService {
     LocalDate startDateOfMonth = getStartDateOfMonth();
     LocalDate endDateOfMonth = getEndDateOfMonth();
 
+    Optional<StatisticsResponse> statisticsFromCache = getStatisticsFromCache(startDateOfMonth,
+        endDateOfMonth);
 
+    StatisticsResponse statisticsResponse = statisticsFromCache
+            .orElseGet(() -> StatisticsResponse.builder().build());
 
-    List<LolienMatch> lolienMatches = getLolienMatchesFromCache(startDateOfMonth, endDateOfMonth);
+    List<MatchDto> matches = statisticsResponse.getMatches();
+
+    if (!matches.isEmpty()) {
+      return statisticsResponse;
+    }
+
+    List<LolienMatch> lolienMatches = getLolienMatches(startDateOfMonth, endDateOfMonth);
 
     if (lolienMatches.isEmpty()) {
       startDateOfMonth = getStartDateOfPrevMonth();
       endDateOfMonth = getEndDateOfPrevMonth();
 
-      lolienMatches = getLolienMatchesFromCache(startDateOfMonth, endDateOfMonth);
+      statisticsFromCache = getStatisticsFromCache(startDateOfMonth, endDateOfMonth);
+
+      statisticsResponse = statisticsFromCache
+          .orElseGet(() -> StatisticsResponse.builder().build());
+
+      matches = statisticsResponse.getMatches();
+
+      if (!matches.isEmpty()) {
+        return statisticsResponse;
+      }
+
+      lolienMatches = getLolienMatches(startDateOfMonth, endDateOfMonth);
     }
 
     List<ChampDto> championNames = riotComponent.getChampionNames();
@@ -531,29 +553,42 @@ public class CustomGameService {
     MmrDto minMmrDto = getMinMmr();
     MmrDto maxMmrDto = getMaxMmr();
 
-    return StatisticsResponse
-            .builder()
-            .startDateOfMonth(startDateOfMonth)
-            .endDateOfMonth(endDateOfMonth)
-            .matches(matchesDto)
-            .mostBannedList(mostBannedDtoList)
-            .mostPlayedChampionList(mostPlayedChampionDtoList)
-            .mostWinningList(mostWinningDtoList)
-            .mostPlayedSummonerList(mostPlayedSummonerDtoList)
-            .mostKillDeathAssistList(mostKillDeathAssistDtoList)
-            .mostKill(mostKillDto)
-            .mostDeath(mostDeathDto)
-            .mostAssist(mostAssistDto)
-            .mostVisionScore(mostVisionScoreDto)
-            .mostTotalDamageDealtToChampions(mostTotalDamageDealtToChampions)
-            .mostTotalDamageTaken(mostTotalDamageTakenDto)
-            .mostGoldEarned(mostGoldEarnedDto)
-            .mostNeutralMinionsKilled(mostMinionsKilledDto)
-            .mostFirstTowerKill(mostFirstTowerKillDto)
-            .mostFirstBloodKill(mostFirstBloodKillDto)
-            .minMmr(minMmrDto)
-            .maxMmr(maxMmrDto)
-            .build();
+    statisticsResponse = StatisticsResponse
+        .builder()
+        .startDateOfMonth(startDateOfMonth)
+        .endDateOfMonth(endDateOfMonth)
+        .matches(matchesDto)
+        .mostBannedList(mostBannedDtoList)
+        .mostPlayedChampionList(mostPlayedChampionDtoList)
+        .mostWinningList(mostWinningDtoList)
+        .mostPlayedSummonerList(mostPlayedSummonerDtoList)
+        .mostKillDeathAssistList(mostKillDeathAssistDtoList)
+        .mostKill(mostKillDto)
+        .mostDeath(mostDeathDto)
+        .mostAssist(mostAssistDto)
+        .mostVisionScore(mostVisionScoreDto)
+        .mostTotalDamageDealtToChampions(mostTotalDamageDealtToChampions)
+        .mostTotalDamageTaken(mostTotalDamageTakenDto)
+        .mostGoldEarned(mostGoldEarnedDto)
+        .mostNeutralMinionsKilled(mostMinionsKilledDto)
+        .mostFirstTowerKill(mostFirstTowerKillDto)
+        .mostFirstBloodKill(mostFirstBloodKillDto)
+        .minMmr(minMmrDto)
+        .maxMmr(maxMmrDto)
+        .build();
+
+    cachingStatistics(statisticsResponse);
+
+    return statisticsResponse;
+  }
+
+  private void cachingStatistics(StatisticsResponse statisticsResponse) {
+    String key = "lolien-discord-bot:custom-game:statistics-%s-%s";
+    LocalDate startDateOfMonth = statisticsResponse.getStartDateOfMonth();
+    LocalDate endDateOfMonth = statisticsResponse.getEndDateOfMonth();
+    String redisKey = String.format(key, startDateOfMonth, endDateOfMonth);
+
+    redisTemplate.opsForValue().set(redisKey, statisticsResponse);
   }
 
   private MmrDto getMaxMmr() {
@@ -659,12 +694,12 @@ public class CustomGameService {
    * @param endDateOfMonth endDateOfMonth
    * @return lolienMatches
    */
-  List<LolienMatch> getLolienMatchesFromCache(LocalDate startDateOfMonth,
-                                              LocalDate endDateOfMonth) {
+  Optional<StatisticsResponse> getStatisticsFromCache(LocalDate startDateOfMonth,
+                                                      LocalDate endDateOfMonth) {
 
     ValueOperations<String, Object> opsForValue = redisTemplate.opsForValue();
 
-    String key = "lolien-discord-bot:custom-game:matches-%s-%s";
+    String key = "lolien-discord-bot:custom-game:statistics-%s-%s";
     String redisKey = String.format(key, startDateOfMonth, endDateOfMonth);
 
     boolean hasKey = Optional
@@ -673,11 +708,25 @@ public class CustomGameService {
 
     if (hasKey) {
       Object obj = redisTemplate.opsForValue().get(redisKey);
-      MatchCacheDto matchCacheDto = objectMapper.convertValue(obj, MatchCacheDto.class);
-      return matchCacheDto.getMatches();
+      return Optional.ofNullable(objectMapper.convertValue(obj, StatisticsResponse.class));
     } else {
-      return customGameComponent.getLolienMatches(startDateOfMonth, endDateOfMonth);
+      return Optional.empty();
     }
+  }
+
+  /**
+   * getLolienMatches.
+   * @param startDateOfMonth startDateOfMonth
+   * @param endDateOfMonth endDateOfMonth
+   * @return lolienMatches
+   */
+  List<LolienMatch> getLolienMatches(LocalDate startDateOfMonth, LocalDate endDateOfMonth) {
+    long startTimestamp = localDateToTimestamp(startDateOfMonth);
+    long endTimestamp = localDateToTimestamp(endDateOfMonth);
+
+    return lolienMatchRepository
+        .findByGameCreationGreaterThanEqualAndGameCreationLessThanEqual(startTimestamp,
+            endTimestamp);
   }
 
   private List<MostBannedDto> getStatisticsMostBannedDto(List<LolienMatch> lolienMatches,

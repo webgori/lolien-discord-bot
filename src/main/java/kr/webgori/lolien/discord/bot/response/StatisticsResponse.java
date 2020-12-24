@@ -1,5 +1,6 @@
 package kr.webgori.lolien.discord.bot.response;
 
+import com.google.common.collect.Lists;
 import java.time.LocalDate;
 import java.util.List;
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MatchDto;
@@ -27,7 +28,7 @@ import lombok.Data;
 public class StatisticsResponse {
   private LocalDate startDateOfMonth;
   private LocalDate endDateOfMonth;
-  private List<MatchDto> matches;
+  @Builder.Default private List<MatchDto> matches = Lists.newArrayList();
   private List<MostBannedDto> mostBannedList;
   private List<MostPlayedChampionDto> mostPlayedChampionList;
   private List<MostWinningDto> mostWinningList;

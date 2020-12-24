@@ -8,6 +8,7 @@ import static kr.webgori.lolien.discord.bot.util.CommonUtil.localDateToTimestamp
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.sendErrorMessage;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.sendMessage;
 
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -34,7 +35,6 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import kr.webgori.lolien.discord.bot.dto.SummonerMostChampDto;
 import kr.webgori.lolien.discord.bot.dto.SummonerMostChampsDto;
-import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MatchCacheDto;
 import kr.webgori.lolien.discord.bot.entity.LolienMatch;
 import kr.webgori.lolien.discord.bot.entity.LolienParticipant;
 import kr.webgori.lolien.discord.bot.entity.LolienParticipantStats;
@@ -535,50 +535,16 @@ public class CustomGameComponent {
       getMostChamp(nonSpaceSummonerName);
     }
 
-    updateCustomGameMatchesFromCache();
+    deleteCustomGameMatchesFromCache();
   }
 
-  private void updateCustomGameMatchesFromCache() {
+  private void deleteCustomGameMatchesFromCache() {
+    String key = "lolien-discord-bot:custom-game:statistics-%s-%s";
     LocalDate startDateOfMonth = getStartDateOfMonth();
     LocalDate endDateOfMonth = getEndDateOfMonth();
-
-    deleteCustomGameMatchesFromCache(startDateOfMonth, endDateOfMonth);
-    getLolienMatches(startDateOfMonth, endDateOfMonth);
-  }
-
-  private void deleteCustomGameMatchesFromCache(LocalDate startDateOfMonth,
-                                                LocalDate endDateOfMonth) {
-    String key = "lolien-discord-bot:custom-game:matches-%s-%s";
     String redisKey = String.format(key, startDateOfMonth, endDateOfMonth);
     ValueOperations<String, Object> opsForValue = redisTemplate.opsForValue();
     opsForValue.getOperations().delete(redisKey);
-  }
-
-  /**
-   * getLolienMatches.
-   * @param startDateOfMonth startDateOfMonth
-   * @param endDateOfMonth endDateOfMonth
-   * @return lolienMatches
-   */
-  public List<LolienMatch> getLolienMatches(LocalDate startDateOfMonth, LocalDate endDateOfMonth) {
-    long startTimestamp = localDateToTimestamp(startDateOfMonth);
-    long endTimestamp = localDateToTimestamp(endDateOfMonth);
-
-    List<LolienMatch> lolienMatches = lolienMatchRepository
-        .findByGameCreationGreaterThanEqualAndGameCreationLessThanEqual(startTimestamp,
-            endTimestamp);
-
-    MatchCacheDto matchCacheDto = MatchCacheDto
-        .builder()
-        .matches(lolienMatches)
-        .build();
-
-    String key = "lolien-discord-bot:custom-game:matches-%s-%s";
-    String redisKey = String.format(key, startDateOfMonth, endDateOfMonth);
-
-    redisTemplate.opsForValue().set(redisKey, matchCacheDto);
-
-    return lolienMatches;
   }
 
   private void addResultMmr(LolienMatch lolienMatch) {
