@@ -17,6 +17,9 @@ spring:
         dialect: org.hibernate.dialect.MariaDB103Dialect
   datasource:
     driverClassName: org.mariadb.jdbc.Driver
+    hikari:
+      max-lifetime: 540000
+
   mvc:
     favicon:
       enabled: false
