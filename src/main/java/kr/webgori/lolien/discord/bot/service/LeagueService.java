@@ -17,8 +17,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.MalformedJwtException;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -28,6 +26,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.regex.Matcher;
@@ -99,7 +98,6 @@ import kr.webgori.lolien.discord.bot.response.league.TeamResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -504,13 +502,8 @@ public class LeagueService {
           .sorted(Comparator.comparing(LolienLeagueTeamStats::getIdx))
           .collect(Collectors.toList());
 
-      User user = null;
-
-      try {
-        user = authenticationComponent.getUser(httpServletRequest);
-      } catch (ExpiredJwtException | BadCredentialsException | MalformedJwtException e) {
-        logger.error("", e);
-      }
+      Optional<User> userOptional = authenticationComponent.getUser(httpServletRequest);
+      User user = userOptional.orElseGet(() -> User.builder().build());
 
       for (LolienLeagueTeamStats team : teams) {
         List<LolienLeagueTeamBans> bans = team.getBans();

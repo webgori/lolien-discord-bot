@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @Data
 public class UserSessionDto {
-  private String email;
+  @Builder.Default private String email = "";
   private String nickname;
   private String role;
   private LocalDateTime createdAt;

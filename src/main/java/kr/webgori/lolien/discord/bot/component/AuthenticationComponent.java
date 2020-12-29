@@ -7,8 +7,11 @@ import static kr.webgori.lolien.discord.bot.util.CommonUtil.objectToJsonString;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Maps;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.impl.DefaultClaims;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -16,6 +19,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import javax.servlet.http.HttpServletRequest;
 import kr.webgori.lolien.discord.bot.dto.UserSessionDto;
@@ -91,6 +95,11 @@ public class AuthenticationComponent {
    */
   public UserSessionDto getUserSessionDto(HttpServletRequest request) {
     String redisSessionKey = getRedisSessionKey(request);
+
+    if (redisSessionKey.isEmpty()) {
+      return UserSessionDto.builder().build();
+    }
+
     //String key = String.format("users:%s", email);
     Object obj = redisTemplate.opsForValue().get(redisSessionKey);
     UserSessionDto userSessionDto = objectMapper.convertValue(obj, UserSessionDto.class);
@@ -102,6 +111,11 @@ public class AuthenticationComponent {
 
   private UserSessionDto getUserSessionDto(String accessToken) {
     String redisSessionKey = getRedisSessionKey(accessToken);
+
+    if (redisSessionKey.isEmpty()) {
+      return UserSessionDto.builder().email("").build();
+    }
+
     //String key = String.format("users:%s", email);
     Object obj = redisTemplate.opsForValue().get(redisSessionKey);
     UserSessionDto userSessionDto = objectMapper.convertValue(obj, UserSessionDto.class);
@@ -117,7 +131,16 @@ public class AuthenticationComponent {
   }
 
   private String getRedisSessionKey(String accessToken) {
+    if (accessToken.isEmpty()) {
+      return getDefaultString();
+    }
+
     Claims claims = getClaims(accessToken);
+
+    if (claims.isEmpty()) {
+      return getDefaultString();
+    }
+
     String email = claims.get("email").toString();
     String hash = claims.get("hash").toString();
 
@@ -125,31 +148,41 @@ public class AuthenticationComponent {
   }
 
   private String getAccessToken(HttpServletRequest request) {
-    String jwt = request.getHeader(HttpHeaders.AUTHORIZATION);
-    checkPresentToken(jwt);
-    checkPresentTokenPrefix(jwt);
+    String jwt = Optional
+        .ofNullable(request.getHeader(HttpHeaders.AUTHORIZATION))
+        .orElseGet(this::getDefaultString);
+
+    if (jwt.isEmpty() || !jwt.startsWith(TOKEN_PREFIX)) {
+      return getDefaultString();
+    }
 
     return removeTokenPrefix(jwt);
+  }
+
+  private String getDefaultString() {
+    return "";
   }
 
   private Claims getClaims(String token) {
     String hexSecretKey = getHexSecretKey();
 
-    Claims claims = Jwts
-        .parser()
-        .setSigningKey(hexSecretKey)
-        .parseClaimsJws(token)
-        .getBody();
+    try {
+      Claims claims = Jwts
+          .parser()
+          .setSigningKey(hexSecretKey)
+          .parseClaimsJws(token)
+          .getBody();
 
-    checkClaims(claims);
+      if (!claims.containsKey("email")) {
+        return new DefaultClaims();
+      }
 
-    return claims;
-  }
-
-  private void checkClaims(Claims claims) {
-    if (!claims.containsKey("email")) {
-      throw new IllegalArgumentException("invalid JWT");
+      return claims;
+    } catch (ExpiredJwtException | BadCredentialsException | MalformedJwtException e) {
+      logger.debug("", e);
     }
+
+    return new DefaultClaims();
   }
 
   private void checkPresentSessionUserDto(UserSessionDto userSessionDto) {
@@ -217,8 +250,15 @@ public class AuthenticationComponent {
         .compact();
   }
 
+  /**
+   * email 로 User 조회.
+   * @param email email
+   * @return User
+   */
   public User getUser(String email) {
-    return userRepository.findByEmail(email);
+    return userRepository
+        .findByEmail(email)
+        .orElseThrow(() -> new BadCredentialsException("이메일이 올바르지 않습니다."));
   }
 
   /**
@@ -226,12 +266,11 @@ public class AuthenticationComponent {
    * @param httpServletRequest httpServletRequest
    * @return user
    */
-  public User getUser(HttpServletRequest httpServletRequest) {
+  public Optional<User> getUser(HttpServletRequest httpServletRequest) {
     String email = getEmail(httpServletRequest);
-    boolean existsByEmail = userRepository.existsByEmail(email);
 
-    if (!existsByEmail) {
-      throw new BadCredentialsException("사용자 정보를 확인할 수 없습니다.");
+    if (email.isEmpty()) {
+      return Optional.empty();
     }
 
     return userRepository.findByEmail(email);
@@ -298,7 +337,7 @@ public class AuthenticationComponent {
    * getLoginResponseBodyString.
    * @param accessToken accessToken
    * @param refreshToken refreshToken
-   * @return
+   * @return loginResponse
    */
   public String getLoginResponseBodyString(String accessToken, String refreshToken) {
     LoginResponse loginResponse = LoginResponse
@@ -325,11 +364,10 @@ public class AuthenticationComponent {
   }
 
   private void checkPresentToken(String authorization) {
-    boolean presentToken = Objects.nonNull(authorization);
-
-    if (!presentToken) {
-      throw new BadCredentialsException("Required Header 'Authorization' is not present");
-    }
+    Optional
+        .ofNullable(authorization)
+        .orElseThrow(
+            () -> new BadCredentialsException("Required Header 'Authorization' is not present"));
   }
 
   private String removeTokenPrefix(String jwt) {
@@ -357,11 +395,6 @@ public class AuthenticationComponent {
    */
   public String getEmail(HttpServletRequest request) {
     UserSessionDto userSessionDto = getUserSessionDto(request);
-
-    if (Objects.isNull(userSessionDto)) {
-      throw new AccessDeniedException("");
-    }
-
     return userSessionDto.getEmail();
   }
 

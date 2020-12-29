@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -48,13 +47,10 @@ import kr.webgori.lolien.discord.bot.entity.user.ClienUser;
 import kr.webgori.lolien.discord.bot.entity.user.Role;
 import kr.webgori.lolien.discord.bot.entity.user.User;
 import kr.webgori.lolien.discord.bot.entity.user.UserRole;
-import kr.webgori.lolien.discord.bot.exception.AlreadyAddedSummonerException;
-import kr.webgori.lolien.discord.bot.exception.SummonerNotFoundException;
 import kr.webgori.lolien.discord.bot.repository.LolienSummonerRepository;
 import kr.webgori.lolien.discord.bot.repository.user.ClienUserRepository;
 import kr.webgori.lolien.discord.bot.repository.user.RoleRepository;
 import kr.webgori.lolien.discord.bot.repository.user.UserRepository;
-import kr.webgori.lolien.discord.bot.request.LolienUserAddSummonerRequest;
 import kr.webgori.lolien.discord.bot.request.user.AccessTokenRequest;
 import kr.webgori.lolien.discord.bot.request.user.LogoutRequest;
 import kr.webgori.lolien.discord.bot.request.user.RegisterRequest;
@@ -85,6 +81,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.rememberme.InvalidCookieException;
 import org.springframework.stereotype.Service;
@@ -473,49 +470,12 @@ public class UserService {
   }
 
   /**
-   * addSummoner.
-   * @param request request
-   */
-  public void addSummoner(LolienUserAddSummonerRequest request) {
-    User user = authenticationComponent.getUser(httpServletRequest);
-    LolienSummoner lolienSummoner = user.getLolienSummoner();
-
-    if (Objects.nonNull(lolienSummoner)) {
-      throw new AlreadyAddedSummonerException("");
-    }
-
-    String summonerName = request.getSummonerName();
-    lolienSummoner = lolienSummonerRepository.findBySummonerName(summonerName);
-
-    if (Objects.isNull(lolienSummoner)) {
-      throw new SummonerNotFoundException("");
-    }
-
-    user.setLolienSummoner(lolienSummoner);
-    userRepository.save(user);
-  }
-
-  /**
-   * deleteSummoner.
-   */
-  public void deleteSummoner() {
-    User user = authenticationComponent.getUser(httpServletRequest);
-    LolienSummoner lolienSummoner = user.getLolienSummoner();
-
-    if (Objects.isNull(lolienSummoner)) {
-      throw new SummonerNotFoundException("");
-    }
-
-    user.setLolienSummoner(null);
-    userRepository.save(user);
-  }
-
-  /**
    * getUserInfo.
    * @return UserInfoResponse
    */
   public UserInfoResponse getUserInfo() {
-    User user = authenticationComponent.getUser(httpServletRequest);
+    Optional<User> userOptional = authenticationComponent.getUser(httpServletRequest);
+    User user = userOptional.orElseThrow(() -> new BadCredentialsException(""));
     String email = user.getEmail();
     String nickname = user.getNickname();
     boolean emailVerified = user.getEmailVerified();
@@ -558,22 +518,6 @@ public class UserService {
   }
 
   /**
-   * deleteUser.
-   * @param request request
-   */
-  public void deleteUser(HttpServletRequest request) {
-    User user = authenticationComponent.getUser(httpServletRequest);
-    UserRole userRole = user.getUserRole();
-    LolienSummoner lolienSummoner = user.getLolienSummoner();
-    List<League> leagues = lolienSummoner.getLeagues();
-    ClienUser clienUser = user.getClienUser();
-
-    userTransactionComponent.deleteUser(user, userRole, clienUser, lolienSummoner, leagues);
-
-    logout(request, true, null, null);
-  }
-
-  /**
    * logout.
    * @param request request
    */
@@ -605,8 +549,8 @@ public class UserService {
    * @param accessTokenRequest accessTokenRequest
    * @return AccessTokenResponse
    */
-  public AccessTokenResponse getAccessToken(HttpServletRequest httpServletRequest,
-                                            AccessTokenRequest accessTokenRequest) {
+  public AccessTokenResponse getNewAccessToken(HttpServletRequest httpServletRequest,
+                                               AccessTokenRequest accessTokenRequest) {
     String email = accessTokenRequest.getEmail();
     authenticationComponent.checkExistsRefreshToken(httpServletRequest, email);
 

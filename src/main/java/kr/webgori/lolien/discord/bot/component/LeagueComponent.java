@@ -5,6 +5,7 @@ import static kr.webgori.lolien.discord.bot.util.CommonUtil.getMatch;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import kr.webgori.lolien.discord.bot.entity.LolienSummoner;
@@ -29,6 +30,7 @@ import net.rithms.riot.api.endpoints.match.dto.ParticipantStats;
 import net.rithms.riot.api.endpoints.match.dto.TeamBans;
 import net.rithms.riot.api.endpoints.match.dto.TeamStats;
 import org.springframework.beans.BeanUtils;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -74,7 +76,10 @@ public class LeagueComponent {
     Set<LolienLeagueParticipant> lolienLeagueParticipantSet = Sets.newHashSet();
     Set<LolienLeagueTeamStats> lolienLeagueTeamStatsSet = Sets.newHashSet();
 
-    User user = authenticationComponent.getUser(httpServletRequest);
+    Optional<User> userOptional = authenticationComponent.getUser(httpServletRequest);
+    User user = userOptional
+        .orElseThrow(
+            () -> new BadCredentialsException("리그 결과 등록 중 계정에 문제가 발생하였습니다."));
 
     LolienLeagueMatch lolienLeagueMatch = LolienLeagueMatch
         .builder()

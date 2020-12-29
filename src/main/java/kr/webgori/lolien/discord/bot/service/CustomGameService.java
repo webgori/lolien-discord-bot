@@ -192,13 +192,8 @@ public class CustomGameService {
     Map<String, JsonObject> itemsJsonObjectMap = Maps.newHashMap();
     Map<String, JsonArray> runesJsonArrayMap = Maps.newHashMap();
 
-    User user = null;
-
-    try {
-      user = authenticationComponent.getUser(httpServletRequest);
-    } catch (ExpiredJwtException | BadCredentialsException | MalformedJwtException e) {
-      logger.error("", e);
-    }
+    Optional<User> userOptional = authenticationComponent.getUser(httpServletRequest);
+    User user = userOptional.orElseGet(() -> User.builder().build());
 
     for (LolienMatch lolienMatch : lolienMatches) {
       String gameVersion = lolienMatch.getGameVersion();

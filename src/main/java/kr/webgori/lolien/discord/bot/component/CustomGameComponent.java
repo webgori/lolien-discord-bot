@@ -55,6 +55,7 @@ import net.rithms.riot.api.endpoints.match.dto.TeamStats;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -413,7 +414,10 @@ public class CustomGameComponent {
 
     Set<LolienParticipant> lolienParticipantSet = Sets.newHashSet();
     Set<LolienTeamStats> lolienTeamStatsSet = Sets.newHashSet();
-    User user = authenticationComponent.getUser(httpServletRequest);
+    Optional<User> userOptional = authenticationComponent.getUser(httpServletRequest);
+    User user = userOptional
+        .orElseThrow(
+            () -> new BadCredentialsException("내전 결과 등록 중 계정에 문제가 발생하였습니다."));
 
     LolienMatch lolienMatch = LolienMatch
         .builder()

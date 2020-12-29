@@ -92,7 +92,7 @@ public class AuthenticationProviderImpl implements AuthenticationProvider {
   }
 
   private void checkMatchesPassword(String email, String rawPassword) {
-    User user = userRepository.findByEmail(email);
+    User user = getUser(email);
     String encodedPassword = user.getPassword();
 
     boolean matchesPassword = passwordEncoder.matches(rawPassword, encodedPassword);
@@ -103,7 +103,9 @@ public class AuthenticationProviderImpl implements AuthenticationProvider {
   }
 
   private User getUser(String email) {
-    return userRepository.findByEmail(email);
+    return userRepository
+        .findByEmail(email)
+        .orElseThrow(() -> new BadCredentialsException("이메일이 올바르지 않습니다."));
   }
 
   @Override

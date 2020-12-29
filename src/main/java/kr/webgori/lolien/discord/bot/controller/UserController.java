@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import kr.webgori.lolien.discord.bot.request.LolienUserAddSummonerRequest;
 import kr.webgori.lolien.discord.bot.request.user.AccessTokenRequest;
 import kr.webgori.lolien.discord.bot.request.user.LoginRequest;
 import kr.webgori.lolien.discord.bot.request.user.LogoutRequest;
@@ -22,7 +21,6 @@ import kr.webgori.lolien.discord.bot.response.user.UserResponse;
 import kr.webgori.lolien.discord.bot.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -92,10 +90,10 @@ public class UserController {
               description = "Forbidden. 세션이 만료 됬을 때")
       })
   @PostMapping("v1/users/access-token")
-  public AccessTokenResponse getAccessToken(HttpServletRequest httpServletRequest,
+  public AccessTokenResponse getNewAccessToken(HttpServletRequest httpServletRequest,
                                             @RequestBody @Valid
                                                 AccessTokenRequest accessTokenRequest) {
-    return userService.getAccessToken(httpServletRequest, accessTokenRequest);
+    return userService.getNewAccessToken(httpServletRequest, accessTokenRequest);
   }
 
   @Operation(
@@ -115,58 +113,6 @@ public class UserController {
   @PostMapping("v1/users/logout")
   public void logout(@RequestBody @Valid LogoutRequest request) {
     userService.logout(request);
-  }
-
-  @Operation(
-      summary = "소환사 등록",
-      security = {
-          @SecurityRequirement(name = "JWT")
-      })
-  @ApiResponses(
-      value = {
-          @ApiResponse(
-              responseCode = "204",
-              description = "No Content"),
-          @ApiResponse(
-              responseCode = "400",
-              description = "Bad Request. 추가할 소환사가 없거나, 이미 추가되어 있을 때"),
-          @ApiResponse(
-              responseCode = "401",
-              description = "Unauthorized. 인증 정보를 찾을 수 없을 때"),
-          @ApiResponse(
-              responseCode = "403",
-              description = "Forbidden. 세션이 만료 됬을 때")
-      })
-  @PostMapping("v1/users/summoner")
-  //@ResponseStatus(value = HttpStatus.NO_CONTENT)
-  public void addSummoner(@RequestBody @Valid LolienUserAddSummonerRequest request) {
-    userService.addSummoner(request);
-  }
-
-  @Operation(
-      summary = "소환사 제거",
-      security = {
-          @SecurityRequirement(name = "JWT")
-      })
-  @ApiResponses(
-      value = {
-          @ApiResponse(
-              responseCode = "204",
-              description = "No Content"),
-          @ApiResponse(
-              responseCode = "400",
-              description = "Bad Request. 제거할 소환사가 없을 때"),
-          @ApiResponse(
-              responseCode = "401",
-              description = "Unauthorized. 인증 정보를 찾을 수 없을 때"),
-          @ApiResponse(
-              responseCode = "403",
-              description = "Forbidden. 세션이 만료 됬을 때")
-      })
-  @DeleteMapping("v1/users/summoner")
-  @ResponseStatus(value = HttpStatus.NO_CONTENT)
-  public void deleteSummoner() {
-    userService.deleteSummoner();
   }
 
   @Operation(
@@ -192,29 +138,6 @@ public class UserController {
   @GetMapping("v1/users/info")
   public UserInfoResponse getUserInfo() {
     return userService.getUserInfo();
-  }
-
-  @Operation(
-      summary = "사용자 탈퇴",
-      security = {
-          @SecurityRequirement(name = "JWT")
-      })
-  @ApiResponses(
-      value = {
-          @ApiResponse(
-              responseCode = "204",
-              description = "No Content"),
-          @ApiResponse(
-              responseCode = "401",
-              description = "Unauthorized. 인증 정보를 찾을 수 없을 때"),
-          @ApiResponse(
-              responseCode = "403",
-              description = "Forbidden. 세션이 만료 됬을 때")
-      })
-  @DeleteMapping("v1/users")
-  @ResponseStatus(value = HttpStatus.NO_CONTENT)
-  public void deleteUser(HttpServletRequest request) {
-    userService.deleteUser(request);
   }
 
   @Operation(
