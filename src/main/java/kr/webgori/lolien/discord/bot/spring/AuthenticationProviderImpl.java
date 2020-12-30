@@ -52,7 +52,7 @@ public class AuthenticationProviderImpl implements AuthenticationProvider {
 
     //String hash = authenticationToken.getHash();
     //UserSessionDto userSessionDto = getUserSessionDto(user, hash);
-    UserSessionDto userSessionDto = authenticationComponent.getUserSessionDto(now, user, hash);
+    UserSessionDto userSessionDto = authenticationComponent.getNewUserSessionDto(now, user, hash);
     authenticationToken.setDetails(userSessionDto);
 
     //LocalDateTime createdAt = LocalDateTime.now();

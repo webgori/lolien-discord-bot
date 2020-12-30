@@ -55,24 +55,12 @@ public class AuthenticationComponent {
 
   /**
    * getUserSessionDto.
-   * @param user user
-   * @return UserSessionDto
-   */
-  public UserSessionDto getUserSessionDto(LocalDateTime now, User user) {
-    String email = user.getEmail();
-    String hash = getHash(now, email);
-
-    return getUserSessionDto(now, user, hash);
-  }
-
-  /**
-   * getUserSessionDto.
    * @param now 현재 시간
    * @param user user
    * @param hash hash
    * @return UserSessionDto
    */
-  public UserSessionDto getUserSessionDto(LocalDateTime now, User user, String hash) {
+  public UserSessionDto getNewUserSessionDto(LocalDateTime now, User user, String hash) {
     String email = user.getEmail();
     String nickname = user.getNickname();
     String role = user.getUserRole().getRole().getRole();
@@ -89,20 +77,32 @@ public class AuthenticationComponent {
 
   /**
    * getUserSessionDto.
+   * @param user user
+   * @return UserSessionDto
+   */
+  public UserSessionDto getUserSessionDto(LocalDateTime now, User user) {
+    String email = user.getEmail();
+    String hash = getHash(now, email);
+
+    return getNewUserSessionDto(now, user, hash);
+  }
+
+  /**
+   * getUserSessionDto.
    * @param request request
    * @return UserSessionDto
    */
-  public UserSessionDto getUserSessionDtoByServletRequest(HttpServletRequest request) {
+  public UserSessionDto getUserSessionDto(HttpServletRequest request) {
     String redisSessionKey = getRedisSessionKey(request);
-    return getUserSessionDto(redisSessionKey);
+    return getUserSessionDtoFromRedis(redisSessionKey);
   }
 
-  private UserSessionDto getUserSessionDtoByAccessToken(String accessToken) {
+  private UserSessionDto getUserSessionDto(String accessToken) {
     String redisSessionKey = getRedisSessionKey(accessToken);
-    return getUserSessionDto(redisSessionKey);
+    return getUserSessionDtoFromRedis(redisSessionKey);
   }
 
-  private UserSessionDto getUserSessionDto(String redisSessionKey) {
+  private UserSessionDto getUserSessionDtoFromRedis(String redisSessionKey) {
     if (redisSessionKey.isEmpty()) {
       return UserSessionDto.builder().email("").build();
     }
@@ -377,7 +377,7 @@ public class AuthenticationComponent {
    * @return email
    */
   public String getEmail(HttpServletRequest request) {
-    UserSessionDto userSessionDto = getUserSessionDtoByServletRequest(request);
+    UserSessionDto userSessionDto = getUserSessionDto(request);
     return userSessionDto.getEmail();
   }
 
@@ -387,7 +387,7 @@ public class AuthenticationComponent {
    * @return email
    */
   public String getEmail(String accessToken) {
-    UserSessionDto userSessionDto = getUserSessionDtoByAccessToken(accessToken);
+    UserSessionDto userSessionDto = getUserSessionDto(accessToken);
     String email = userSessionDto.getEmail();
 
     if (email.isEmpty()) {

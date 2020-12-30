@@ -52,7 +52,7 @@ public class TokenAuthenticationService {
   Authentication getAuthentication(HttpServletRequest request, ServletResponse response) {
     try {
       UserSessionDto userSessionDto = authenticationComponent
-          .getUserSessionDtoByServletRequest(request);
+          .getUserSessionDto(request);
 
       String email = userSessionDto.getEmail();
 
