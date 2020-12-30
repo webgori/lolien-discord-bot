@@ -63,6 +63,8 @@ public class AuthenticationComponent {
     String email = user.getEmail();
     String hash = getHash(now, email);
 
+    logger.error("now: {}, hash: {}", now, hash);
+
     return getUserSessionDto(now, user, hash);
   }
 
