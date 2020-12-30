@@ -15,7 +15,7 @@ import kr.webgori.lolien.discord.bot.spring.AuthenticationTokenImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -60,7 +60,7 @@ public class TokenAuthenticationService {
         HttpServletResponse httpServletResponse = (HttpServletResponse) response;
         httpServletResponse.setStatus(HttpStatus.UNAUTHORIZED.value());
 
-        throw new BadCredentialsException("계정 정보가 유효하지 않습니다.");
+        return new UsernamePasswordAuthenticationToken("", "");
       }
 
       List<SimpleGrantedAuthority> authorities = authenticationComponent.getAuthorities(
@@ -77,6 +77,6 @@ public class TokenAuthenticationService {
       httpServletResponse.setStatus(HttpStatus.UNAUTHORIZED.value());
     }
 
-    throw new BadCredentialsException("계정 정보가 유효하지 않습니다.");
+    return new UsernamePasswordAuthenticationToken("", "");
   }
 }
