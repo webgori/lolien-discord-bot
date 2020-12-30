@@ -554,10 +554,11 @@ public class UserService {
     String email = accessTokenRequest.getEmail();
     authenticationComponent.checkExistsRefreshToken(httpServletRequest, email);
 
-    String accessToken = authenticationComponent.generateAccessToken(email);
+    LocalDateTime now = LocalDateTime.now();
+    String accessToken = authenticationComponent.generateAccessToken(now, email);
 
     User user = authenticationComponent.getUser(email);
-    UserSessionDto userSessionDto = authenticationComponent.getUserSessionDto(user);
+    UserSessionDto userSessionDto = authenticationComponent.getUserSessionDto(now, user);
     authenticationComponent.addUserSessionToRedis(email, userSessionDto);
 
     return AccessTokenResponse

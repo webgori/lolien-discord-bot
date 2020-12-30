@@ -58,12 +58,9 @@ public class AuthenticationComponent {
    * @param user user
    * @return UserSessionDto
    */
-  public UserSessionDto getUserSessionDto(User user) {
-    LocalDateTime now = LocalDateTime.now();
+  public UserSessionDto getUserSessionDto(LocalDateTime now, User user) {
     String email = user.getEmail();
     String hash = getHash(now, email);
-
-    logger.error("now: {}, hash: {}", now, hash);
 
     return getUserSessionDto(now, user, hash);
   }
@@ -227,12 +224,12 @@ public class AuthenticationComponent {
    * @param email email
    * @return accessToken
    */
-  public String generateAccessToken(String email) {
+  public String generateAccessToken(LocalDateTime now, String email) {
     Map<String, Object> claims = Maps.newHashMap();
     claims.put("email", email);
 
     User user = getUser(email);
-    UserSessionDto userSessionDto = getUserSessionDto(user);
+    UserSessionDto userSessionDto = getUserSessionDto(now, user);
 
     String hash = userSessionDto.getHash();
     claims.put("hash", hash);
