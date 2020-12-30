@@ -57,6 +57,9 @@ public class TokenAuthenticationService {
       String email = userSessionDto.getEmail();
 
       if (email.isEmpty()) {
+        HttpServletResponse httpServletResponse = (HttpServletResponse) response;
+        httpServletResponse.setStatus(HttpStatus.UNAUTHORIZED.value());
+
         throw new BadCredentialsException("계정 정보가 유효하지 않습니다.");
       }
 
@@ -71,7 +74,7 @@ public class TokenAuthenticationService {
       logger.error("", e);
 
       HttpServletResponse httpServletResponse = (HttpServletResponse) response;
-      httpServletResponse.setStatus(HttpStatus.BAD_REQUEST.value());
+      httpServletResponse.setStatus(HttpStatus.UNAUTHORIZED.value());
     }
 
     throw new BadCredentialsException("계정 정보가 유효하지 않습니다.");
