@@ -6,7 +6,6 @@ import io.jsonwebtoken.SignatureException;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -16,6 +15,7 @@ import kr.webgori.lolien.discord.bot.spring.AuthenticationTokenImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -51,8 +51,15 @@ public class TokenAuthenticationService {
 
   Authentication getAuthentication(HttpServletRequest request, ServletResponse response) {
     try {
-      UserSessionDto userSessionDto = authenticationComponent.getUserSessionDto(request);
+      UserSessionDto userSessionDto = authenticationComponent
+          .getUserSessionDtoByServletRequest(request);
+
       String email = userSessionDto.getEmail();
+
+      if (email.isEmpty()) {
+        throw new BadCredentialsException("계정 정보가 유효하지 않습니다.");
+      }
+
       List<SimpleGrantedAuthority> authorities = authenticationComponent.getAuthorities(
           userSessionDto);
       AuthenticationTokenImpl authTokenImpl = new AuthenticationTokenImpl(email, authorities);
@@ -63,12 +70,10 @@ public class TokenAuthenticationService {
     } catch (MalformedJwtException | ExpiredJwtException | SignatureException e) {
       logger.error("", e);
 
-      if (Objects.nonNull(response)) {
-        HttpServletResponse httpServletResponse = (HttpServletResponse) response;
-        httpServletResponse.setStatus(HttpStatus.BAD_REQUEST.value());
-      }
+      HttpServletResponse httpServletResponse = (HttpServletResponse) response;
+      httpServletResponse.setStatus(HttpStatus.BAD_REQUEST.value());
     }
 
-    return null;
+    throw new BadCredentialsException("계정 정보가 유효하지 않습니다.");
   }
 }

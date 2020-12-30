@@ -92,36 +92,28 @@ public class AuthenticationComponent {
    * @param request request
    * @return UserSessionDto
    */
-  public UserSessionDto getUserSessionDto(HttpServletRequest request) {
+  public UserSessionDto getUserSessionDtoByServletRequest(HttpServletRequest request) {
     String redisSessionKey = getRedisSessionKey(request);
-
-    if (redisSessionKey.isEmpty()) {
-      return UserSessionDto.builder().build();
-    }
-
-    //String key = String.format("users:%s", email);
-    Object obj = redisTemplate.opsForValue().get(redisSessionKey);
-    UserSessionDto userSessionDto = objectMapper.convertValue(obj, UserSessionDto.class);
-
-    checkPresentSessionUserDto(userSessionDto);
-
-    return userSessionDto;
+    return getUserSessionDto(redisSessionKey);
   }
 
-  private UserSessionDto getUserSessionDto(String accessToken) {
+  private UserSessionDto getUserSessionDtoByAccessToken(String accessToken) {
     String redisSessionKey = getRedisSessionKey(accessToken);
+    return getUserSessionDto(redisSessionKey);
+  }
 
+  private UserSessionDto getUserSessionDto(String redisSessionKey) {
     if (redisSessionKey.isEmpty()) {
       return UserSessionDto.builder().email("").build();
     }
 
-    //String key = String.format("users:%s", email);
     Object obj = redisTemplate.opsForValue().get(redisSessionKey);
-    UserSessionDto userSessionDto = objectMapper.convertValue(obj, UserSessionDto.class);
 
-    checkPresentSessionUserDto(userSessionDto);
+    if (obj == null) {
+      return UserSessionDto.builder().email("").build();
+    }
 
-    return userSessionDto;
+    return objectMapper.convertValue(obj, UserSessionDto.class);
   }
 
   private String getRedisSessionKey(HttpServletRequest request) {
@@ -182,14 +174,6 @@ public class AuthenticationComponent {
     }
 
     return new DefaultClaims();
-  }
-
-  private void checkPresentSessionUserDto(UserSessionDto userSessionDto) {
-    boolean presentSession = Objects.nonNull(userSessionDto);
-
-    if (!presentSession) {
-      throw new BadCredentialsException("");
-    }
   }
 
   /**
@@ -393,7 +377,7 @@ public class AuthenticationComponent {
    * @return email
    */
   public String getEmail(HttpServletRequest request) {
-    UserSessionDto userSessionDto = getUserSessionDto(request);
+    UserSessionDto userSessionDto = getUserSessionDtoByServletRequest(request);
     return userSessionDto.getEmail();
   }
 
@@ -403,10 +387,11 @@ public class AuthenticationComponent {
    * @return email
    */
   public String getEmail(String accessToken) {
-    UserSessionDto userSessionDto = getUserSessionDto(accessToken);
+    UserSessionDto userSessionDto = getUserSessionDtoByAccessToken(accessToken);
+    String email = userSessionDto.getEmail();
 
-    if (Objects.isNull(userSessionDto)) {
-      throw new AccessDeniedException("");
+    if (email.isEmpty()) {
+      throw new AccessDeniedException("계정 정보가 유효하지 않습니다.");
     }
 
     return userSessionDto.getEmail();
