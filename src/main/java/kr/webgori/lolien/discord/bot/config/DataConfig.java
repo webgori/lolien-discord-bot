@@ -5,7 +5,7 @@ import javax.sql.DataSource;
 import kr.webgori.lolien.discord.bot.component.ConfigComponent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.jdbc.DataSourceBuilder;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -14,6 +14,9 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class DataConfig {
   private final ConfigComponent configComponent;
+
+  @Value("${spring.datasource.hikari.max-lifetime}")
+  private int maxLifeTime;
 
   /**
    * dataSource.
@@ -25,12 +28,12 @@ public class DataConfig {
     String dataSourceUsername = ConfigComponent.getDataSourceUsername();
     String dataSourcePassword = ConfigComponent.getDataSourcePassword();
 
-    return DataSourceBuilder
-        .create()
-        .type(HikariDataSource.class)
-        .url(dataSourceUrl)
-        .username(dataSourceUsername)
-        .password(dataSourcePassword)
-        .build();
+    HikariDataSource hikariDataSource = new HikariDataSource();
+    hikariDataSource.setJdbcUrl(dataSourceUrl);
+    hikariDataSource.setUsername(dataSourceUsername);
+    hikariDataSource.setPassword(dataSourcePassword);
+    hikariDataSource.setMaxLifetime(maxLifeTime);
+
+    return hikariDataSource;
   }
 }
