@@ -18,6 +18,9 @@ public class DataConfig {
   @Value("${spring.datasource.hikari.max-lifetime}")
   private int maxLifeTime;
 
+  @Value("${spring.datasource.driverClassName}")
+  private String driverClassName;
+
   /**
    * dataSource.
    * @return dataSource
@@ -29,6 +32,7 @@ public class DataConfig {
     String dataSourcePassword = ConfigComponent.getDataSourcePassword();
 
     HikariDataSource hikariDataSource = new HikariDataSource();
+    hikariDataSource.setDriverClassName(driverClassName);
     hikariDataSource.setJdbcUrl(dataSourceUrl);
     hikariDataSource.setUsername(dataSourceUsername);
     hikariDataSource.setPassword(dataSourcePassword);
