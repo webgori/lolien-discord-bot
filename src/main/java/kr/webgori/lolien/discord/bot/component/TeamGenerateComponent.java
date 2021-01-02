@@ -221,9 +221,8 @@ public class TeamGenerateComponent {
 
       String tier = latestTier.getTier();
 
-      int mmr = Optional.ofNullable(summoner.getMmr()).orElse(0);
-      int winResultMmr = getResultMmr(mmr, true, enemyTeamMmr);
-      int loseResultMmr = getResultMmr(mmr, false, enemyTeamMmr);
+      int winResultMmr = getMmrGap(summoner, teamMmr, enemyTeamMmr, true);
+      int loseResultMmr = getMmrGap(summoner, teamMmr, enemyTeamMmr, false);
       String mmrInfo = String.format("+%s, %s", winResultMmr, loseResultMmr);
       String summonerInfo = String.format(" (%s, %s)", tier, mmrInfo);
       message.append(summonerInfo);
@@ -248,28 +247,24 @@ public class TeamGenerateComponent {
     return message;
   }
 
-  private int getResultMmr(int mmr, boolean win, float enemyTeamMmr) {
+  int getMmrGap(LolienSummoner lolienSummoner, float teamMmr, float enemyTeamMmr, boolean win) {
+    int beforeMmr = Optional
+        .ofNullable(lolienSummoner.getMmr())
+        .orElseThrow(() -> new IllegalArgumentException("MMR is null"));
+
+    float probablyOdds = getProbablyOdds(teamMmr, enemyTeamMmr);
+
     if (win) {
-      int resultMmr = 0;
-
-      if (mmr > enemyTeamMmr) {
-        resultMmr = (int) (mmr / enemyTeamMmr * 10);
-      } else if (mmr < enemyTeamMmr) {
-        resultMmr = (int) (enemyTeamMmr / mmr * 15);
-      }
-
-      return resultMmr;
+      return (int) (beforeMmr + (20) * (1 - probablyOdds)) - beforeMmr;
     } else {
-      int resultMmr = 0;
-
-      if (mmr > enemyTeamMmr) {
-        resultMmr = (int) (mmr / enemyTeamMmr * 15);
-      } else if (mmr < enemyTeamMmr) {
-        resultMmr = (int) (enemyTeamMmr / mmr * 10);
-      }
-
-      return -resultMmr;
+      return beforeMmr - (int) (beforeMmr + (20) * (0 - probablyOdds));
     }
+  }
+
+  private float getProbablyOdds(float teamMmr, float enemyTeamMmr) {
+    float exponent = (enemyTeamMmr - teamMmr) / 400;
+    float pow = (float) Math.pow(10, exponent);
+    return 1 / (1 +  pow);
   }
 
   private float getTeamMmr(List<LolienSummoner> team1) {

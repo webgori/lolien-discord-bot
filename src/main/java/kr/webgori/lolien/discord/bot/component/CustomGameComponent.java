@@ -549,6 +549,10 @@ public class CustomGameComponent {
     opsForValue.getOperations().delete(redisKey);
   }
 
+  /**
+   * MMR 적용.
+   * @param lolienMatch lolienMatch
+   */
   public void addResultMmr(LolienMatch lolienMatch) {
     Set<LolienParticipant> participants = lolienMatch.getParticipants();
     List<LolienSummoner> team1Summoners = participants
@@ -576,22 +580,26 @@ public class CustomGameComponent {
         .orElse(0);
 
     for (LolienParticipant lolienParticipant : participants) {
-      applyMmr(team1MmrAverage, team2MmrAverage, lolienParticipant);
-
       LolienSummoner lolienSummoner = lolienParticipant.getLolienSummoner();
+      int afterMmr = getAfterMmr(team1MmrAverage, team2MmrAverage, lolienParticipant);
+      lolienSummoner.setMmr(afterMmr);
+
       lolienSummonerRepository.save(lolienSummoner);
     }
   }
 
-  private void applyMmr(float team1MmrAverage, float team2MmrAverage,
-                        LolienParticipant lolienParticipant) {
+  private int getAfterMmr(float team1MmrAverage, float team2MmrAverage,
+                          LolienParticipant lolienParticipant) {
 
     LolienParticipantStats stats = lolienParticipant.getStats();
     Boolean win = stats.getWin();
 
     int afterMmr;
     LolienSummoner lolienSummoner = lolienParticipant.getLolienSummoner();
-    int beforeMmr = lolienSummoner.getMmr();
+    int beforeMmr = Optional
+        .ofNullable(lolienSummoner.getMmr())
+        .orElseThrow(() -> new IllegalArgumentException("MMR is null"));
+
     float probablyOdds = getProbablyOdds(team1MmrAverage, team2MmrAverage, lolienParticipant);
 
     if (win) {
@@ -600,7 +608,7 @@ public class CustomGameComponent {
       afterMmr = (int) (beforeMmr + (20) * (0 - probablyOdds));
     }
 
-    lolienSummoner.setMmr(afterMmr);
+    return afterMmr;
   }
 
   private float getProbablyOdds(float team1MmrAverage, float team2MmrAverage,
