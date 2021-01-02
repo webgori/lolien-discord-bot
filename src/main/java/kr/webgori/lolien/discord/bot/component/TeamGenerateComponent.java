@@ -215,11 +215,13 @@ public class TeamGenerateComponent {
       String summonerName = summoner.getSummonerName();
       message.append(summonerName);
 
-      Optional<League> optionalLatestTier = getMostTierInLatest3Seasons(summoner);
-      League latestTier = optionalLatestTier
-              .orElseGet(() -> League.builder().tier(DEFAULT_TIER).build());
-
-      String tier = latestTier.getTier();
+      String tier = summoner
+          .getLeagues()
+          .stream()
+          .filter(l -> l.getSeason().equals(CURRENT_SEASON))
+          .findAny()
+          .orElseGet(() -> League.builder().tier(DEFAULT_TIER).build())
+          .getTier();
 
       int winResultMmr = getMmrGap(summoner, teamMmr, enemyTeamMmr, true);
       int loseResultMmr = getMmrGap(summoner, teamMmr, enemyTeamMmr, false);
@@ -509,22 +511,5 @@ public class TeamGenerateComponent {
     } catch (RiotApiException e) {
       return Optional.empty();
     }
-  }
-
-  /**
-   * 가장 마지막 3개의 시즌 중에 최고 티어를 조회.
-   * @param lolienSummoner lolienSummoner
-   * @return League
-   */
-  public Optional<League> getMostTierInLatest3Seasons(LolienSummoner lolienSummoner) {
-    Map<String, Integer> tiers = getTiers();
-
-    return leagueRepository
-        .findByLolienSummoner(lolienSummoner)
-        .stream()
-        .filter(l -> l.getSeason().equals("S08") || l.getSeason().equals("S09")
-            || l.getSeason().equals("S10"))
-        .filter(l -> !l.getTier().equals(DEFAULT_TIER))
-        .max(Comparator.comparing(l -> tiers.get(l.getTier())));
   }
 }

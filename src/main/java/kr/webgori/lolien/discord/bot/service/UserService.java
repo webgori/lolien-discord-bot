@@ -832,11 +832,13 @@ public class UserService {
         }
       }
 
-      Optional<League> optionalLatestTier = teamGenerateComponent
-          .getMostTierInLatest3Seasons(lolienSummoner);
-
-      League latestTier = optionalLatestTier.orElseGet(() -> League.builder().tier("").build());
-      String tier = latestTier.getTier();
+      String tier = lolienSummoner
+          .getLeagues()
+          .stream()
+          .filter(l -> l.getSeason().equals(CURRENT_SEASON))
+          .findAny()
+          .orElseGet(() -> League.builder().tier(DEFAULT_TIER).build())
+          .getTier();
 
       UserDto userDto = UserDto
           .builder()
