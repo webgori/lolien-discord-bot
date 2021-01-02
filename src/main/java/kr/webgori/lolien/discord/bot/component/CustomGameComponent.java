@@ -549,7 +549,7 @@ public class CustomGameComponent {
     opsForValue.getOperations().delete(redisKey);
   }
 
-  private void addResultMmr(LolienMatch lolienMatch) {
+  public void addResultMmr(LolienMatch lolienMatch) {
     Set<LolienParticipant> participants = lolienMatch.getParticipants();
     List<LolienSummoner> team1Summoners = participants
         .stream()
@@ -579,20 +579,7 @@ public class CustomGameComponent {
       applyMmr(team1MmrAverage, team2MmrAverage, lolienParticipant);
 
       LolienSummoner lolienSummoner = lolienParticipant.getLolienSummoner();
-      checkMmr(lolienSummoner, lolienMatch);
-
       lolienSummonerRepository.save(lolienSummoner);
-    }
-  }
-
-  private void checkMmr(LolienSummoner lolienSummoner, LolienMatch lolienMatch) {
-    Integer mmr = lolienSummoner.getMmr();
-
-    if (Objects.isNull(mmr) || mmr < 0 || mmr >= 1000) {
-      logger.error("{}", lolienSummoner);
-      logger.error("{}", lolienMatch);
-
-      throw new IllegalArgumentException("mmr something wrong");
     }
   }
 
@@ -600,50 +587,35 @@ public class CustomGameComponent {
                         LolienParticipant lolienParticipant) {
 
     LolienParticipantStats stats = lolienParticipant.getStats();
-    Integer teamId = lolienParticipant.getTeamId();
-
     Boolean win = stats.getWin();
-    LolienSummoner lolienSummoner = lolienParticipant.getLolienSummoner();
 
-    int mmr = lolienSummoner.getMmr();
+    int afterMmr;
+    LolienSummoner lolienSummoner = lolienParticipant.getLolienSummoner();
+    int beforeMmr = lolienSummoner.getMmr();
+    float probablyOdds = getProbablyOdds(team1MmrAverage, team2MmrAverage, lolienParticipant);
 
     if (win) {
-      int resultMmr = 0;
-
-      if (teamId == 100) {
-        if (mmr > team2MmrAverage) {
-          resultMmr = (int) (mmr / team2MmrAverage * 10);
-        } else if (mmr < team2MmrAverage) {
-          resultMmr = (int) (team2MmrAverage / mmr * 15);
-        }
-      } else if (teamId == 200) {
-        if (mmr > team1MmrAverage) {
-          resultMmr = (int) (mmr / team1MmrAverage * 10);
-        } else if (mmr < team1MmrAverage) {
-          resultMmr = (int) (team1MmrAverage / mmr * 15);
-        }
-      }
-
-      lolienSummoner.plusMmr(resultMmr);
+      afterMmr = (int) (beforeMmr + (20) * (1 - probablyOdds));
     } else {
-      int resultMmr = 0;
-
-      if (teamId == 100) {
-        if (mmr > team2MmrAverage) {
-          resultMmr = (int) (mmr / team2MmrAverage * 15);
-        } else if (mmr < team2MmrAverage) {
-          resultMmr = (int) (team2MmrAverage / mmr * 10);
-        }
-      } else if (teamId == 200) {
-        if (mmr > team1MmrAverage) {
-          resultMmr = (int) (mmr / team1MmrAverage * 15);
-        } else if (mmr < team1MmrAverage) {
-          resultMmr = (int) (team1MmrAverage / mmr * 10);
-        }
-      }
-
-      lolienSummoner.minusMmr(resultMmr);
+      afterMmr = (int) (beforeMmr + (20) * (0 - probablyOdds));
     }
+
+    lolienSummoner.setMmr(afterMmr);
+  }
+
+  private float getProbablyOdds(float team1MmrAverage, float team2MmrAverage,
+                                LolienParticipant lolienParticipant) {
+    int teamId = lolienParticipant.getTeamId();
+    float exponent;
+
+    if (teamId == 100) {
+      exponent = (team2MmrAverage - team1MmrAverage) / 400;
+    } else {
+      exponent = (team1MmrAverage - team2MmrAverage) / 400;
+    }
+
+    float pow = (float) Math.pow(10, exponent);
+    return 1 / (1 +  pow);
   }
 
   SummonerMostChampsDto getMostChamp(String summonerName) {

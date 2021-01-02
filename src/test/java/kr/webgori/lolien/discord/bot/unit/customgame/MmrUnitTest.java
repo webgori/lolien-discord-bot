@@ -6,18 +6,14 @@ import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.junit.Assert.assertThat;
 
 import java.util.List;
-import java.util.stream.Collectors;
-import kr.webgori.lolien.discord.bot.entity.LolienParticipant;
-import kr.webgori.lolien.discord.bot.entity.LolienSeasonCompensation;
 import kr.webgori.lolien.discord.bot.entity.LolienSummoner;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.util.Lists;
-import org.junit.jupiter.api.RepeatedTest;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 @Slf4j
 public class MmrUnitTest {
-  @RepeatedTest(10)
+  @Test
   void test_01_ShouldValidResultMmrWhenAddResult() {
     List<LolienSummoner> team1Summoners = getRandomLolienSummoner();
 
