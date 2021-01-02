@@ -223,7 +223,7 @@ public class TeamGenerateComponent {
 
       int winResultMmr = getMmrGap(summoner, teamMmr, enemyTeamMmr, true);
       int loseResultMmr = getMmrGap(summoner, teamMmr, enemyTeamMmr, false);
-      String mmrInfo = String.format("+%s, %s", winResultMmr, loseResultMmr);
+      String mmrInfo = String.format("+%s, -%s", winResultMmr, loseResultMmr);
       String summonerInfo = String.format(" (%s, %s)", tier, mmrInfo);
       message.append(summonerInfo);
 
