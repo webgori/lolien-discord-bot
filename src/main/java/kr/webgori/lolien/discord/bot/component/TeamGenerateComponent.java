@@ -12,9 +12,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -26,7 +24,6 @@ import kr.webgori.lolien.discord.bot.dto.SummonerMostChampsDto;
 import kr.webgori.lolien.discord.bot.entity.League;
 import kr.webgori.lolien.discord.bot.entity.LolienSummoner;
 import kr.webgori.lolien.discord.bot.entity.user.User;
-import kr.webgori.lolien.discord.bot.repository.LeagueRepository;
 import kr.webgori.lolien.discord.bot.repository.LolienSummonerRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,11 +32,9 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.rithms.riot.api.ApiConfig;
 import net.rithms.riot.api.RiotApi;
 import net.rithms.riot.api.RiotApiException;
-import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
 import net.rithms.riot.api.endpoints.match.dto.Match;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameParticipant;
-import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.constant.Platform;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.redis.core.HashOperations;
@@ -51,9 +46,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Component
 public class TeamGenerateComponent {
-  private static final String[] TIER_LIST = {"IRON", "BRONZE", "SILVER", "GOLD", "PLATINUM",
-      "DIAMOND", "MASTER", "GRANDMASTER", "CHALLENGE"};
-  private static final String[] RANK_LIST = {"IV", "III", "II", "I"};
   public static final String CURRENT_SEASON = "S10";
   private static final String DEFAULT_TIER = "UNRANKED";
   private static final String REDIS_GENERATED_TEAM_USERS_INFO_KEY
@@ -64,11 +56,9 @@ public class TeamGenerateComponent {
       = 564816760059068445L;
 
   private final LolienSummonerRepository lolienSummonerRepository;
-  private final LeagueRepository leagueRepository;
   private final CustomGameComponent customGameComponent;
   private final RedisTemplate<String, Object> redisTemplate;
   private final RiotComponent riotComponent;
-  private final CommonComponent commonComponent;
 
   /**
    * execute.
@@ -153,9 +143,6 @@ public class TeamGenerateComponent {
         checkRegister(textChannel, summonerName);
 
         LolienSummoner lolienSummoner = lolienSummonerRepository.findBySummonerName(summonerName);
-
-        checkCurrentSeasonTier(summonerName, lolienSummoner);
-        commonComponent.checkExistsMmr(lolienSummoner);
 
         if (team1.size() < 5) {
           team1.add(lolienSummoner);
@@ -250,10 +237,7 @@ public class TeamGenerateComponent {
   }
 
   int getMmrGap(LolienSummoner lolienSummoner, float teamMmr, float enemyTeamMmr, boolean win) {
-    int beforeMmr = Optional
-        .ofNullable(lolienSummoner.getMmr())
-        .orElseThrow(() -> new IllegalArgumentException("MMR is null"));
-
+    int beforeMmr = lolienSummoner.getMmr();
     float probablyOdds = getProbablyOdds(teamMmr, enemyTeamMmr);
 
     if (win) {
@@ -275,26 +259,6 @@ public class TeamGenerateComponent {
         .mapToInt(LolienSummoner::getMmr)
         .average()
         .orElse(0);
-  }
-
-  private void checkCurrentSeasonTier(String summonerName, LolienSummoner lolienSummoner) {
-    boolean presentCurrentSeason = lolienSummoner
-        .getLeagues()
-        .stream()
-        .anyMatch(l -> l.getSeason().equals(CURRENT_SEASON));
-
-    if (!presentCurrentSeason) {
-      String tier = getCurrentSeasonTier(summonerName);
-
-      League league = League
-          .builder()
-          .lolienSummoner(lolienSummoner)
-          .season(CURRENT_SEASON)
-          .tier(tier)
-          .build();
-
-      leagueRepository.save(league);
-    }
   }
 
   private void checkRegister(TextChannel textChannel, String summonerName) {
@@ -353,49 +317,6 @@ public class TeamGenerateComponent {
     }
 
     return stringBuilder.toString();
-  }
-
-  private Map<String, Integer> getTiers() {
-    Map<String, Integer> tiersMap = new HashMap<>();
-
-    int point = 0;
-    for (String tier : TIER_LIST) {
-      for (String rank : RANK_LIST) {
-        String key = tier + "-" + rank;
-        tiersMap.put(key, point);
-        point++;
-      }
-    }
-
-    return tiersMap;
-  }
-
-  private String getCurrentSeasonTier(String summonerName) {
-    String riotApiKey = ConfigComponent.getRiotApiKey();
-    ApiConfig config = new ApiConfig().setKey(riotApiKey);
-    RiotApi riotApi = new RiotApi(config);
-
-    try {
-      Summoner summoner = riotApi.getSummonerByName(Platform.KR, summonerName);
-      String summonerId = summoner.getId();
-      Set<LeagueEntry> leagueEntrySet = riotApi
-          .getLeagueEntriesBySummonerId(Platform.KR, summonerId);
-
-      List<LeagueEntry> leagueEntries = Lists.newArrayList(leagueEntrySet);
-
-      String tier = DEFAULT_TIER;
-
-      for (LeagueEntry leagueEntry : leagueEntries) {
-        if (leagueEntry.getQueueType().equals("RANKED_SOLO_5x5")) {
-          tier = leagueEntry.getTier() + "-" + leagueEntry.getRank();
-        }
-      }
-
-      return tier;
-    } catch (RiotApiException e) {
-      logger.error("", e);
-      throw new IllegalArgumentException("RiotApiException");
-    }
   }
 
   private void sendSyntax(TextChannel textChannel) {

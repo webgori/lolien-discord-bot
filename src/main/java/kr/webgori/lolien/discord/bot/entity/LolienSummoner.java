@@ -63,20 +63,4 @@ public class LolienSummoner {
   @JsonIgnore
   @OneToOne(mappedBy = "summoner")
   private LolienLeagueTeamSummoner leagueTeamSummoner;
-
-  public void plusMmr(Integer mmr) {
-    this.mmr += mmr;
-  }
-
-  /**
-   * MMR 감소 (MMR 이 50 미만이면 최소 MMR 50으로 고정).
-   * @param mmr mmr
-   */
-  public void minusMmr(Integer mmr) {
-    if (this.mmr - mmr < 50) {
-      this.mmr = 50;
-    } else {
-      this.mmr -= mmr;
-    }
-  }
 }

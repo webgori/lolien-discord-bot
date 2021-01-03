@@ -70,7 +70,6 @@ public class CustomGameComponent {
   private final LolienParticipantRepository lolienParticipantRepository;
   private final RedisTemplate<String, Object> redisTemplate;
   private final RiotComponent riotComponent;
-  private final CommonComponent commonComponent;
   private final ObjectMapper objectMapper;
   private final AuthenticationComponent authenticationComponent;
   private final HttpServletRequest httpServletRequest;
@@ -334,7 +333,6 @@ public class CustomGameComponent {
 
           List<LolienSummoner> top5ByOrderByMmrDesc = latestMatchSummoners
               .stream()
-              .filter(ls -> ls.getMmr() != null)
               .sorted(Comparator.comparing(LolienSummoner::getMmr).reversed())
               .limit(5)
               .collect(Collectors.toList());
@@ -365,9 +363,8 @@ public class CustomGameComponent {
             return;
           }
 
-          LolienSummoner bySummonerName = lolienSummonerRepository.findBySummonerName(summonerName);
-          commonComponent.checkExistsMmr(bySummonerName);
-          int mmr = bySummonerName.getMmr();
+          LolienSummoner lolienSummoner = lolienSummonerRepository.findBySummonerName(summonerName);
+          int mmr = lolienSummoner.getMmr();
           String message = String.format("%s님의 내전 MMR은 %s 입니다.", summonerName, mmr);
 
           sendMessage(textChannel, message);
@@ -596,10 +593,7 @@ public class CustomGameComponent {
 
     int afterMmr;
     LolienSummoner lolienSummoner = lolienParticipant.getLolienSummoner();
-    int beforeMmr = Optional
-        .ofNullable(lolienSummoner.getMmr())
-        .orElseThrow(() -> new IllegalArgumentException("MMR is null"));
-
+    int beforeMmr = lolienSummoner.getMmr();
     float probablyOdds = getProbablyOdds(team1MmrAverage, team2MmrAverage, lolienParticipant);
 
     if (win) {

@@ -31,7 +31,6 @@ import javax.servlet.http.HttpServletRequest;
 import kr.webgori.lolien.discord.bot.component.AuthenticationComponent;
 import kr.webgori.lolien.discord.bot.component.ConfigComponent;
 import kr.webgori.lolien.discord.bot.component.MailComponent;
-import kr.webgori.lolien.discord.bot.component.TeamGenerateComponent;
 import kr.webgori.lolien.discord.bot.component.UserTransactionComponent;
 import kr.webgori.lolien.discord.bot.dto.UserInfoDto;
 import kr.webgori.lolien.discord.bot.dto.UserSessionDto;
@@ -781,24 +780,22 @@ public class UserService {
 
       LolienSummoner lolienSummoner = user.getLolienSummoner();
       String summonerName = lolienSummoner.getSummonerName();
-      Integer mmr = lolienSummoner.getMmr();
+      int mmr = lolienSummoner.getMmr();
       String mmrString = "-";
 
-      if (mmr != null) {
-        Set<LolienParticipant> participants = lolienSummoner.getParticipants();
+      Set<LolienParticipant> participants = lolienSummoner.getParticipants();
 
-        if (!participants.isEmpty()) {
-          LolienMatch lolienMatch = participants
-              .stream()
-              .map(LolienParticipant::getMatch)
-              .max(Comparator.comparing(LolienMatch::getGameCreation))
-              .orElseThrow(() -> new IllegalArgumentException(""));
+      if (!participants.isEmpty()) {
+        LolienMatch lolienMatch = participants
+            .stream()
+            .map(LolienParticipant::getMatch)
+            .max(Comparator.comparing(LolienMatch::getGameCreation))
+            .orElseThrow(() -> new IllegalArgumentException(""));
 
-          if (isGameCreationBeforeThreeMonth(lolienMatch)) {
-            mmrString = "휴면";
-          } else {
-            mmrString = String.valueOf(mmr);
-          }
+        if (isGameCreationBeforeThreeMonth(lolienMatch)) {
+          mmrString = "휴면";
+        } else {
+          mmrString = String.valueOf(mmr);
         }
       }
 
