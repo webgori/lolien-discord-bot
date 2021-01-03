@@ -1,6 +1,7 @@
 package kr.webgori.lolien.discord.bot.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Set;
 import javax.persistence.CascadeType;
@@ -47,7 +48,7 @@ public class LolienSummoner {
   private String summonerName;
 
   @OneToMany(mappedBy = "lolienSummoner", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-  private List<League> leagues;
+  @Builder.Default private List<League> leagues = Lists.newArrayList();
 
   @OneToMany(mappedBy = "lolienSummoner", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   private Set<LolienParticipant> participants;

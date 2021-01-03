@@ -43,11 +43,13 @@ import kr.webgori.lolien.discord.bot.entity.League;
 import kr.webgori.lolien.discord.bot.entity.LolienMatch;
 import kr.webgori.lolien.discord.bot.entity.LolienParticipant;
 import kr.webgori.lolien.discord.bot.entity.LolienSummoner;
+import kr.webgori.lolien.discord.bot.entity.LolienTierMmr;
 import kr.webgori.lolien.discord.bot.entity.user.ClienUser;
 import kr.webgori.lolien.discord.bot.entity.user.Role;
 import kr.webgori.lolien.discord.bot.entity.user.User;
 import kr.webgori.lolien.discord.bot.entity.user.UserRole;
 import kr.webgori.lolien.discord.bot.repository.LolienSummonerRepository;
+import kr.webgori.lolien.discord.bot.repository.LolienTierMmrRepository;
 import kr.webgori.lolien.discord.bot.repository.user.ClienUserRepository;
 import kr.webgori.lolien.discord.bot.repository.user.RoleRepository;
 import kr.webgori.lolien.discord.bot.repository.user.UserRepository;
@@ -64,7 +66,6 @@ import lombok.extern.slf4j.Slf4j;
 import net.rithms.riot.api.ApiConfig;
 import net.rithms.riot.api.RiotApi;
 import net.rithms.riot.api.RiotApiException;
-import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.constant.Platform;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -117,7 +118,7 @@ public class UserService {
   private final MailComponent mailComponent;
   private final UserTransactionComponent userTransactionComponent;
   private final ClienUserRepository clienUserRepository;
-  private final TeamGenerateComponent teamGenerateComponent;
+  private final LolienTierMmrRepository lolienTierMmrRepository;
 
   @Value("${clien.service.url}")
   private String clienUrl;
@@ -148,6 +149,7 @@ public class UserService {
     ClienUser clienUser = getClienUser(request);
     LolienSummoner lolienSummoner = getLolienSummoner(request);
     List<League> leagues = getLeagues(request, lolienSummoner);
+    setMmr(lolienSummoner, leagues);
 
     User user = getUser(request, clienUser, lolienSummoner);
     Role role = getUserRole();
@@ -155,6 +157,24 @@ public class UserService {
     user.setUserRole(userRole);
 
     userTransactionComponent.register(user, userRole, clienUser, lolienSummoner, leagues);
+  }
+
+  private void setMmr(LolienSummoner lolienSummoner, List<League> leagues) {
+    String tier = leagues
+        .stream()
+        .filter(l -> l.getSeason().equals(CURRENT_SEASON))
+        .findAny()
+        .orElseGet(() -> League.builder().tier(DEFAULT_TIER).build())
+        .getTier();
+
+    LolienTierMmr mmrFromTable = getMmrFromTable(tier);
+    int mmr = mmrFromTable.getMmr();
+
+    lolienSummoner.setMmr(mmr);
+  }
+
+  private LolienTierMmr getMmrFromTable(String tier) {
+    return lolienTierMmrRepository.findByTier(tier);
   }
 
   private UserRole getUserRole(User user, Role role) {
@@ -217,11 +237,9 @@ public class UserService {
 
   private LolienSummoner getLolienSummoner(RegisterRequest request) {
     String summerName = request.getSummonerName().replaceAll("\\s+", "");
-    LolienSummoner lolienSummoner = lolienSummonerRepository.findBySummonerName(summerName);
-
-    if (Objects.isNull(lolienSummoner)) {
-      return getNewLolienSummoner(request);
-    }
+    LolienSummoner lolienSummoner = lolienSummonerRepository
+        .findBySummonerNameIs(summerName)
+        .orElseGet(() -> getNewLolienSummoner(request));
 
     checkExistsUser(lolienSummoner);
 
@@ -247,67 +265,15 @@ public class UserService {
   private List<League> getLeagues(RegisterRequest request, LolienSummoner lolienSummoner) {
     List<League> leagues = lolienSummoner.getLeagues();
 
-    if (Objects.isNull(leagues)) {
-      leagues = Lists.newArrayList();
-      addCurrentSeasonLeague(request, lolienSummoner, leagues);
-      addOtherSeasonLeague(request, lolienSummoner, leagues);
+    if (leagues.isEmpty()) {
+      addSeasonLeagues(request, lolienSummoner, leagues);
     }
 
     return leagues;
   }
 
-  private void addCurrentSeasonLeague(RegisterRequest request, LolienSummoner lolienSummoner,
-                                      List<League> leagues) {
-    String currentSeasonTier = getCurrentSeasonTier(request);
-
-    League league = League
-        .builder()
-        .season(CURRENT_SEASON)
-        .tier(currentSeasonTier)
-        .lolienSummoner(lolienSummoner)
-        .build();
-
-    leagues.add(league);
-  }
-
-  private String getCurrentSeasonTier(RegisterRequest request) {
-    Summoner summoner = getSummoner(request);
-    RiotApi riotApi = getRiotApi();
-
-    try {
-      String summonerId = summoner.getId();
-      Set<LeagueEntry> leagueEntrySet = riotApi
-          .getLeagueEntriesBySummonerId(Platform.KR, summonerId);
-
-      List<LeagueEntry> leagueEntries = Lists.newArrayList(leagueEntrySet);
-
-      String tier = DEFAULT_TIER;
-
-      for (LeagueEntry leagueEntry : leagueEntries) {
-        if (leagueEntry.getQueueType().equals("RANKED_SOLO_5x5")) {
-          tier = leagueEntry.getTier() + "-" + leagueEntry.getRank();
-        }
-      }
-
-      return tier;
-    } catch (RiotApiException e) {
-      int errorCode = e.getErrorCode();
-      if (errorCode == RiotApiException.FORBIDDEN) {
-        throw new IllegalArgumentException(
-            "Riot API Key가 만료되어 기능이 정상적으로 작동하지 않습니다. 개발자에게 알려주세요.");
-      } else if (errorCode == RiotApiException.DATA_NOT_FOUND) {
-        String summonerName = request.getSummonerName();
-        String errorMessage = String.format("%s 소환사가 존재하지 않습니다.", summonerName);
-        throw new IllegalArgumentException(errorMessage);
-      } else {
-        logger.error("", e);
-        throw new IllegalArgumentException("riotApiException");
-      }
-    }
-  }
-
-  private void addOtherSeasonLeague(RegisterRequest request, LolienSummoner lolienSummoner,
-                                    List<League> leagues) {
+  private void addSeasonLeagues(RegisterRequest request, LolienSummoner lolienSummoner,
+                                List<League> leagues) {
     String summonerName = request.getSummonerName();
 
     Map<String, String> tiersFromOpGg = getTiersFromOpGg(summonerName);
@@ -315,6 +281,10 @@ public class UserService {
     for (Map.Entry<String, String> entry : tiersFromOpGg.entrySet()) {
       String key = entry.getKey();
       String value = entry.getValue();
+
+      if (key.equals("S2020")) {
+        key = "S10";
+      }
 
       League league = League
           .builder()

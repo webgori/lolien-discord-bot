@@ -87,6 +87,10 @@ public class UnitTest {
         String key = entry.getKey();
         String value = entry.getValue();
 
+        if (key.equals("S2020")) {
+          key = "S10";
+        }
+
         League league = League
             .builder()
             .lolienSummoner(lolienSummoner)
