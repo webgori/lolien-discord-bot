@@ -31,6 +31,7 @@ import javax.servlet.http.HttpServletRequest;
 import kr.webgori.lolien.discord.bot.component.AuthenticationComponent;
 import kr.webgori.lolien.discord.bot.component.ConfigComponent;
 import kr.webgori.lolien.discord.bot.component.MailComponent;
+import kr.webgori.lolien.discord.bot.component.OpGgComponent;
 import kr.webgori.lolien.discord.bot.component.UserTransactionComponent;
 import kr.webgori.lolien.discord.bot.dto.UserInfoDto;
 import kr.webgori.lolien.discord.bot.dto.UserSessionDto;
@@ -53,6 +54,8 @@ import kr.webgori.lolien.discord.bot.repository.user.ClienUserRepository;
 import kr.webgori.lolien.discord.bot.repository.user.RoleRepository;
 import kr.webgori.lolien.discord.bot.repository.user.UserRepository;
 import kr.webgori.lolien.discord.bot.request.user.AccessTokenRequest;
+import kr.webgori.lolien.discord.bot.request.user.AlterUserRequest;
+import kr.webgori.lolien.discord.bot.request.user.GenerateTempPasswordRequest;
 import kr.webgori.lolien.discord.bot.request.user.LogoutRequest;
 import kr.webgori.lolien.discord.bot.request.user.RegisterRequest;
 import kr.webgori.lolien.discord.bot.request.user.VerifyClienIdRequest;
@@ -118,6 +121,7 @@ public class UserService {
   private final UserTransactionComponent userTransactionComponent;
   private final ClienUserRepository clienUserRepository;
   private final LolienTierMmrRepository lolienTierMmrRepository;
+  private final OpGgComponent opGgComponent;
 
   @Value("${clien.service.url}")
   private String clienUrl;
@@ -210,6 +214,25 @@ public class UserService {
         .clienUser(clienUser)
         .lolienSummoner(lolienSummoner)
         .build();
+  }
+
+  private User getUser() {
+    Optional<User> userOptional = authenticationComponent.getUser(httpServletRequest);
+    return userOptional.orElseThrow(() -> new BadCredentialsException(""));
+  }
+
+  private User getUser(String email) {
+    User user = userRepository
+        .findByEmail(email)
+        .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이메일입니다."));
+
+    String role = user.getUserRole().getRole().getRole();
+
+    if (role.equals("LEAVE")) {
+      throw new IllegalArgumentException("탈퇴한 사용자입니다.");
+    }
+
+    return user;
   }
 
   private void verifyEmailAuthNumber(RegisterRequest request) {
@@ -830,5 +853,145 @@ public class UserService {
 
     return threeMonthAgoTimestamp >= gameCreation;
   }
-}
 
+  /**
+   * 회원 정보 수정.
+   * @param request request
+   */
+  public void alterUser(AlterUserRequest request) {
+    User user = getUser();
+    setUser(request, user);
+
+    userTransactionComponent.alterUser(user);
+  }
+
+  private void setUser(AlterUserRequest request, User user) {
+    setUserNickname(request, user);
+    setUserPassword(request, user);
+    setUserSummonerName(request, user);
+  }
+
+  private void setUserSummonerName(AlterUserRequest request, User user) {
+    String riotApiKey = ConfigComponent.getRiotApiKey();
+    ApiConfig config = new ApiConfig().setKey(riotApiKey);
+    RiotApi riotApi = new RiotApi(config);
+    Summoner summoner;
+    String summonerName = request.getSummonerName();
+
+    try {
+      summoner = riotApi.getSummonerByName(Platform.KR, summonerName);
+    } catch (RiotApiException e) {
+      int errorCode = e.getErrorCode();
+
+      if (errorCode == 404) {
+        throw new IllegalArgumentException(summonerName + " 소환사는 존재하지 않는 소환사 입니다.");
+      } else {
+        logger.error("", e);
+        throw new IllegalArgumentException("라이엇 서버에 문제가 발생하였습니다.");
+      }
+    }
+
+    LolienSummoner lolienSummoner = user.getLolienSummoner();
+
+    String accountId = summoner.getAccountId();
+    lolienSummoner.setAccountId(accountId);
+
+    String id = summoner.getId();
+    lolienSummoner.setId(id);
+
+    String name = summoner.getName();
+    lolienSummoner.setSummonerName(name);
+
+    int summonerLevel = summoner.getSummonerLevel();
+    lolienSummoner.setSummonerLevel(summonerLevel);
+
+    List<League> leagues = opGgComponent.getLeaguesFromOpGg(lolienSummoner);
+    lolienSummoner.setLeagues(leagues);
+  }
+
+  private void setUserPassword(AlterUserRequest request, User user) {
+    String currentPassword = request.getCurrentPassword();
+
+    if (currentPassword != null && !currentPassword.isBlank()) {
+      String password = user.getPassword();
+      boolean matches = passwordEncoder.matches(currentPassword, password);
+
+      if (!matches) {
+        throw new IllegalArgumentException("현재 비밀번호가 올바르지 않습니다.");
+      }
+
+      String alterPassword = request.getAlterPassword();
+      matches = passwordEncoder.matches(alterPassword, password);
+
+      if (alterPassword == null || alterPassword.isBlank()) {
+        throw new IllegalArgumentException("변경할 비밀번호가 올바르지 않습니다.");
+      } else if (matches) {
+        throw new IllegalArgumentException("변경할 비밀번호가 현재 비밀번호와 동일합니다.");
+      }
+
+      String encryptedPassword = passwordEncoder.encode(alterPassword);
+      user.setPassword(encryptedPassword);
+    }
+  }
+
+  private void setUserNickname(AlterUserRequest request, User user) {
+    String nickname = request.getNickname();
+
+    if (nickname != null) {
+      user.setNickname(nickname);
+    }
+  }
+
+  /**
+   * 회원 탈퇴.
+   */
+  public void leaveUser() {
+    User user = getUser();
+    setLeaveRole(user);
+
+    userTransactionComponent.leaveUser(user);
+  }
+
+  private void setLeaveRole(User user) {
+    UserRole userLeaveRole = getUserLeaveRole(user);
+    user.setUserRole(userLeaveRole);
+  }
+
+  private UserRole getUserLeaveRole(User user) {
+    Role leave = roleRepository.findByRole("LEAVE");
+
+    UserRole userRole = user.getUserRole();
+    userRole.setRole(leave);
+
+    return userRole;
+  }
+
+  /**
+   * 임시 비밀번호 발급.
+   * @param request request
+   */
+  public void generateTempPassword(GenerateTempPasswordRequest request) {
+    String email = request.getEmail();
+    User user = getUser(email);
+
+    String tempPassword = RandomStringUtils.randomAlphanumeric(20);
+
+    sendTempPassword(email, tempPassword);
+
+    String encryptedPassword = passwordEncoder.encode(tempPassword);
+    user.setPassword(encryptedPassword);
+    userTransactionComponent.generateTempPassword(user);
+  }
+
+  private void sendTempPassword(String email, String tempPassword) {
+    String text = getEmailTempPasswordText(tempPassword);
+    String subject = "[LoLien.kr] 임시 비밀번호가 도착하였습니다";
+
+    mailComponent.sendMail("no-reply@LoLien.kr", email, subject, text);
+  }
+
+  private String getEmailTempPasswordText(String tempPassword) {
+    String tempPasswordText = "LoLien.kr 임시 비밀번호는 [%s] 입니다.";
+    return String.format(tempPasswordText, tempPassword);
+  }
+}

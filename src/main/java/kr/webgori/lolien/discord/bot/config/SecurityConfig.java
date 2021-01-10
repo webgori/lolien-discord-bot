@@ -80,7 +80,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers("/favicon.ico", "/v3/api-docs/**", "/swagger-ui/**")
         .antMatchers("/v*/users/register", "/v*/users/register/verify/clien-id",
             "/v*/users/register/verify/email", "/v*/users/access-token", "/v*/users/logout",
-            "/v*/users")
+            "/v*/users", "/v*/users/temp-password")
         .antMatchers("/v*/summoners/**")
         .antMatchers(GET, "/v*/leagues/**")
         .antMatchers(GET, "/v*/custom-game/**");

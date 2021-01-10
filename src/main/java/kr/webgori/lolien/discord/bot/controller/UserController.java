@@ -9,6 +9,8 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import kr.webgori.lolien.discord.bot.request.user.AccessTokenRequest;
+import kr.webgori.lolien.discord.bot.request.user.AlterUserRequest;
+import kr.webgori.lolien.discord.bot.request.user.GenerateTempPasswordRequest;
 import kr.webgori.lolien.discord.bot.request.user.LoginRequest;
 import kr.webgori.lolien.discord.bot.request.user.LogoutRequest;
 import kr.webgori.lolien.discord.bot.request.user.RegisterRequest;
@@ -21,7 +23,9 @@ import kr.webgori.lolien.discord.bot.response.user.UserResponse;
 import kr.webgori.lolien.discord.bot.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -182,5 +186,50 @@ public class UserController {
   @GetMapping("v1/users")
   public UserResponse getUsers() {
     return userService.getUsers();
+  }
+
+  @Operation(
+      summary = "회원 정보 수정",
+      security = {
+          @SecurityRequirement(name = "JWT")
+      })
+  @ApiResponses(
+      value = {
+          @ApiResponse(
+              responseCode = "204",
+              description = "No Content")
+      })
+  @PatchMapping("v1/users")
+  public void alterUser(@RequestBody @Valid AlterUserRequest request) {
+    userService.alterUser(request);
+  }
+
+  @Operation(
+      summary = "회원 탈퇴",
+      security = {
+          @SecurityRequirement(name = "JWT")
+      })
+  @ApiResponses(
+      value = {
+          @ApiResponse(
+              responseCode = "204",
+              description = "No Content")
+      })
+  @DeleteMapping("v1/users")
+  public void leaveUser() {
+    userService.leaveUser();
+  }
+
+  @Operation(
+      summary = "임시 비밀번호 발급")
+  @ApiResponses(
+      value = {
+          @ApiResponse(
+              responseCode = "204",
+              description = "No Content")
+      })
+  @PostMapping("v1/users/temp-password")
+  public void generateTempPassword(@RequestBody @Valid GenerateTempPasswordRequest request) {
+    userService.generateTempPassword(request);
   }
 }

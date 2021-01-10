@@ -9,4 +9,6 @@ public interface LeagueRepository extends JpaRepository<League, Integer> {
   League findByLolienSummonerAndSeason(LolienSummoner lolienSummoner, String season);
 
   List<League> findByLolienSummoner(LolienSummoner lolienSummoner);
+
+  void deleteByLolienSummoner(LolienSummoner lolienSummoner);
 }

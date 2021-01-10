@@ -61,4 +61,26 @@ public class UserTransactionComponent {
     lolienSummonerRepository.delete(lolienSummoner);
     clienUserRepository.delete(clienUser);
   }
+
+  /**
+   * 회원 정보 수정.
+   * @param user user
+   */
+  @Transactional
+  public void alterUser(User user) {
+    LolienSummoner lolienSummoner = user.getLolienSummoner();
+    leagueRepository.deleteByLolienSummoner(lolienSummoner);
+
+    userRepository.save(user);
+  }
+
+  @Transactional
+  public void leaveUser(User user) {
+    userRepository.save(user);
+  }
+
+  @Transactional
+  public void generateTempPassword(User user) {
+    userRepository.save(user);
+  }
 }

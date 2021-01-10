@@ -26,7 +26,14 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
     logger.error("", accessDeniedException);
 
     HttpStatus httpStatus = HttpStatus.UNAUTHORIZED;
-    String message = "아이디 또는 비밀번호를 확인해주세요.";
+
+    String message = accessDeniedException.getMessage();
+
+    if (message.equals("Access is denied")) {
+      message = "탈퇴된 회원입니다.";
+    } else {
+      message = "아이디 또는 비밀번호를 확인해주세요.";
+    }
 
     try {
       HandlerExecutionChain handler = requestMappingHandlerMapping.getHandler(httpServletRequest);
