@@ -23,6 +23,11 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Component
 public class OpGgComponent {
+  /**
+   * op.gg 에서 티어 조회.
+   * @param lolienSummoner lolienSummoner
+   * @return 리그 목록
+   */
   public List<League> getLeaguesFromOpGg(LolienSummoner lolienSummoner) {
     String summonerName = lolienSummoner.getSummonerName();
 
