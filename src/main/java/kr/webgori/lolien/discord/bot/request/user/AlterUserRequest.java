@@ -1,6 +1,7 @@
 package kr.webgori.lolien.discord.bot.request.user;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.List;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import lombok.Data;
@@ -23,4 +24,8 @@ public class AlterUserRequest {
   @Size(min = 2, max = 20)
   @NotBlank
   private String summonerName;
+
+  @Schema(description = "포지션")
+  @Size(min = 1, max = 5)
+  private List<String> positions;
 }

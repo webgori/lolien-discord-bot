@@ -27,6 +27,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import kr.webgori.lolien.discord.bot.component.AuthenticationComponent;
 import kr.webgori.lolien.discord.bot.component.ConfigComponent;
@@ -44,12 +45,15 @@ import kr.webgori.lolien.discord.bot.entity.LolienMatch;
 import kr.webgori.lolien.discord.bot.entity.LolienParticipant;
 import kr.webgori.lolien.discord.bot.entity.LolienSummoner;
 import kr.webgori.lolien.discord.bot.entity.LolienTierMmr;
+import kr.webgori.lolien.discord.bot.entity.Position;
+import kr.webgori.lolien.discord.bot.entity.UserPosition;
 import kr.webgori.lolien.discord.bot.entity.user.ClienUser;
 import kr.webgori.lolien.discord.bot.entity.user.Role;
 import kr.webgori.lolien.discord.bot.entity.user.User;
 import kr.webgori.lolien.discord.bot.entity.user.UserRole;
 import kr.webgori.lolien.discord.bot.repository.LolienSummonerRepository;
 import kr.webgori.lolien.discord.bot.repository.LolienTierMmrRepository;
+import kr.webgori.lolien.discord.bot.repository.PositionRepository;
 import kr.webgori.lolien.discord.bot.repository.user.ClienUserRepository;
 import kr.webgori.lolien.discord.bot.repository.user.RoleRepository;
 import kr.webgori.lolien.discord.bot.repository.user.UserRepository;
@@ -122,6 +126,7 @@ public class UserService {
   private final ClienUserRepository clienUserRepository;
   private final LolienTierMmrRepository lolienTierMmrRepository;
   private final OpGgComponent opGgComponent;
+  private final PositionRepository positionRepository;
 
   @Value("${clien.service.url}")
   private String clienUrl;
@@ -159,7 +164,11 @@ public class UserService {
     UserRole userRole = getUserRole(user, role);
     user.setUserRole(userRole);
 
-    userTransactionComponent.register(user, userRole, clienUser, lolienSummoner, leagues);
+    List<String> positions = request.getPositions();
+    List<UserPosition> userPositions = getUserPositions(positions, lolienSummoner);
+
+    userTransactionComponent.register(user, userRole, clienUser, lolienSummoner, leagues,
+        userPositions);
   }
 
   private void setMmr(LolienSummoner lolienSummoner, List<League> leagues) {
@@ -292,6 +301,45 @@ public class UserService {
     }
 
     return leagues;
+  }
+
+  private List<UserPosition> getUserPositions(List<String> positions,
+                                              LolienSummoner lolienSummoner) {
+
+    List<UserPosition> userPositions = Lists.newArrayList();
+
+    for (String positionDescription : positions) {
+      Position position = positionRepository
+          .findByPosition(positionDescription)
+          .orElseThrow(() -> new IllegalArgumentException("해당 포지션을 찾을 수 없습니다."));
+
+      UserPosition userPosition = UserPosition
+          .builder()
+          .lolienSummoner(lolienSummoner)
+          .position(position)
+          .build();
+
+      userPositions.add(userPosition);
+    }
+
+    return userPositions;
+  }
+
+  private List<String> getPositions(LolienSummoner lolienSummoner) {
+    List<UserPosition> userPositions = lolienSummoner.getPositions();
+    List<Position> positions = userPositions
+        .stream()
+        .map(UserPosition::getPosition)
+        .collect(Collectors.toList());
+
+    List<String> positionsString = Lists.newArrayList();
+
+    for (Position position : positions) {
+      String positionString = position.getPosition();
+      positionsString.add(positionString);
+    }
+
+    return positionsString;
   }
 
   private void addSeasonLeagues(RegisterRequest request, LolienSummoner lolienSummoner,
@@ -486,7 +534,10 @@ public class UserService {
       summonerName = lolienSummoner.getSummonerName();
     }
 
-    UserInfoDto userInfo = getUserDto(email, nickname, emailVerified, clienId, summonerName);
+    List<String> positions = getPositions(lolienSummoner);
+
+    UserInfoDto userInfo = getUserDto(email, nickname, emailVerified, clienId, summonerName,
+        positions);
 
     return UserInfoResponse
         .builder()
@@ -498,7 +549,8 @@ public class UserService {
                                  String nickname,
                                  boolean emailVerified,
                                  String clienId,
-                                 String summerName) {
+                                 String summerName,
+                                 List<String> positions) {
     return UserInfoDto
         .builder()
         .email(email)
@@ -506,6 +558,7 @@ public class UserService {
         .emailVerified(emailVerified)
         .clienId(clienId)
         .summonerName(summerName)
+        .positions(positions)
         .build();
   }
 
@@ -822,6 +875,8 @@ public class UserService {
         }
       }
 
+      List<String> positions = getPositions(lolienSummoner);
+
       String tier = lolienSummoner
           .getLeagues()
           .stream()
@@ -834,6 +889,7 @@ public class UserService {
           .builder()
           .nickname(nickname)
           .summonerName(summonerName)
+          .positions(positions)
           .tier(tier)
           .mmr(mmrString)
           .createdAt(createdAt)
@@ -860,15 +916,27 @@ public class UserService {
    */
   public void alterUser(AlterUserRequest request) {
     User user = getUser();
-    setUser(request, user);
 
-    userTransactionComponent.alterUser(user);
+    List<String> positions = request.getPositions();
+    LolienSummoner lolienSummoner = user.getLolienSummoner();
+    List<UserPosition> userPositions = getUserPositions(positions, lolienSummoner);
+
+    setUser(request, user, userPositions);
+
+    userTransactionComponent.alterUser(user, userPositions);
   }
 
-  private void setUser(AlterUserRequest request, User user) {
+  private void setUser(AlterUserRequest request, User user,
+                       List<UserPosition> userPositions) {
     setUserNickname(request, user);
     setUserPassword(request, user);
     setUserSummonerName(request, user);
+    setUserPositions(user, userPositions);
+  }
+
+  private void setUserPositions(User user, List<UserPosition> userPositions) {
+    LolienSummoner lolienSummoner = user.getLolienSummoner();
+    lolienSummoner.setPositions(userPositions);
   }
 
   private void setUserSummonerName(AlterUserRequest request, User user) {

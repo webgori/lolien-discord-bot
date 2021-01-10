@@ -3,11 +3,13 @@ package kr.webgori.lolien.discord.bot.component;
 import java.util.List;
 import kr.webgori.lolien.discord.bot.entity.League;
 import kr.webgori.lolien.discord.bot.entity.LolienSummoner;
+import kr.webgori.lolien.discord.bot.entity.UserPosition;
 import kr.webgori.lolien.discord.bot.entity.user.ClienUser;
 import kr.webgori.lolien.discord.bot.entity.user.User;
 import kr.webgori.lolien.discord.bot.entity.user.UserRole;
 import kr.webgori.lolien.discord.bot.repository.LeagueRepository;
 import kr.webgori.lolien.discord.bot.repository.LolienSummonerRepository;
+import kr.webgori.lolien.discord.bot.repository.UserPositionRepository;
 import kr.webgori.lolien.discord.bot.repository.user.ClienUserRepository;
 import kr.webgori.lolien.discord.bot.repository.user.UserRepository;
 import kr.webgori.lolien.discord.bot.repository.user.UserRoleRepository;
@@ -25,6 +27,7 @@ public class UserTransactionComponent {
   private final ClienUserRepository clienUserRepository;
   private final LolienSummonerRepository lolienSummonerRepository;
   private final LeagueRepository leagueRepository;
+  private final UserPositionRepository userPositionRepository;
 
   /**
    * 회원가입.
@@ -36,12 +39,14 @@ public class UserTransactionComponent {
    */
   @Transactional
   public void register(User user, UserRole userRole, ClienUser clienUser,
-                       LolienSummoner lolienSummoner, List<League> leagues) {
+                       LolienSummoner lolienSummoner, List<League> leagues,
+                       List<UserPosition> userPositions) {
     clienUserRepository.save(clienUser);
     lolienSummonerRepository.save(lolienSummoner);
     leagueRepository.saveAll(leagues);
     userRepository.save(user);
     userRoleRepository.save(userRole);
+    userPositionRepository.saveAll(userPositions);
   }
 
   /**
@@ -65,13 +70,17 @@ public class UserTransactionComponent {
   /**
    * 회원 정보 수정.
    * @param user user
+   * @param userPositions userPositions
    */
   @Transactional
-  public void alterUser(User user) {
+  public void alterUser(User user, List<UserPosition> userPositions) {
     LolienSummoner lolienSummoner = user.getLolienSummoner();
     leagueRepository.deleteByLolienSummoner(lolienSummoner);
 
     userRepository.save(user);
+
+    userPositionRepository.deleteByLolienSummoner(lolienSummoner);
+    userPositionRepository.saveAll(userPositions);
   }
 
   @Transactional

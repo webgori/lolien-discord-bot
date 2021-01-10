@@ -63,4 +63,7 @@ public class LolienSummoner {
   @JsonIgnore
   @OneToOne(mappedBy = "summoner")
   private LolienLeagueTeamSummoner leagueTeamSummoner;
+
+  @OneToMany(mappedBy = "lolienSummoner")
+  private List<UserPosition> positions;
 }

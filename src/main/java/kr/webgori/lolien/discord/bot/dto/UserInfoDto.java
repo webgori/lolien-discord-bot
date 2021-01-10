@@ -1,5 +1,6 @@
 package kr.webgori.lolien.discord.bot.dto;
 
+import java.util.List;
 import lombok.Builder;
 import lombok.Data;
 
@@ -11,4 +12,5 @@ public class UserInfoDto {
   private boolean emailVerified;
   private String clienId;
   private String summonerName;
+  private List<String> positions;
 }
