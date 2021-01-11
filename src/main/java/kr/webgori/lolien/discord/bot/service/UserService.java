@@ -967,7 +967,7 @@ public class UserService {
     String id = summoner.getId();
     lolienSummoner.setId(id);
 
-    String name = summoner.getName();
+    String name = summoner.getName().replaceAll("\\s+", "");
     lolienSummoner.setSummonerName(name);
 
     int summonerLevel = summoner.getSummonerLevel();
