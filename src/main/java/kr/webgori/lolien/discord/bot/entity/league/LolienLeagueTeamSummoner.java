@@ -30,6 +30,10 @@ public class LolienLeagueTeamSummoner {
   private LolienLeagueTeam team;
 
   @OneToOne
-  @JoinColumn(name = "summoner_idx", unique = true)
+  @JoinColumn(name = "summoner_idx", nullable = false)
   private LolienSummoner summoner;
+
+  @ManyToOne
+  @JoinColumn(name = "lolien_league_idx", nullable = false)
+  private LolienLeague lolienLeague;
 }

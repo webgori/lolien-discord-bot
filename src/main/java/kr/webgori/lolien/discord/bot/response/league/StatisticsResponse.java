@@ -1,5 +1,6 @@
 package kr.webgori.lolien.discord.bot.response.league;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import java.time.LocalDate;
 import java.util.List;
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MatchDto;
@@ -21,6 +22,7 @@ import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostWinningDto;
 import lombok.Builder;
 import lombok.Data;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @Builder
 @Data
 public class StatisticsResponse {

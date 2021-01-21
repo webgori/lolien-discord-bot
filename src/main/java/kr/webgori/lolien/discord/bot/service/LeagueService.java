@@ -745,26 +745,26 @@ public class LeagueService {
 
   /**
    * 통계 조회.
+   * @param leagueIdx leagueIdx
    * @return StatisticsResponse
    */
-  public StatisticsResponse getStatistics() {
-    LocalDate startDateOfMonth = getStartDateOfMonth();
-    LocalDate endDateOfMonth = getEndDateOfMonth();
-
-    List<LolienLeagueMatch> lolienMatches = getMatches(startDateOfMonth, endDateOfMonth);
+  public StatisticsResponse getStatistics(int leagueIdx) {
+    List<LolienLeagueMatch> lolienMatches = getMatches(leagueIdx);
 
     if (lolienMatches.isEmpty()) {
-      startDateOfMonth = getStartDateOfPrevMonth();
-      endDateOfMonth = getEndDateOfPrevMonth();
-
-      lolienMatches = getMatches(startDateOfMonth, endDateOfMonth);
+      return StatisticsResponse
+          .builder()
+          .matches(Lists.newArrayList())
+          .build();
     }
+
+    LocalDate startDateOfMonth = getStartDateOfMonth(lolienMatches);
+    LocalDate endDateOfMonth = getEndDateOfMonth(lolienMatches);
 
     List<ChampDto> championNames = riotComponent.getChampionNames();
     JsonObject championJsonObject = riotComponent.getChampionJsonObject();
 
-    List<MatchDto> matchesDto = getStatisticsMatchesDto(
-        lolienMatches);
+    List<MatchDto> matchesDto = getStatisticsMatchesDto(lolienMatches);
     List<MostBannedDto> mostBannedDtoList = getStatisticsMostBannedDto(
         lolienMatches, championNames, championJsonObject);
 
@@ -816,19 +816,35 @@ public class LeagueService {
         .build();
   }
 
+  private LocalDate getStartDateOfMonth(List<LolienLeagueMatch> lolienMatches) {
+    Long gameCreation = lolienMatches
+        .stream()
+        .findFirst()
+        .orElseThrow(() ->
+            new IllegalArgumentException("진행한 리그 경기가 최소 한경기 이상이어야 합니다."))
+        .getGameCreation();
+
+    return timestampToLocalDateTime(gameCreation).toLocalDate();
+  }
+
+  private LocalDate getEndDateOfMonth(List<LolienLeagueMatch> lolienMatches) {
+    Long gameCreation = lolienMatches
+        .stream()
+        .reduce((first, second) -> second)
+        .orElseThrow(() ->
+            new IllegalArgumentException("진행한 리그 경기가 최소 한경기 이상이어야 합니다."))
+        .getGameCreation();
+
+    return timestampToLocalDateTime(gameCreation).toLocalDate();
+  }
+
   /**
    * getLolienMatches.
-   * @param startDateOfMonth startDateOfMonth
-   * @param endDateOfMonth endDateOfMonth
+   * @param leagueIdx leagueIdx
    * @return lolienMatches
    */
-  List<LolienLeagueMatch> getMatches(LocalDate startDateOfMonth, LocalDate endDateOfMonth) {
-    long startTimestamp = localDateToTimestamp(startDateOfMonth);
-    long endTimestamp = localDateToTimestamp(endDateOfMonth);
-
-    return lolienLeagueMatchRepository
-        .findByGameCreationGreaterThanEqualAndGameCreationLessThanEqual(startTimestamp,
-            endTimestamp);
+  List<LolienLeagueMatch> getMatches(int leagueIdx) {
+    return lolienLeagueMatchRepository.findByLolienLeagueIdx(leagueIdx);
   }
 
   private List<MatchDto> getStatisticsMatchesDto(

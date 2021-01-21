@@ -219,9 +219,9 @@ public class LeagueController {
                   mediaType = "application/json",
                   schema = @Schema(implementation = StatisticsResponse.class)))
       })
-  @GetMapping("v1/leagues/statistics")
-  public StatisticsResponse getStatistics() {
-    return leagueService.getStatistics();
+  @GetMapping("v1/leagues/{league-idx}/statistics")
+  public StatisticsResponse getStatistics(@PathVariable("league-idx") int leagueIdx) {
+    return leagueService.getStatistics(leagueIdx);
   }
 
   @Operation(

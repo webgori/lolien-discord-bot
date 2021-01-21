@@ -35,6 +35,9 @@ public class LolienLeague {
   @OneToMany(mappedBy = "lolienLeague", cascade = CascadeType.ALL)
   private List<LolienLeagueMatch> lolienLeagueMatches;
 
+  @OneToMany(mappedBy = "lolienLeague", cascade = CascadeType.ALL)
+  private List<LolienLeagueTeamSummoner> lolienLeagueTeams;
+
   @CreatedDate
   @Column(name = "created_date", nullable = false)
   private LocalDateTime createdDate;
