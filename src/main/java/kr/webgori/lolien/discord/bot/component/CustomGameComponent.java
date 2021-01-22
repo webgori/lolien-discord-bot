@@ -396,7 +396,8 @@ public class CustomGameComponent {
       String formattedSummonerName = summonerName.replaceAll("\\s+", "")
           .toUpperCase();
 
-      boolean hasSummonerName = lolienSummonerRepository.existsBySummonerName(formattedSummonerName);
+      boolean hasSummonerName = lolienSummonerRepository.existsBySummonerName(
+          formattedSummonerName);
 
       if (!hasSummonerName) {
         String errorMessage = String.format("\"%s\" 소환사를 찾을 수 없습니다. "
