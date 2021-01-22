@@ -33,10 +33,13 @@ public class LolienLeague {
   private String title;
 
   @OneToMany(mappedBy = "lolienLeague", cascade = CascadeType.ALL)
-  private List<LolienLeagueMatch> lolienLeagueMatches;
+  private List<LolienLeagueSchedule> schedules;
 
   @OneToMany(mappedBy = "lolienLeague", cascade = CascadeType.ALL)
-  private List<LolienLeagueTeamSummoner> lolienLeagueTeams;
+  private List<LolienLeagueMatch> matches;
+
+  @OneToMany(mappedBy = "lolienLeague", cascade = CascadeType.ALL)
+  private List<LolienLeagueTeamSummoner> teams;
 
   @CreatedDate
   @Column(name = "created_date", nullable = false)

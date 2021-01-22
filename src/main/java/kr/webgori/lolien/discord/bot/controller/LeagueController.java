@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import java.time.LocalDate;
 import java.util.List;
 import kr.webgori.lolien.discord.bot.request.LeagueAddRequest;
 import kr.webgori.lolien.discord.bot.request.LeagueAddResultRequest;
@@ -18,6 +19,7 @@ import kr.webgori.lolien.discord.bot.response.league.SummonerForParticipationRes
 import kr.webgori.lolien.discord.bot.response.league.TeamResponse;
 import kr.webgori.lolien.discord.bot.service.LeagueService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -152,8 +154,12 @@ public class LeagueController {
                   mediaType = "application/json"))
       })
   @GetMapping("v1/leagues/summoners/participation")
-  public SummonerForParticipationResponse getSummonersForParticipation() {
-    return leagueService.getSummonersForParticipation();
+  public SummonerForParticipationResponse getSummonersForParticipation(
+      @RequestParam("startDate")
+      @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+      @RequestParam("endDate")
+      @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+    return leagueService.getSummonersForParticipation(startDate, endDate);
   }
 
   @Operation(
@@ -203,9 +209,9 @@ public class LeagueController {
                   mediaType = "application/json",
                   schema = @Schema(implementation = ScheduleResponse.class)))
       })
-  @GetMapping("v1/leagues/schedule")
-  public ScheduleResponse getSchedules() {
-    return leagueService.getSchedules();
+  @GetMapping("v1/leagues/{league-idx}/schedule")
+  public ScheduleResponse getSchedules(@PathVariable("league-idx") int leagueIdx, String order) {
+    return leagueService.getSchedules(leagueIdx, order);
   }
 
   @Operation(

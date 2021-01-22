@@ -9,6 +9,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
@@ -50,4 +51,8 @@ public class LolienLeagueSchedule {
 
   @Column(nullable = false)
   private String description3;
+
+  @ManyToOne
+  @JoinColumn(name = "lolien_league_idx", nullable = false)
+  private LolienLeague lolienLeague;
 }

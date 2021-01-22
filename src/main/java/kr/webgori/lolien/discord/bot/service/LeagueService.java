@@ -4,13 +4,6 @@ import static java.util.Collections.reverseOrder;
 import static java.util.stream.Collectors.groupingBy;
 import static kr.webgori.lolien.discord.bot.service.CustomGameService.BLUE_TEAM;
 import static kr.webgori.lolien.discord.bot.service.CustomGameService.RED_TEAM;
-import static kr.webgori.lolien.discord.bot.util.CommonUtil.getEndDateOfMonth;
-import static kr.webgori.lolien.discord.bot.util.CommonUtil.getEndDateOfPrevMonth;
-import static kr.webgori.lolien.discord.bot.util.CommonUtil.getEndDateOfYear;
-import static kr.webgori.lolien.discord.bot.util.CommonUtil.getStartDateOfMonth;
-import static kr.webgori.lolien.discord.bot.util.CommonUtil.getStartDateOfPrevMonth;
-import static kr.webgori.lolien.discord.bot.util.CommonUtil.getStartDateOfYear;
-import static kr.webgori.lolien.discord.bot.util.CommonUtil.localDateToTimestamp;
 import static kr.webgori.lolien.discord.bot.util.CommonUtil.timestampToLocalDateTime;
 
 import com.google.common.collect.Lists;
@@ -122,9 +115,8 @@ public class LeagueService {
    * getLeagues.
    * @return Leagues
    */
-  @Transactional(readOnly = true)
   public LeagueResponse getLeagues() {
-    List<LolienLeague> lolienLeagues = lolienLeagueRepository.findAll();
+    List<LolienLeague> lolienLeagues = lolienLeagueRepository.findAllByOrderByIdxDesc();
     List<LeagueDto> leagues = Lists.newArrayList();
 
     for (LolienLeague lolienLeague : lolienLeagues) {
@@ -194,15 +186,15 @@ public class LeagueService {
 
   /**
    * getSummonersForParticipation.
+   * @param startDate startDate
+   * @param endDate endDate
    * @return SummonerForParticipationResponse
    */
-  @Transactional(readOnly = true)
-  public SummonerForParticipationResponse getSummonersForParticipation() {
-    LocalDate startDateOfYear = getStartDateOfYear();
-    LocalDate endDateOfYear = getEndDateOfYear();
+  public SummonerForParticipationResponse getSummonersForParticipation(LocalDate startDate,
+                                                                       LocalDate endDate) {
 
-    List<LolienMatch> lolienMatches = customGameService.getLolienMatches(startDateOfYear,
-        endDateOfYear);
+    List<LolienMatch> lolienMatches = customGameService.getLolienMatches(startDate,
+        endDate);
 
     List<SummonerForParticipationDto> summonersForParticipationDto =
         getSummonersForParticipationDto(lolienMatches);
@@ -259,7 +251,6 @@ public class LeagueService {
    * @param size size
    * @return ResultResponse
    */
-  @Transactional(readOnly = true)
   public ResultResponse getLeagueResultsByLeague(
       int leagueIndex, int scheduleIdx, int page, int size) {
 
@@ -270,7 +261,7 @@ public class LeagueService {
     int skip = page * size;
 
     List<LolienLeagueMatch> lolienLeagueMatchePages = lolienLeague
-        .getLolienLeagueMatches()
+        .getMatches()
         .stream()
         .filter(m -> m.getSchedule().getIdx().equals(scheduleIdx))
         .sorted(Comparator.comparing(LolienLeagueMatch::getGameCreation).reversed())
@@ -693,10 +684,14 @@ public class LeagueService {
 
   /**
    * 대진표 조회.
+   * @param leagueIdx leagueIdx
+   * @param order order
    * @return 대진표
    */
-  public ScheduleResponse getSchedules() {
-    List<LolienLeagueSchedule> schedules = lolienLeagueScheduleRepository.findAll();
+  public ScheduleResponse getSchedules(int leagueIdx, String order) {
+    List<LolienLeagueSchedule> schedules = lolienLeagueScheduleRepository.findByLolienLeagueIdx(
+        leagueIdx);
+
     List<ScheduleDto> schedulesDto = Lists.newArrayList();
 
     for (LolienLeagueSchedule schedule : schedules) {
@@ -724,6 +719,13 @@ public class LeagueService {
           .build();
 
       schedulesDto.add(scheduleDto);
+    }
+
+    if (order.equalsIgnoreCase("desc")) {
+      schedulesDto = schedulesDto
+          .stream()
+          .sorted(Comparator.comparing(ScheduleDto::getIdx).reversed())
+          .collect(Collectors.toList());
     }
 
     return ScheduleResponse
