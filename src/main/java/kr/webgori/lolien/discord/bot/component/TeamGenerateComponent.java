@@ -226,13 +226,13 @@ public class TeamGenerateComponent {
 
     message.append("\n");
 
-    List<String> team2SummonerName = teamSummoners
+    List<String> teamSummonerName = teamSummoners
         .stream()
         .map(LolienSummoner::getSummonerName)
         .collect(Collectors.toList());
 
-    String team2SummonerMostTop3 = setTeamSummonerMostTop3(team2SummonerName);
-    message.append(team2SummonerMostTop3);
+    String teamSummonerMostTop3 = setTeamSummonerMostTop3(teamSummonerName);
+    message.append(teamSummonerMostTop3);
     return message;
   }
 

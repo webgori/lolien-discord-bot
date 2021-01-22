@@ -24,7 +24,6 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -268,7 +267,7 @@ public class CustomGameComponent {
           summonerNameBuilder.append(commands.get(i));
         }
 
-        String summonerName = summonerNameBuilder.toString();
+        String summonerName = summonerNameBuilder.toString().toUpperCase();
         if (checkSummonerName(textChannel, summonerName)) {
           return;
         }
@@ -358,7 +357,7 @@ public class CustomGameComponent {
             summonerNameBuilder.append(commands.get(i));
           }
 
-          summonerName = summonerNameBuilder.toString();
+          summonerName = summonerNameBuilder.toString().toUpperCase();
           if (checkSummonerName(textChannel, summonerName)) {
             return;
           }
@@ -376,8 +375,6 @@ public class CustomGameComponent {
   }
 
   private boolean checkSummonerName(TextChannel textChannel, String summonerName) {
-    summonerName = summonerName.toUpperCase();
-
     boolean existsSummonerName = lolienSummonerRepository.existsBySummonerName(summonerName);
 
     if (!existsSummonerName) {
@@ -396,8 +393,10 @@ public class CustomGameComponent {
    */
   public void addResult(long matchId, String[] entries) {
     for (String summonerName : entries) {
-      String nonSpaceSummonerName = summonerName.replaceAll("\\s+", "");
-      boolean hasSummonerName = lolienSummonerRepository.existsBySummonerName(nonSpaceSummonerName);
+      String formattedSummonerName = summonerName.replaceAll("\\s+", "")
+          .toUpperCase();
+
+      boolean hasSummonerName = lolienSummonerRepository.existsBySummonerName(formattedSummonerName);
 
       if (!hasSummonerName) {
         String errorMessage = String.format("\"%s\" 소환사를 찾을 수 없습니다. "
@@ -523,15 +522,17 @@ public class CustomGameComponent {
     ValueOperations<String, Object> opsForValue = redisTemplate.opsForValue();
 
     for (String summonerName : entries) {
-      String nonSpaceSummonerName = summonerName.replaceAll("\\s+", "");
-      String key = String.format("%s:%s", REDIS_MOST_CHAMPS_KEY, nonSpaceSummonerName);
+      String formattedSummonerName = summonerName.replaceAll("\\s+", "")
+          .toUpperCase();
+
+      String key = String.format("%s:%s", REDIS_MOST_CHAMPS_KEY, formattedSummonerName);
       boolean hasKey = Optional.ofNullable(opsForValue.getOperations().hasKey(key)).orElse(false);
 
       if (hasKey) {
         opsForValue.getOperations().delete(key);
       }
 
-      getMostChamp(nonSpaceSummonerName);
+      getMostChamp(formattedSummonerName);
     }
 
     deleteCustomGameMatchesFromCache();
@@ -621,8 +622,6 @@ public class CustomGameComponent {
   }
 
   SummonerMostChampsDto getMostChamp(String summonerName) {
-    summonerName = summonerName.toUpperCase();
-
     ValueOperations<String, Object> opsForValue = redisTemplate.opsForValue();
 
     String key = String.format("%s:%s", REDIS_MOST_CHAMPS_KEY, summonerName);

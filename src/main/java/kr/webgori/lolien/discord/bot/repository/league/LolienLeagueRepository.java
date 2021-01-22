@@ -6,6 +6,4 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface LolienLeagueRepository extends JpaRepository<LolienLeague, Integer> {
   List<LolienLeague> findAllByOrderByIdxDesc();
-
-  boolean existsByIdx(long leagueIdx);
 }
