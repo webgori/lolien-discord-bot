@@ -68,5 +68,5 @@ public class LolienMatch {
 
   @Lob
   @Column(columnDefinition = "BLOB", nullable = false)
-  private byte[] replay;
+  private Byte[] replay;
 }
