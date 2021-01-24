@@ -12,6 +12,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import java.awt.Color;
+import java.io.IOException;
+import java.io.InputStream;
 import java.text.DecimalFormat;
 import java.time.Duration;
 import java.time.Instant;
@@ -51,11 +53,14 @@ import net.rithms.riot.api.endpoints.match.dto.Participant;
 import net.rithms.riot.api.endpoints.match.dto.ParticipantStats;
 import net.rithms.riot.api.endpoints.match.dto.TeamBans;
 import net.rithms.riot.api.endpoints.match.dto.TeamStats;
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -388,10 +393,12 @@ public class CustomGameComponent {
   /**
    * addResult.
    *
+   * @param file file
    * @param matchId matchId
    * @param entries entries
    */
-  public void addResult(long matchId, String[] entries) {
+  @Transactional
+  public void addResult(MultipartFile file, long matchId, String[] entries) {
     for (String summonerName : entries) {
       String formattedSummonerName = summonerName.replaceAll("\\s+", "")
           .toUpperCase();
@@ -416,11 +423,14 @@ public class CustomGameComponent {
         .orElseThrow(
             () -> new BadCredentialsException("내전 결과 등록 중 계정에 문제가 발생하였습니다."));
 
+    byte[] replayBytes = getReplayBytes(file);
+
     LolienMatch lolienMatch = LolienMatch
         .builder()
         .participants(lolienParticipantSet)
         .teams(lolienTeamStatsSet)
         .user(user)
+        .replay(replayBytes)
         .build();
 
     BeanUtils.copyProperties(match, lolienMatch);
@@ -537,6 +547,21 @@ public class CustomGameComponent {
     }
 
     deleteCustomGameMatchesFromCache();
+  }
+
+  private byte[] getReplayBytes(MultipartFile file) {
+    if (file == null) {
+      return new byte[0];
+    }
+
+    try {
+      InputStream inputStream = file.getInputStream();
+      return IOUtils.toByteArray(inputStream);
+    } catch (IOException e) {
+      logger.error("", e);
+    }
+
+    return new byte[0];
   }
 
   private void deleteCustomGameMatchesFromCache() {

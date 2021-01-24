@@ -15,8 +15,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.MalformedJwtException;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -68,7 +66,6 @@ import kr.webgori.lolien.discord.bot.entity.user.User;
 import kr.webgori.lolien.discord.bot.exception.SummonerNotFoundException;
 import kr.webgori.lolien.discord.bot.repository.LolienMatchRepository;
 import kr.webgori.lolien.discord.bot.repository.LolienSummonerRepository;
-import kr.webgori.lolien.discord.bot.request.CustomGameAddResultRequest;
 import kr.webgori.lolien.discord.bot.response.CustomGameDto;
 import kr.webgori.lolien.discord.bot.response.CustomGamesResponse;
 import kr.webgori.lolien.discord.bot.response.StatisticsResponse;
@@ -79,7 +76,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -99,30 +95,6 @@ public class CustomGameService {
   private final HttpServletRequest httpServletRequest;
   private final RedisTemplate<String, Object> redisTemplate;
   private final ObjectMapper objectMapper;
-
-  /**
-   * addResult.
-   * @param customGameAddResultRequest customGameAddResultRequest
-   */
-  @Transactional
-  public void addResult(CustomGameAddResultRequest customGameAddResultRequest) {
-    long matchId = customGameAddResultRequest.getMatchId();
-    String entriesString = customGameAddResultRequest.getEntries();
-
-    boolean existsByGameId = lolienMatchRepository.existsByGameId(matchId);
-
-    if (existsByGameId) {
-      throw new IllegalArgumentException("이미 등록된 리그 결과 입니다.");
-    }
-
-    String[] entries = entriesString.split(",");
-
-    if (entries.length != 10) {
-      throw new IllegalArgumentException("게임 참여 인원이 잘못 되었습니다.");
-    }
-
-    customGameComponent.addResult(matchId, entries);
-  }
 
   /**
    * getCustomGames.
@@ -443,6 +415,8 @@ public class CustomGameService {
       int queueId = lolienMatch.getQueueId();
       int seasonId = lolienMatch.getSeasonId();
 
+      byte[] replay = lolienMatch.getReplay();
+
       CustomGameDto customGameDto = CustomGameDto
           .builder()
           .idx(idx)
@@ -460,6 +434,7 @@ public class CustomGameService {
           .redTeamSummoners(redTeamSummoners)
           .teams(teamDtoList)
           .deleteAble(deleteAble)
+          .replayData(replay)
           .build();
 
       customGamesDto.add(customGameDto);
@@ -1433,15 +1408,23 @@ public class CustomGameService {
     Pattern pattern = Pattern.compile("\\\\\"NAME\\\\\":\\\\\"([A-Za-z0-9가-힣 ]*)\\\\\"");
 
     for (MultipartFile file : files) {
-      CustomGameAddResultRequest request = new CustomGameAddResultRequest();
-
       long gameId = getGameId(file);
-      request.setMatchId(gameId);
 
-      String entries = getEntries(file, pattern);
-      request.setEntries(entries);
+      String entriesString = getEntries(file, pattern);
 
-      addResult(request);
+      boolean existsByGameId = lolienMatchRepository.existsByGameId(gameId);
+
+      if (existsByGameId) {
+        throw new IllegalArgumentException("이미 등록된 리그 결과 입니다.");
+      }
+
+      String[] entries = entriesString.split(",");
+
+      if (entries.length != 10) {
+        throw new IllegalArgumentException("게임 참여 인원이 잘못 되었습니다.");
+      }
+
+      customGameComponent.addResult(file, gameId, entries);
     }
   }
 

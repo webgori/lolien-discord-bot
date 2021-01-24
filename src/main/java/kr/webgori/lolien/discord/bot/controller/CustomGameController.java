@@ -7,7 +7,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import java.util.List;
-import kr.webgori.lolien.discord.bot.request.CustomGameAddResultRequest;
 import kr.webgori.lolien.discord.bot.response.CustomGamesResponse;
 import kr.webgori.lolien.discord.bot.response.StatisticsResponse;
 import kr.webgori.lolien.discord.bot.service.CustomGameService;
@@ -17,7 +16,6 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,25 +25,6 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 public class CustomGameController {
   private final CustomGameService customGameService;
-
-  @Operation(
-      summary = "내전 결과 등록",
-      security = {
-          @SecurityRequirement(name = "JWT")
-      })
-  @ApiResponses(
-      value = {
-          @ApiResponse(
-              responseCode = "401",
-              description = "Unauthorized. 인증 정보를 찾을 수 없을 때"),
-          @ApiResponse(
-              responseCode = "204",
-              description = "No Content")})
-  @PostMapping("v1/custom-game/result")
-  @ResponseStatus(value = HttpStatus.NO_CONTENT)
-  public void addResult(@RequestBody CustomGameAddResultRequest customGameAddResultRequest) {
-    customGameService.addResult(customGameAddResultRequest);
-  }
 
   @Operation(
       summary = "최근 내전 조회")

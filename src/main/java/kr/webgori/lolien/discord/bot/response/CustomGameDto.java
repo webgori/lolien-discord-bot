@@ -43,4 +43,7 @@ public class CustomGameDto {
 
   @Schema(description = "내전 결과 삭제 가능 여부 (true: 삭제 가능, false: 삭제 불가")
   private boolean deleteAble;
+
+  @Schema(description = "리플레이 데이터")
+  private byte[] replayData;
 }
