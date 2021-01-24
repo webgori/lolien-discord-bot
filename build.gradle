@@ -84,6 +84,7 @@ dependencies {
     implementation group: 'org.jsoup', name: 'jsoup', version: '1.11.3'
     implementation group: 'org.springdoc', name: 'springdoc-openapi-ui', version: '1.2.30'
     implementation group: 'net.sourceforge.htmlunit', name: 'htmlunit', version: '2.42.0'
+    implementation group: 'com.github.spotbugs', name: 'spotbugs-annotations', version: '3.1.12'
 
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
 

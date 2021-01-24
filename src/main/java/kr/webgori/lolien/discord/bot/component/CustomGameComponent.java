@@ -430,9 +430,8 @@ public class CustomGameComponent {
         .participants(lolienParticipantSet)
         .teams(lolienTeamStatsSet)
         .user(user)
+        .replay(replayBytes)
         .build();
-
-    lolienMatch.setReplay(replayBytes);
 
     BeanUtils.copyProperties(match, lolienMatch);
 
