@@ -69,10 +69,6 @@ public class LolienMatch {
   private User user;
 
   @Lob
-  @Column(columnDefinition = "BLOB", nullable = false)
+  @Column(columnDefinition = "LONGBLOB", nullable = false)
   private byte[] replay;
-
-  public void setReplay(byte[] replay) {
-    this.replay = replay.clone();
-  }
 }
