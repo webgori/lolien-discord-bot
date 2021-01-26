@@ -1,5 +1,6 @@
 package kr.webgori.lolien.discord.bot.component;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.io.InputStream;
 import lombok.RequiredArgsConstructor;
@@ -8,6 +9,7 @@ import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
+@SuppressFBWarnings(justification = "Generated code")
 @Slf4j
 @RequiredArgsConstructor
 @Component
