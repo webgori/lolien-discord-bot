@@ -1,6 +1,6 @@
 package kr.webgori.lolien.discord.bot.entity.league;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -22,6 +22,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+@SuppressFBWarnings(justification = "Generated code")
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
