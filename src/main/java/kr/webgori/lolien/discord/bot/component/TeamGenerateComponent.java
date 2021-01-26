@@ -325,29 +325,25 @@ public class TeamGenerateComponent {
 
   @Scheduled(cron = "0 */1 * ? * *")
   private void checkActiveGame() {
-    logger.error("checkActiveGame");
     HashOperations<String, Object, Object> hashOperations = redisTemplate.opsForHash();
     Set<Object> ids = hashOperations.keys(REDIS_GENERATED_TEAM_USERS_INFO_KEY);
 
     for (Object id : ids) {
-      logger.error(id.toString());
       Optional.ofNullable(hashOperations.get(REDIS_GENERATED_TEAM_USERS_INFO_KEY, id))
           .ifPresent(s -> {
             long between = ChronoUnit.MINUTES.between(stringToLocalDateTime((String) s),
                 LocalDateTime.now());
 
             if (between >= 30) {
-              logger.error("deleteGeneratedTeamUsersInfo");
               deleteGeneratedTeamUsersInfo(hashOperations, id);
             } else if (between >= 10) {
               getActiveGameBySummoner((String) id)
                   .ifPresent(currentGameInfo -> {
-                    logger.error("{}", currentGameInfo.getGameId());
                     List<CurrentGameParticipant> participants = currentGameInfo.getParticipants();
 
                     List<String> summonerIds = participants
                         .stream()
-                        .map(c -> c.getSummonerName().replaceAll("\\s+", ""))
+                        .map(CurrentGameParticipant::getSummonerId)
                         .collect(Collectors.toList());
 
                     long existsTotalSummonerCount = lolienSummonerRepository
@@ -355,7 +351,6 @@ public class TeamGenerateComponent {
 
                     // 소환사 등록한 사용자가 6명 이상이면 (내전이면)
                     if (existsTotalSummonerCount > 5) {
-                      logger.error("existsTotalSummonerCount");
                       long gameId = currentGameInfo.getGameId();
 
                       Boolean hasKey = hashOperations
