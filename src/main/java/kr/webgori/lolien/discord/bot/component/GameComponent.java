@@ -12,6 +12,11 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 @Component
 public class GameComponent {
+  /**
+   * 리플레이 파일을 byte[]로 변환.
+   * @param file file
+   * @return byte[]
+   */
   public byte[] getReplayBytes(MultipartFile file) {
     if (file == null) {
       return new byte[0];
