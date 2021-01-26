@@ -79,7 +79,6 @@ import kr.webgori.lolien.discord.bot.repository.league.LolienLeagueRepository;
 import kr.webgori.lolien.discord.bot.repository.league.LolienLeagueScheduleRepository;
 import kr.webgori.lolien.discord.bot.repository.league.LolienLeagueTeamRepository;
 import kr.webgori.lolien.discord.bot.request.LeagueAddRequest;
-import kr.webgori.lolien.discord.bot.request.LeagueAddResultRequest;
 import kr.webgori.lolien.discord.bot.response.league.LeagueResponse;
 import kr.webgori.lolien.discord.bot.response.league.ResultDto;
 import kr.webgori.lolien.discord.bot.response.league.ResultResponse;
@@ -154,34 +153,6 @@ public class LeagueService {
   @Transactional
   public void deleteLeague(int leagueIdx) {
     lolienLeagueRepository.deleteById(leagueIdx);
-  }
-
-  /**
-   * addLeagueResult.
-   * @param leagueAddResultRequest leagueAddResultRequest
-   */
-  @Transactional
-  public void addLeagueResult(LeagueAddResultRequest leagueAddResultRequest) {
-    long matchId = leagueAddResultRequest.getMatchId();
-
-    boolean existsByGameId = lolienLeagueMatchRepository.existsByGameId(matchId);
-
-    if (existsByGameId) {
-      throw new IllegalArgumentException("이미 등록된 리그 결과 입니다.");
-    }
-
-    String entriesString = leagueAddResultRequest.getEntries();
-
-    String[] entries = entriesString.split(",");
-
-    if (entries.length != 10) {
-      throw new IllegalArgumentException("게임 참여 인원이 잘못 되었습니다.");
-    }
-
-    int leagueIdx = leagueAddResultRequest.getLeagueIdx();
-    int scheduleIdx = leagueAddResultRequest.getScheduleIdx();
-
-    leagueComponent.addResult(leagueIdx, scheduleIdx, matchId, entries);
   }
 
   /**
@@ -538,6 +509,8 @@ public class LeagueService {
       int queueId = lolienLeagueMatch.getQueueId();
       int seasonId = lolienLeagueMatch.getSeasonId();
 
+      byte[] replay = lolienLeagueMatch.getReplay();
+
       ResultDto resultDto = ResultDto
           .builder()
           .idx(idx)
@@ -555,6 +528,7 @@ public class LeagueService {
           .redTeamSummoners(redTeamSummoners)
           .teams(teamDtoList)
           .deleteAble(deleteAble)
+          .replayData(replay)
           .build();
 
       resultsDto.add(resultDto);
@@ -569,23 +543,30 @@ public class LeagueService {
 
   /**
    * addLeagueResultByFiles.
+   * @param leagueIndex leagueIndex
+   * @param scheduleIdx scheduleIdx
    * @param files files
    */
   public void addLeagueResultByFiles(int leagueIndex, int scheduleIdx, List<MultipartFile> files) {
     Pattern pattern = Pattern.compile("\\\\\"NAME\\\\\":\\\\\"([A-Za-z0-9가-힣 ]*)\\\\\"");
 
     for (MultipartFile file : files) {
-      LeagueAddResultRequest leagueAddResultRequest = new LeagueAddResultRequest();
-      leagueAddResultRequest.setLeagueIdx(leagueIndex);
-      leagueAddResultRequest.setScheduleIdx(scheduleIdx);
-
       long gameId = getGameId(file);
-      leagueAddResultRequest.setMatchId(gameId);
+      String entriesString = getEntries(file, pattern);
 
-      String entries = getEntries(file, pattern);
-      leagueAddResultRequest.setEntries(entries);
+      boolean existsByGameId = lolienLeagueMatchRepository.existsByGameId(gameId);
 
-      addLeagueResult(leagueAddResultRequest);
+      if (existsByGameId) {
+        throw new IllegalArgumentException("이미 등록된 리그 결과 입니다.");
+      }
+
+      String[] entries = entriesString.split(",");
+
+      if (entries.length != 10) {
+        throw new IllegalArgumentException("게임 참여 인원이 잘못 되었습니다.");
+      }
+
+      leagueComponent.addResult(file, leagueIndex, scheduleIdx, gameId, entries);
     }
   }
 

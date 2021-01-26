@@ -32,6 +32,7 @@ import net.rithms.riot.api.endpoints.match.dto.TeamStats;
 import org.springframework.beans.BeanUtils;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -43,6 +44,7 @@ public class LeagueComponent {
   private final LolienLeagueScheduleRepository lolienLeagueScheduleRepository;
   private final AuthenticationComponent authenticationComponent;
   private final HttpServletRequest httpServletRequest;
+  private final GameComponent gameComponent;
 
   /**
    * addResult.
@@ -51,7 +53,8 @@ public class LeagueComponent {
    * @param matchId   matchId
    * @param entries   entries
    */
-  public void addResult(int leagueIdx, int scheduleIdx, long matchId, String[] entries) {
+  public void addResult(MultipartFile file, int leagueIdx, int scheduleIdx, long matchId,
+                        String[] entries) {
     LolienLeague lolienLeague = lolienLeagueRepository
         .findById(leagueIdx)
         .orElseThrow(() -> new LeagueNotFoundException("존재하지 않는 리그 입니다."));
@@ -81,6 +84,8 @@ public class LeagueComponent {
         .orElseThrow(
             () -> new BadCredentialsException("리그 결과 등록 중 계정에 문제가 발생하였습니다."));
 
+    byte[] replayBytes = gameComponent.getReplayBytes(file);
+
     LolienLeagueMatch lolienLeagueMatch = LolienLeagueMatch
         .builder()
         .lolienLeague(lolienLeague)
@@ -88,6 +93,7 @@ public class LeagueComponent {
         .participants(lolienLeagueParticipantSet)
         .teams(lolienLeagueTeamStatsSet)
         .user(user)
+        .replay(replayBytes)
         .build();
 
     BeanUtils.copyProperties(match, lolienLeagueMatch);

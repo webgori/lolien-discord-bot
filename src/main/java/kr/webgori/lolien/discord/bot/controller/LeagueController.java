@@ -90,23 +90,6 @@ public class LeagueController {
   }
 
   @Operation(
-      summary = "리그 결과 등록",
-      deprecated = true,
-      hidden = true)
-  @ApiResponses(
-      value = {
-          @ApiResponse(
-              responseCode = "401",
-              description = "Unauthorized. 인증 정보를 찾을 수 없을 때"),
-          @ApiResponse(
-              responseCode = "204",
-              description = "No Content")})
-  @PostMapping("v1/leagues/result")
-  public void addLeagueResult(@RequestBody LeagueAddResultRequest leagueAddResultRequest) {
-    leagueService.addLeagueResult(leagueAddResultRequest);
-  }
-
-  @Operation(
       summary = "리플레이 파일로 리그 결과 등록",
       security = {
           @SecurityRequirement(name = "JWT")

@@ -77,6 +77,7 @@ public class CustomGameComponent {
   private final ObjectMapper objectMapper;
   private final AuthenticationComponent authenticationComponent;
   private final HttpServletRequest httpServletRequest;
+  private final GameComponent gameComponent;
 
   /**
    * execute.
@@ -423,7 +424,7 @@ public class CustomGameComponent {
         .orElseThrow(
             () -> new BadCredentialsException("내전 결과 등록 중 계정에 문제가 발생하였습니다."));
 
-    byte[] replayBytes = getReplayBytes(file);
+    byte[] replayBytes = gameComponent.getReplayBytes(file);
 
     LolienMatch lolienMatch = LolienMatch
         .builder()
@@ -547,21 +548,6 @@ public class CustomGameComponent {
     }
 
     deleteCustomGameMatchesFromCache();
-  }
-
-  private byte[] getReplayBytes(MultipartFile file) {
-    if (file == null) {
-      return new byte[0];
-    }
-
-    try {
-      InputStream inputStream = file.getInputStream();
-      return IOUtils.toByteArray(inputStream);
-    } catch (IOException e) {
-      logger.error("", e);
-    }
-
-    return new byte[0];
   }
 
   private void deleteCustomGameMatchesFromCache() {

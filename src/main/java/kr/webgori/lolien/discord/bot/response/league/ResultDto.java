@@ -42,4 +42,7 @@ public class ResultDto {
   private List<CustomGameTeamDto> teams;
 
   private boolean deleteAble;
+
+  @Schema(description = "리플레이 데이터")
+  private byte[] replayData;
 }
