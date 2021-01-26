@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import kr.webgori.lolien.discord.bot.component.AuthenticationComponent;
 import kr.webgori.lolien.discord.bot.component.CustomGameComponent;
+import kr.webgori.lolien.discord.bot.component.GameComponent;
 import kr.webgori.lolien.discord.bot.component.RiotComponent;
 import kr.webgori.lolien.discord.bot.dto.ChampDto;
 import kr.webgori.lolien.discord.bot.dto.CustomGameSummonerDto;
@@ -76,6 +77,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -95,6 +98,7 @@ public class CustomGameService {
   private final HttpServletRequest httpServletRequest;
   private final RedisTemplate<String, Object> redisTemplate;
   private final ObjectMapper objectMapper;
+  private final GameComponent gameComponent;
 
   /**
    * getCustomGames.
@@ -415,8 +419,6 @@ public class CustomGameService {
       int queueId = lolienMatch.getQueueId();
       int seasonId = lolienMatch.getSeasonId();
 
-      byte[] replay = lolienMatch.getReplay();
-
       CustomGameDto customGameDto = CustomGameDto
           .builder()
           .idx(idx)
@@ -434,7 +436,6 @@ public class CustomGameService {
           .redTeamSummoners(redTeamSummoners)
           .teams(teamDtoList)
           .deleteAble(deleteAble)
-          .replayData(replay)
           .build();
 
       customGamesDto.add(customGameDto);
@@ -1467,5 +1468,22 @@ public class CustomGameService {
     summonerName = summonerName.replace("\\", "");
     summonerName = summonerName.replace(":", "");
     return summonerName.replaceAll("\\s+", "");
+  }
+
+  /**
+   * 리플레이 다운로드.
+   * @param matchIndex matchIndex
+   * @return 리플레이 데이터
+   */
+  public HttpEntity<byte[]> getReplay(int matchIndex) {
+    LolienMatch lolienMatch = lolienMatchRepository.findById(matchIndex)
+        .orElseThrow(() -> new IllegalArgumentException("리플레이 정보를 찾을 수 없습니다."));
+
+    byte[] replay = lolienMatch.getReplay();
+
+    long gameId = lolienMatch.getGameId();
+    HttpHeaders replayHeader = gameComponent.getReplayHeader(gameId);
+
+    return new HttpEntity<>(replay, replayHeader);
   }
 }

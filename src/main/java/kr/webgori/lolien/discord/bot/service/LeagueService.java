@@ -27,6 +27,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import kr.webgori.lolien.discord.bot.component.AuthenticationComponent;
+import kr.webgori.lolien.discord.bot.component.GameComponent;
 import kr.webgori.lolien.discord.bot.component.LeagueComponent;
 import kr.webgori.lolien.discord.bot.component.RiotComponent;
 import kr.webgori.lolien.discord.bot.dto.ChampDto;
@@ -90,6 +91,8 @@ import kr.webgori.lolien.discord.bot.response.league.TeamResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -109,6 +112,7 @@ public class LeagueService {
   private final LolienLeagueScheduleRepository lolienLeagueScheduleRepository;
   private final AuthenticationComponent authenticationComponent;
   private final HttpServletRequest httpServletRequest;
+  private final GameComponent gameComponent;
 
   /**
    * getLeagues.
@@ -509,8 +513,6 @@ public class LeagueService {
       int queueId = lolienLeagueMatch.getQueueId();
       int seasonId = lolienLeagueMatch.getSeasonId();
 
-      byte[] replay = lolienLeagueMatch.getReplay();
-
       ResultDto resultDto = ResultDto
           .builder()
           .idx(idx)
@@ -528,7 +530,6 @@ public class LeagueService {
           .redTeamSummoners(redTeamSummoners)
           .teams(teamDtoList)
           .deleteAble(deleteAble)
-          .replayData(replay)
           .build();
 
       resultsDto.add(resultDto);
@@ -1667,5 +1668,22 @@ public class LeagueService {
         }
       }
     }
+  }
+
+  /**
+   * 리플레이 다운로드.
+   * @param matchIndex matchIndex
+   * @return 리플레이 데이터
+   */
+  public HttpEntity<byte[]> getReplay(int matchIndex) {
+    LolienLeagueMatch lolienLeagueMatch = lolienLeagueMatchRepository.findById(matchIndex)
+        .orElseThrow(() -> new IllegalArgumentException("리플레이 정보를 찾을 수 없습니다."));
+
+    byte[] replay = lolienLeagueMatch.getReplay();
+
+    long gameId = lolienLeagueMatch.getGameId();
+    HttpHeaders replayHeader = gameComponent.getReplayHeader(gameId);
+
+    return new HttpEntity<>(replay, replayHeader);
   }
 }

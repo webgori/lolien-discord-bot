@@ -9,9 +9,12 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import java.util.List;
 import kr.webgori.lolien.discord.bot.response.CustomGamesResponse;
 import kr.webgori.lolien.discord.bot.response.StatisticsResponse;
+import kr.webgori.lolien.discord.bot.response.league.StatisticsPickResponse;
 import kr.webgori.lolien.discord.bot.service.CustomGameService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -114,5 +117,18 @@ public class CustomGameController {
   @PostMapping("v1/custom-game/result/files")
   public void addResultByFiles(List<MultipartFile> files) {
     customGameService.addResultByFiles(files);
+  }
+
+  @Operation(
+      summary = "리플레이 다운로드")
+  @ApiResponses(
+      value = {
+          @ApiResponse(
+              responseCode = "200",
+              description = "OK")
+      })
+  @GetMapping(value = "v1/custom-game/replay", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+  public HttpEntity<byte[]> getReplay(@RequestParam("match-index") int matchIndex) {
+    return customGameService.getReplay(matchIndex);
   }
 }

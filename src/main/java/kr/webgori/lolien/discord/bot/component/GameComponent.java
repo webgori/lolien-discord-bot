@@ -5,6 +5,7 @@ import java.io.InputStream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -30,5 +31,21 @@ public class GameComponent {
     }
 
     return new byte[0];
+  }
+
+  private String getFilename(long gameId) {
+    return "KR-" + gameId + ".rofl";
+  }
+
+  /**
+   * 리플레이 헤더.
+   * @param gameId gameId
+   * @return HttpHeaders
+   */
+  public HttpHeaders getReplayHeader(long gameId) {
+    HttpHeaders httpHeaders = new HttpHeaders();
+    String filename = getFilename(gameId);
+    httpHeaders.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename);
+    return httpHeaders;
   }
 }
