@@ -1,5 +1,6 @@
 package kr.webgori.lolien.discord.bot.entity;
 
+import com.google.common.collect.Lists;
 import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -35,7 +36,8 @@ public class LolienTeamStats {
   private LolienMatch match;
 
   @OneToMany(mappedBy = "teamStats", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-  private List<LolienTeamBans> bans;
+  @Builder.Default
+  private List<LolienTeamBans> bans = Lists.newArrayList();
 
   @Column(name = "baron_kills")
   private Integer baronKills;
@@ -66,4 +68,8 @@ public class LolienTeamStats {
   @Column(name = "vilemaw_kills")
   private Integer vilemawKills;
   private String win;
+
+  public void addBan(LolienTeamBans ban) {
+    this.bans.add(ban);
+  }
 }

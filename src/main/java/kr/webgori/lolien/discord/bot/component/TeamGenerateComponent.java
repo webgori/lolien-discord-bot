@@ -402,7 +402,7 @@ public class TeamGenerateComponent {
             String[] summonersName = ((String) a).split(",");
 
             if (summonersName.length > 0) {
-              customGameComponent.addResult(null, matchId, summonersName);
+              customGameComponent.addResult(matchId, summonersName);
             }
 
             hashOperations.delete(REDIS_GENERATED_TEAM_MATCHES_INFO_KEY, String.valueOf(matchId));

@@ -70,5 +70,14 @@ public class LolienMatch {
 
   @Lob
   @Column(columnDefinition = "LONGBLOB", nullable = false)
-  private byte[] replay;
+  @Builder.Default
+  private byte[] replay = new byte[0];
+
+  public void addParticipant(LolienParticipant participant) {
+    this.participants.add(participant);
+  }
+
+  public void addTeam(LolienTeamStats team) {
+    this.teams.add(team);
+  }
 }

@@ -12,8 +12,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import java.awt.Color;
-import java.io.IOException;
-import java.io.InputStream;
 import java.text.DecimalFormat;
 import java.time.Duration;
 import java.time.Instant;
@@ -34,6 +32,7 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import kr.webgori.lolien.discord.bot.dto.SummonerMostChampDto;
 import kr.webgori.lolien.discord.bot.dto.SummonerMostChampsDto;
+import kr.webgori.lolien.discord.bot.dto.customgame.AddResultDto;
 import kr.webgori.lolien.discord.bot.entity.LolienMatch;
 import kr.webgori.lolien.discord.bot.entity.LolienParticipant;
 import kr.webgori.lolien.discord.bot.entity.LolienParticipantStats;
@@ -53,7 +52,6 @@ import net.rithms.riot.api.endpoints.match.dto.Participant;
 import net.rithms.riot.api.endpoints.match.dto.ParticipantStats;
 import net.rithms.riot.api.endpoints.match.dto.TeamBans;
 import net.rithms.riot.api.endpoints.match.dto.TeamStats;
-import org.apache.commons.io.IOUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
@@ -391,13 +389,7 @@ public class CustomGameComponent {
     return false;
   }
 
-  /**
-   * addResult.
-   *
-   * @param file file
-   * @param matchId matchId
-   * @param entries entries
-   */
+  /*
   @Transactional
   public void addResult(MultipartFile file, long matchId, String[] entries) {
     for (String summonerName : entries) {
@@ -409,7 +401,7 @@ public class CustomGameComponent {
 
       if (!hasSummonerName) {
         String errorMessage = String.format("\"%s\" 소환사를 찾을 수 없습니다. "
-                + "https://lolien.kr 에서 회원가입 해주세요.", summonerName);
+            + "https://lolien.kr 에서 회원가입 해주세요.", summonerName);
 
         throw new IllegalArgumentException(errorMessage);
       }
@@ -548,6 +540,245 @@ public class CustomGameComponent {
     }
 
     deleteCustomGameMatchesFromCache();
+  }*/
+
+  /**
+   * addResult.
+   *
+   * @param matchId matchId
+   * @param entries entries
+   */
+  @Transactional
+  public void addResult(long matchId, String[] entries) {
+    checkEntriesSummonerName(entries);
+
+    LolienMatch lolienMatch = getNewLolienMatch();
+    AddResultDto addResultDto = getAddResultDto(lolienMatch, matchId, entries);
+    addLolienParticipantSet(addResultDto);
+    addLolienTeamStatsSet(addResultDto);
+
+    saveLolienMatch(lolienMatch);
+
+    addResultMmr(lolienMatch);
+
+    updateMostChampFromCache(entries);
+
+    deleteCustomGameMatchesFromCache();
+  }
+
+  /**
+   * addResult.
+   *
+   * @param file file
+   * @param matchId matchId
+   * @param entries entries
+   */
+  @Transactional
+  public void addResult(MultipartFile file, long matchId, String[] entries) {
+    checkEntriesSummonerName(entries);
+
+    LolienMatch lolienMatch = getNewLolienMatchForUser();
+    AddResultDto addResultDto = getAddResultDto(lolienMatch, matchId, entries);
+    setReplay(addResultDto, file);
+    addLolienParticipantSet(addResultDto);
+    addLolienTeamStatsSet(addResultDto);
+
+    saveLolienMatch(lolienMatch);
+
+    addResultMmr(lolienMatch);
+
+    updateMostChampFromCache(entries);
+
+    deleteCustomGameMatchesFromCache();
+  }
+
+  private void setReplay(AddResultDto addResultDto, MultipartFile file) {
+    byte[] replayBytes = gameComponent.getReplayBytes(file);
+    addResultDto.getLolienMatch().setReplay(replayBytes);
+  }
+
+  private void updateMostChampFromCache(String[] entries) {
+    ValueOperations<String, Object> opsForValue = redisTemplate.opsForValue();
+
+    for (String summonerName : entries) {
+      String formattedSummonerName = summonerName.replaceAll("\\s+", "")
+          .toUpperCase();
+
+      String key = String.format("%s:%s", REDIS_MOST_CHAMPS_KEY, formattedSummonerName);
+      boolean hasKey = Optional.ofNullable(opsForValue.getOperations().hasKey(key)).orElse(false);
+
+      if (hasKey) {
+        opsForValue.getOperations().delete(key);
+      }
+
+      getMostChamp(formattedSummonerName);
+    }
+  }
+
+  private void saveLolienMatch(LolienMatch lolienMatch) {
+    lolienMatchRepository.save(lolienMatch);
+  }
+
+  private void checkEntriesSummonerName(String[] entries) {
+    for (String summonerName : entries) {
+      String formattedSummonerName = summonerName.replaceAll("\\s+", "")
+          .toUpperCase();
+
+      boolean hasSummonerName = lolienSummonerRepository.existsBySummonerName(
+          formattedSummonerName);
+
+      if (!hasSummonerName) {
+        String errorMessage = String.format("\"%s\" 소환사를 찾을 수 없습니다. "
+            + "https://lolien.kr 에서 회원가입 해주세요.", summonerName);
+
+        throw new IllegalArgumentException(errorMessage);
+      }
+    }
+  }
+
+  private AddResultDto getAddResultDto(LolienMatch lolienMatch, long matchId, String[] entries) {
+    Match match = getMatch(matchId);
+
+    return AddResultDto
+        .builder()
+        .entries(entries)
+        .match(match)
+        .lolienMatch(lolienMatch)
+        .build();
+  }
+
+  private LolienMatch getNewLolienMatch() {
+    Set<LolienParticipant> lolienParticipantSet = Sets.newHashSet();
+    Set<LolienTeamStats> lolienTeamStatsSet = Sets.newHashSet();
+
+    return LolienMatch
+        .builder()
+        .participants(lolienParticipantSet)
+        .teams(lolienTeamStatsSet)
+        .build();
+  }
+
+  private LolienMatch getNewLolienMatchForUser() {
+    Set<LolienParticipant> lolienParticipantSet = Sets.newHashSet();
+    Set<LolienTeamStats> lolienTeamStatsSet = Sets.newHashSet();
+
+    LolienMatch lolienMatch = LolienMatch
+        .builder()
+        .participants(lolienParticipantSet)
+        .teams(lolienTeamStatsSet)
+        .build();
+
+    User user = getUserFromSession();
+    lolienMatch.setUser(user);
+
+    return lolienMatch;
+  }
+
+  private User getUserFromSession() {
+    Optional<User> userOptional = authenticationComponent.getUser(httpServletRequest);
+    return userOptional
+        .orElseThrow(() ->
+            new BadCredentialsException("내전 결과 등록 중 계정에 문제가 발생하였습니다."));
+  }
+
+  private void addLolienParticipantSet(AddResultDto addResultDto) {
+    List<Participant> participants = addResultDto.getMatch().getParticipants();
+    String[] entries = addResultDto.getEntries();
+    LolienMatch lolienMatch = addResultDto.getLolienMatch();
+
+    for (int i = 0; i < participants.size(); i++) {
+      Participant participant = participants.get(i);
+      ParticipantStats stats = participant.getStats();
+
+      LolienParticipantStats lolienParticipantStats = LolienParticipantStats
+          .builder()
+          .build();
+
+      BeanUtils.copyProperties(stats, lolienParticipantStats);
+
+      String summonerName = entries[i];
+      String nonSpaceSummonerName = summonerName.replaceAll("\\s+", "");
+      LolienSummoner bySummonerName = lolienSummonerRepository
+          .findBySummonerName(nonSpaceSummonerName);
+
+      LolienParticipant lolienParticipant = LolienParticipant
+          .builder()
+          .match(lolienMatch)
+          .lolienSummoner(bySummonerName)
+          .stats(lolienParticipantStats)
+          .build();
+
+      BeanUtils.copyProperties(participant, lolienParticipant);
+
+      lolienParticipantStats.setParticipant(lolienParticipant);
+
+      addResultDto.getLolienMatch().addParticipant(lolienParticipant);
+    }
+  }
+
+  private void addLolienTeamStatsSet(AddResultDto addResultDto) {
+    List<TeamStats> teams = addResultDto.getMatch().getTeams();
+    LolienMatch lolienMatch = addResultDto.getLolienMatch();
+
+    for (TeamStats teamStats : teams) {
+      int baronKills = teamStats.getBaronKills();
+      int dominionVictoryScore = teamStats.getDominionVictoryScore();
+      int dragonKills = teamStats.getDragonKills();
+      boolean firstBaron = teamStats.isFirstBaron();
+      boolean firstBlood = teamStats.isFirstBlood();
+      boolean firstDragon = teamStats.isFirstDragon();
+      boolean firstInhibitor = teamStats.isFirstInhibitor();
+      boolean firstRiftHerald = teamStats.isFirstRiftHerald();
+      boolean firstTower = teamStats.isFirstTower();
+      int inhibitorKills = teamStats.getInhibitorKills();
+      int riftHeraldKills = teamStats.getRiftHeraldKills();
+      int teamId = teamStats.getTeamId();
+      int towerKills = teamStats.getTowerKills();
+      int vilemawKills = teamStats.getVilemawKills();
+      String win = teamStats.getWin();
+
+      LolienTeamStats lolienTeamStats = LolienTeamStats
+          .builder()
+          .match(lolienMatch)
+          .baronKills(baronKills)
+          .dominionVictoryScore(dominionVictoryScore)
+          .dragonKills(dragonKills)
+          .firstBaron(firstBaron)
+          .firstBlood(firstBlood)
+          .firstDragon(firstDragon)
+          .firstInhibitor(firstInhibitor)
+          .firstRiftHerald(firstRiftHerald)
+          .firstTower(firstTower)
+          .inhibitorKills(inhibitorKills)
+          .riftHeraldKills(riftHeraldKills)
+          .teamId(teamId)
+          .towerKills(towerKills)
+          .vilemawKills(vilemawKills)
+          .win(win)
+          .build();
+
+      addLolienTeamBansList(teamStats, lolienTeamStats);
+
+      lolienMatch.getTeams().add(lolienTeamStats);
+    }
+  }
+
+  private void addLolienTeamBansList(TeamStats teamStats, LolienTeamStats lolienTeamStats) {
+    List<TeamBans> bans = teamStats.getBans();
+
+    for (TeamBans teamBans : bans) {
+      int championId = teamBans.getChampionId();
+      int pickTurn = teamBans.getPickTurn();
+
+      LolienTeamBans lolienTeamBans = LolienTeamBans
+          .builder()
+          .teamStats(lolienTeamStats)
+          .championId(championId)
+          .pickTurn(pickTurn)
+          .build();
+
+      lolienTeamStats.addBan(lolienTeamBans);
+    }
   }
 
   private void deleteCustomGameMatchesFromCache() {

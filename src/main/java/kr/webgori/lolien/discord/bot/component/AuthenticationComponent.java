@@ -16,7 +16,6 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -140,14 +139,6 @@ public class AuthenticationComponent {
   }
 
   private String getAccessToken(HttpServletRequest request) {
-    Enumeration<String> headerNames = request.getHeaderNames();
-    List<String> headerNameList = Collections.list(headerNames);
-    boolean authorization = headerNameList.contains("Authorization");
-
-    if (!authorization) {
-      return getDefaultString();
-    }
-
     String jwt = Optional
         .ofNullable(request.getHeader(HttpHeaders.AUTHORIZATION))
         .orElseGet(this::getDefaultString);
