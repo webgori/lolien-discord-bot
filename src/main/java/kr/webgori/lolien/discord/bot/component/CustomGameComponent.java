@@ -633,7 +633,7 @@ public class CustomGameComponent {
 
       if (!hasSummonerName) {
         String errorMessage = String.format("\"%s\" 소환사를 찾을 수 없습니다. "
-            + "https://lolien.kr 에서 회원가입 해주세요.", summonerName);
+            + "https://lolien.kr 에서 회원가입 해주세요.", formattedSummonerName);
 
         throw new IllegalArgumentException(errorMessage);
       }

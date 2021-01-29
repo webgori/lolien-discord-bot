@@ -402,10 +402,16 @@ public class TeamGenerateComponent {
             String[] summonersName = ((String) a).split(",");
 
             if (summonersName.length > 0) {
-              customGameComponent.addResult(matchId, summonersName);
+              try {
+                customGameComponent.addResult(matchId, summonersName);
+              } catch (IllegalArgumentException e) {
+                String message = e.getMessage();
+                if (message.contains("소환사를 찾을 수 없습니다.")) {
+                  hashOperations
+                      .delete(REDIS_GENERATED_TEAM_MATCHES_INFO_KEY, String.valueOf(matchId));
+                }
+              }
             }
-
-            hashOperations.delete(REDIS_GENERATED_TEAM_MATCHES_INFO_KEY, String.valueOf(matchId));
           });
     }
   }
