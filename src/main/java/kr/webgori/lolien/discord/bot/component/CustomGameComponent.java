@@ -550,20 +550,24 @@ public class CustomGameComponent {
    */
   @Transactional
   public void addResult(long matchId, String[] entries) {
-    checkEntriesSummonerName(entries);
+    boolean existsByGameId = lolienMatchRepository.existsByGameId(matchId);
 
-    LolienMatch lolienMatch = getNewLolienMatch();
-    AddResultDto addResultDto = getAddResultDto(lolienMatch, matchId, entries);
-    addLolienParticipantSet(addResultDto);
-    addLolienTeamStatsSet(addResultDto);
+    if (!existsByGameId) {
+      checkEntriesSummonerName(entries);
 
-    saveLolienMatch(lolienMatch);
+      LolienMatch lolienMatch = getNewLolienMatch();
+      AddResultDto addResultDto = getAddResultDto(lolienMatch, matchId, entries);
+      addLolienParticipantSet(addResultDto);
+      addLolienTeamStatsSet(addResultDto);
 
-    addResultMmr(lolienMatch);
+      saveLolienMatch(lolienMatch);
 
-    updateMostChampFromCache(entries);
+      addResultMmr(lolienMatch);
 
-    deleteCustomGameMatchesFromCache();
+      updateMostChampFromCache(entries);
+
+      deleteCustomGameMatchesFromCache();
+    }
   }
 
   /**
