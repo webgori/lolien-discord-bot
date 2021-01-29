@@ -759,7 +759,7 @@ public class CustomGameComponent {
 
       addLolienTeamBansList(teamStats, lolienTeamStats);
 
-      lolienMatch.getTeams().add(lolienTeamStats);
+      lolienMatch.addTeam(lolienTeamStats);
     }
   }
 

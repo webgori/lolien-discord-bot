@@ -1,8 +1,7 @@
 package kr.webgori.lolien.discord.bot.dto.customgame;
 
 import com.google.common.collect.Sets;
-import java.time.LocalDate;
-import java.util.List;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Set;
 import kr.webgori.lolien.discord.bot.entity.LolienMatch;
 import kr.webgori.lolien.discord.bot.entity.LolienParticipant;
@@ -12,8 +11,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import net.rithms.riot.api.endpoints.match.dto.Match;
-import net.rithms.riot.api.endpoints.match.dto.Participant;
 
+@SuppressFBWarnings(justification = "Generated code")
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
