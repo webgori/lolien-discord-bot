@@ -1431,6 +1431,12 @@ public class CustomGameService {
     }
   }
 
+  /**
+   * addResult.
+   * @param file file
+   * @param matchId matchId
+   * @param entries entries
+   */
   public void addResult(MultipartFile file, long matchId, String[] entries) {
     gameComponent.checkEntriesSummonerName(entries);
 

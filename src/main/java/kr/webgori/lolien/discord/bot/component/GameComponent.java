@@ -95,6 +95,10 @@ public class GameComponent {
     return httpHeaders;
   }
 
+  /**
+   * checkEntriesSummonerName.
+   * @param entries entries
+   */
   public void checkEntriesSummonerName(String[] entries) {
     for (String summonerName : entries) {
       String formattedSummonerName = summonerName.replaceAll("\\s+", "")
@@ -112,6 +116,10 @@ public class GameComponent {
     }
   }
 
+  /**
+   * getNewLolienMatch.
+   * @return LolienMatch
+   */
   public LolienMatch getNewLolienMatch() {
     Set<LolienParticipant> lolienParticipantSet = Sets.newHashSet();
     Set<LolienTeamStats> lolienTeamStatsSet = Sets.newHashSet();
@@ -123,6 +131,10 @@ public class GameComponent {
         .build();
   }
 
+  /**
+   * getNewLolienMatchForUser.
+   * @return LolienMatch
+   */
   public LolienMatch getNewLolienMatchForUser() {
     Set<LolienParticipant> lolienParticipantSet = Sets.newHashSet();
     Set<LolienTeamStats> lolienTeamStatsSet = Sets.newHashSet();
@@ -146,6 +158,13 @@ public class GameComponent {
             new BadCredentialsException("내전 결과 등록 중 계정에 문제가 발생하였습니다."));
   }
 
+  /**
+   * getAddResultDto.
+   * @param lolienMatch lolienMatch
+   * @param matchId matchId
+   * @param entries entries
+   * @return AddResultDto
+   */
   public AddResultDto getAddResultDto(LolienMatch lolienMatch, long matchId, String[] entries) {
     Match match = getMatch(matchId);
 
@@ -157,6 +176,10 @@ public class GameComponent {
         .build();
   }
 
+  /**
+   * addLolienParticipantSet.
+   * @param addResultDto addResultDto
+   */
   public void addLolienParticipantSet(AddResultDto addResultDto) {
     List<Participant> participants = addResultDto.getMatch().getParticipants();
     String[] entries = addResultDto.getEntries();
@@ -192,6 +215,10 @@ public class GameComponent {
     }
   }
 
+  /**
+   * addLolienTeamStatsSet.
+   * @param addResultDto addResultDto
+   */
   public void addLolienTeamStatsSet(AddResultDto addResultDto) {
     List<TeamStats> teams = addResultDto.getMatch().getTeams();
     LolienMatch lolienMatch = addResultDto.getLolienMatch();
@@ -257,6 +284,9 @@ public class GameComponent {
     }
   }
 
+  /**
+   * deleteCustomGameMatchesFromCache.
+   */
   public void deleteCustomGameMatchesFromCache() {
     String key = "lolien-discord-bot:custom-game:statistics-%s-%s";
     LocalDate startDateOfMonth = getStartDateOfMonth();
@@ -396,6 +426,10 @@ public class GameComponent {
     addResultDto.getLolienMatch().setReplay(replayBytes);
   }
 
+  /**
+   * updateMostChampFromCache.
+   * @param entries entries
+   */
   public void updateMostChampFromCache(String[] entries) {
     ValueOperations<String, Object> opsForValue = redisTemplate.opsForValue();
 
@@ -414,6 +448,10 @@ public class GameComponent {
     }
   }
 
+  /**
+   * setLolienMatch.
+   * @param addResultDto addResultDto
+   */
   public void setLolienMatch(AddResultDto addResultDto) {
     Match match = addResultDto.getMatch();
     LolienMatch lolienMatch = addResultDto.getLolienMatch();
