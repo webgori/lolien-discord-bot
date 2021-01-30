@@ -32,12 +32,14 @@ import javax.servlet.http.HttpServletRequest;
 import kr.webgori.lolien.discord.bot.component.AuthenticationComponent;
 import kr.webgori.lolien.discord.bot.component.CustomGameComponent;
 import kr.webgori.lolien.discord.bot.component.GameComponent;
+import kr.webgori.lolien.discord.bot.component.GameTransactionComponent;
 import kr.webgori.lolien.discord.bot.component.RiotComponent;
 import kr.webgori.lolien.discord.bot.dto.ChampDto;
 import kr.webgori.lolien.discord.bot.dto.CustomGameSummonerDto;
 import kr.webgori.lolien.discord.bot.dto.CustomGameTeamBanDto;
 import kr.webgori.lolien.discord.bot.dto.CustomGameTeamDto;
 import kr.webgori.lolien.discord.bot.dto.DataDragonVersionDto;
+import kr.webgori.lolien.discord.bot.dto.customgame.AddResultDto;
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MatchDto;
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MmrDto;
 import kr.webgori.lolien.discord.bot.dto.customgame.statistics.MostAssistDto;
@@ -91,7 +93,6 @@ public class CustomGameService {
   static final int RED_TEAM = 200;
 
   private final LolienMatchRepository lolienMatchRepository;
-  private final CustomGameComponent customGameComponent;
   private final LolienSummonerRepository lolienSummonerRepository;
   private final RiotComponent riotComponent;
   private final AuthenticationComponent authenticationComponent;
@@ -99,6 +100,7 @@ public class CustomGameService {
   private final RedisTemplate<String, Object> redisTemplate;
   private final ObjectMapper objectMapper;
   private final GameComponent gameComponent;
+  private final GameTransactionComponent gameTransactionComponent;
 
   /**
    * getCustomGames.
@@ -1425,8 +1427,26 @@ public class CustomGameService {
         throw new IllegalArgumentException("게임 참여 인원이 잘못 되었습니다.");
       }
 
-      customGameComponent.addResult(file, gameId, entries);
+      addResult(file, gameId, entries);
     }
+  }
+
+  public void addResult(MultipartFile file, long matchId, String[] entries) {
+    gameComponent.checkEntriesSummonerName(entries);
+
+    LolienMatch lolienMatch = gameComponent.getNewLolienMatchForUser();
+    AddResultDto addResultDto = gameComponent.getAddResultDto(lolienMatch, matchId, entries);
+    gameComponent.setReplay(addResultDto, file);
+    gameComponent.addLolienParticipantSet(addResultDto);
+    gameComponent.addLolienTeamStatsSet(addResultDto);
+
+    gameComponent.addResultMmr(addResultDto);
+
+    gameTransactionComponent.addResult(addResultDto);
+
+    gameComponent.updateMostChampFromCache(entries);
+
+    gameComponent.deleteCustomGameMatchesFromCache();
   }
 
   private long getGameId(MultipartFile multipartFile) {

@@ -10,6 +10,7 @@ import com.google.common.collect.Lists;
 import java.awt.Color;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -21,9 +22,12 @@ import kr.webgori.lolien.discord.bot.config.JdaConfig;
 import kr.webgori.lolien.discord.bot.dto.LolienGenerateTeamDto;
 import kr.webgori.lolien.discord.bot.dto.SummonerMostChampDto;
 import kr.webgori.lolien.discord.bot.dto.SummonerMostChampsDto;
+import kr.webgori.lolien.discord.bot.dto.customgame.AddResultDto;
 import kr.webgori.lolien.discord.bot.entity.League;
+import kr.webgori.lolien.discord.bot.entity.LolienMatch;
 import kr.webgori.lolien.discord.bot.entity.LolienSummoner;
 import kr.webgori.lolien.discord.bot.entity.user.User;
+import kr.webgori.lolien.discord.bot.repository.LolienMatchRepository;
 import kr.webgori.lolien.discord.bot.repository.LolienSummonerRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -59,6 +63,9 @@ public class TeamGenerateComponent {
   private final CustomGameComponent customGameComponent;
   private final RedisTemplate<String, Object> redisTemplate;
   private final RiotComponent riotComponent;
+  private final LolienMatchRepository lolienMatchRepository;
+  private final GameComponent gameComponent;
+  private final GameTransactionComponent gameTransactionComponent;
 
   /**
    * execute.
@@ -299,7 +306,7 @@ public class TeamGenerateComponent {
     StringBuilder stringBuilder = new StringBuilder();
 
     for (String summoner : entryList) {
-      SummonerMostChampsDto mostChampsDto = customGameComponent.getMostChamp(summoner);
+      SummonerMostChampsDto mostChampsDto = gameComponent.getMostChamp(summoner);
       List<SummonerMostChampDto> mostChampDtoList = mostChampsDto.getMostChamps();
       List<String> mostChampionsList = Lists.newArrayList();
 
@@ -363,8 +370,9 @@ public class TeamGenerateComponent {
                             .map(CurrentGameParticipant::getSummonerName)
                             .collect(Collectors.joining(","));
 
-                        hashOperations.put(
-                            REDIS_GENERATED_TEAM_MATCHES_INFO_KEY, String.valueOf(gameId),
+                        String key = String.format("%s/%s", s, gameId);
+
+                        hashOperations.put(REDIS_GENERATED_TEAM_MATCHES_INFO_KEY, key,
                             summonersName);
 
                         TextChannel textChannel = JdaConfig
@@ -394,16 +402,21 @@ public class TeamGenerateComponent {
     Set<Object> ids = hashOperations.keys(REDIS_GENERATED_TEAM_MATCHES_INFO_KEY);
 
     for (Object id : ids) {
-      long matchId = Long.parseLong((String) id);
-      Optional<Match> matchOptional = getMatchByMatchId(matchId);
+      // List<String> startDateTimeAndGameId = Arrays.asList(((String) key).split("/"));
+      // LocalDateTime startDateTime = stringToLocalDateTime(startDateTimeAndGameId.get(0));
+      // long gameId = Long.parseLong(startDateTimeAndGameId.get(1));
+
+      long gameId = Long.parseLong((String) id);
+
+      Optional<Match> matchOptional = getMatchByMatchId(gameId);
       matchOptional.flatMap(match -> Optional.ofNullable(hashOperations
-          .get(REDIS_GENERATED_TEAM_MATCHES_INFO_KEY, String.valueOf(id)))).ifPresent(a -> {
+          .get(REDIS_GENERATED_TEAM_MATCHES_INFO_KEY, String.valueOf(gameId)))).ifPresent(a -> {
 
             String[] summonersName = ((String) a).split(",");
 
             if (summonersName.length > 0) {
               try {
-                customGameComponent.addResult(matchId, summonersName);
+                addResult(gameId, summonersName);
               } catch (IllegalArgumentException e) {
                 String message = e.getMessage();
                 if (message.contains("소환사를 찾을 수 없습니다.")) {
@@ -411,10 +424,32 @@ public class TeamGenerateComponent {
                 }
               } finally {
                 hashOperations
-                    .delete(REDIS_GENERATED_TEAM_MATCHES_INFO_KEY, String.valueOf(matchId));
+                    .delete(REDIS_GENERATED_TEAM_MATCHES_INFO_KEY, String.valueOf(gameId));
               }
             }
           });
+    }
+  }
+
+  private void addResult(long gameId, String[] entries) {
+    boolean existsByGameId = lolienMatchRepository.existsByGameId(gameId);
+
+    if (!existsByGameId) {
+      gameComponent.checkEntriesSummonerName(entries);
+
+      LolienMatch lolienMatch = gameComponent.getNewLolienMatch();
+      AddResultDto addResultDto = gameComponent.getAddResultDto(lolienMatch, gameId, entries);
+      gameComponent.setLolienMatch(addResultDto);
+      gameComponent.addLolienParticipantSet(addResultDto);
+      gameComponent.addLolienTeamStatsSet(addResultDto);
+
+      gameComponent.addResultMmr(addResultDto);
+
+      gameTransactionComponent.addResult(addResultDto);
+
+      gameComponent.updateMostChampFromCache(entries);
+
+      gameComponent.deleteCustomGameMatchesFromCache();
     }
   }
 

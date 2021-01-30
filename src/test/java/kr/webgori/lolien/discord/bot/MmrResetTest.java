@@ -3,7 +3,6 @@ package kr.webgori.lolien.discord.bot;
 import java.util.List;
 import kr.webgori.lolien.discord.bot.component.CustomGameComponent;
 import kr.webgori.lolien.discord.bot.entity.League;
-import kr.webgori.lolien.discord.bot.entity.LolienMatch;
 import kr.webgori.lolien.discord.bot.entity.LolienSummoner;
 import kr.webgori.lolien.discord.bot.entity.LolienTierMmr;
 import kr.webgori.lolien.discord.bot.repository.LolienMatchRepository;
@@ -55,13 +54,5 @@ public class MmrResetTest {
 
   private LolienTierMmr getMmrFromTable(String tier) {
     return lolienTierMmrRepository.findByTier(tier);
-  }
-
-  @Test
-  public void applyCustomGameMmr() {
-    List<LolienMatch> matches = lolienMatchRepository.findAll();
-    for (LolienMatch match : matches) {
-      customGameComponent.addResultMmr(match);
-    }
   }
 }
