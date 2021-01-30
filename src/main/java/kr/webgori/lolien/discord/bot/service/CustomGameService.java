@@ -406,7 +406,7 @@ public class CustomGameService {
       User matchUser = lolienMatch.getUser();
       boolean deleteAble = false;
 
-      if (Objects.nonNull(user) && matchUser.equals(user)) {
+      if (user.getIndex() != null && matchUser.equals(user)) {
         deleteAble = true;
       }
 
