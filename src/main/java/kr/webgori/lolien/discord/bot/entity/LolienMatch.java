@@ -65,7 +65,7 @@ public class LolienMatch {
   private Set<LolienTeamStats> teams;
 
   @ManyToOne
-  @JoinColumn(name = "user_idx", nullable = false)
+  @JoinColumn(name = "user_idx")
   private User user;
 
   @Lob

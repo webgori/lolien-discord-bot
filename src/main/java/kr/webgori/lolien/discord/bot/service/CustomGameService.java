@@ -30,7 +30,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import kr.webgori.lolien.discord.bot.component.AuthenticationComponent;
-import kr.webgori.lolien.discord.bot.component.CustomGameComponent;
 import kr.webgori.lolien.discord.bot.component.GameComponent;
 import kr.webgori.lolien.discord.bot.component.GameTransactionComponent;
 import kr.webgori.lolien.discord.bot.component.RiotComponent;
@@ -405,6 +404,7 @@ public class CustomGameService {
 
       User matchUser = lolienMatch.getUser();
       boolean deleteAble = false;
+      boolean replayDownloadable = isReplayDownloadable(lolienMatch);
 
       if (user.getIndex() != null && matchUser != null && matchUser.equals(user)) {
         deleteAble = true;
@@ -438,6 +438,7 @@ public class CustomGameService {
           .redTeamSummoners(redTeamSummoners)
           .teams(teamDtoList)
           .deleteAble(deleteAble)
+          .replayDownloadable(replayDownloadable)
           .build();
 
       customGamesDto.add(customGameDto);
@@ -448,6 +449,10 @@ public class CustomGameService {
         .customGames(customGamesDto)
         .totalPages(totalPages)
         .build();
+  }
+
+  private boolean isReplayDownloadable(LolienMatch lolienMatch) {
+    return lolienMatch.getReplay().length > 0;
   }
 
   /**
