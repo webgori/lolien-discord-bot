@@ -1442,6 +1442,7 @@ public class CustomGameService {
 
     LolienMatch lolienMatch = gameComponent.getNewLolienMatchForUser();
     AddResultDto addResultDto = gameComponent.getAddResultDto(lolienMatch, matchId, entries);
+    gameComponent.setLolienMatch(addResultDto);
     gameComponent.setReplay(addResultDto, file);
     gameComponent.addLolienParticipantSet(addResultDto);
     gameComponent.addLolienTeamStatsSet(addResultDto);
