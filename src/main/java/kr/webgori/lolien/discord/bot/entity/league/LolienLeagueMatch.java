@@ -36,37 +36,37 @@ public class LolienLeagueMatch {
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Integer idx;
 
-  @Column(name = "game_creation")
+  @Column(name = "game_creation", nullable = false)
   private Long gameCreation;
 
-  @Column(name = "game_duration")
+  @Column(name = "game_duration", nullable = false)
   private Long gameDuration;
 
-  @Column(name = "game_id", unique = true)
+  @Column(name = "game_id", unique = true, nullable = false)
   private Long gameId;
 
-  @Column(name = "game_mode")
+  @Column(name = "game_mode", nullable = false)
   private String gameMode;
 
-  @Column(name = "game_type")
+  @Column(name = "game_type", nullable = false)
   private String gameType;
 
-  @Column(name = "game_version")
+  @Column(name = "game_version", nullable = false)
   private String gameVersion;
 
-  @Column(name = "map_id")
+  @Column(name = "map_id", nullable = false)
   private Integer mapId;
 
   @OneToMany(mappedBy = "match", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
   private Set<LolienLeagueParticipant> participants;
 
-  @Column(name = "platform_id")
+  @Column(name = "platform_id", nullable = false)
   private String platformId;
 
-  @Column(name = "queue_id")
+  @Column(name = "queue_id", nullable = false)
   private Integer queueId;
 
-  @Column(name = "season_id")
+  @Column(name = "season_id", nullable = false)
   private Integer seasonId;
 
   @OneToMany(mappedBy = "match", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

@@ -497,6 +497,7 @@ public class LeagueService {
 
       User matchUser = lolienLeagueMatch.getUser();
       boolean deleteAble = false;
+      boolean replayDownloadable = isReplayDownloadable(lolienLeagueMatch);
 
       if (Objects.nonNull(user) && matchUser.equals(user)) {
         deleteAble = true;
@@ -530,6 +531,7 @@ public class LeagueService {
           .redTeamSummoners(redTeamSummoners)
           .teams(teamDtoList)
           .deleteAble(deleteAble)
+          .replayDownloadable(replayDownloadable)
           .build();
 
       resultsDto.add(resultDto);
@@ -540,6 +542,10 @@ public class LeagueService {
         .results(resultsDto)
         .totalPages(totalPages)
         .build();
+  }
+
+  private boolean isReplayDownloadable(LolienLeagueMatch lolienLeagueMatch) {
+    return lolienLeagueMatch.getReplay().length > 0;
   }
 
   /**

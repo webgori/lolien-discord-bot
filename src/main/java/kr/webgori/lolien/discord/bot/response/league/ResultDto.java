@@ -41,5 +41,9 @@ public class ResultDto {
   @Schema(description = "팀 정보")
   private List<CustomGameTeamDto> teams;
 
+  @Schema(description = "리그 결과 삭제 가능 여부 (true: 삭제 가능, false: 삭제 불가")
   private boolean deleteAble;
+
+  @Schema(description = "리플레이 다운로드 가능 여부")
+  private boolean replayDownloadable;
 }
