@@ -370,7 +370,7 @@ public class TeamGenerateComponent {
                             .map(CurrentGameParticipant::getSummonerName)
                             .collect(Collectors.joining(","));
 
-                        String key = String.format("%s/%s", s, gameId);
+                        String key = String.format("%s", gameId);
 
                         hashOperations.put(REDIS_GENERATED_TEAM_MATCHES_INFO_KEY, key,
                             summonersName);
