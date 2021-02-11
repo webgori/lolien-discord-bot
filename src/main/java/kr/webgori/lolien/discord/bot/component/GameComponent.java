@@ -7,6 +7,7 @@ import static kr.webgori.lolien.discord.bot.util.CommonUtil.getStartDateOfMonth;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDate;
@@ -421,9 +422,21 @@ public class GameComponent {
     }
   }
 
-  public void setReplay(AddResultDto addResultDto, MultipartFile file) {
-    byte[] replayBytes = getReplayBytes(file);
-    addResultDto.getLolienMatch().setReplay(replayBytes);
+  public void uploadReplay(AddResultDto addResultDto, MultipartFile multipartFile) {
+    Long gameId = addResultDto.getLolienMatch().getGameId();
+    String filePath = getFilePath(gameId);
+    File file = new File(filePath);
+
+    try {
+      multipartFile.transferTo(file);
+    } catch (IOException e) {
+      logger.error("", e);
+      boolean delete = file.delete();
+
+      if (!delete) {
+        logger.error("리플레이 업로드 - 파일 삭제 실패");
+      }
+    }
   }
 
   /**
@@ -456,5 +469,14 @@ public class GameComponent {
     Match match = addResultDto.getMatch();
     LolienMatch lolienMatch = addResultDto.getLolienMatch();
     BeanUtils.copyProperties(match, lolienMatch);
+  }
+
+  /**
+   * 리플레이 파일 경로.
+   * @param gameId gameId
+   * @return 파일 경로
+   */
+  public String getFilePath(Long gameId) {
+    return String.format("/media/data/docker/lolien-web/replay/KR-%d.rofl", gameId);
   }
 }

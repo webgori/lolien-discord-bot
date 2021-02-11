@@ -15,6 +15,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -452,7 +453,11 @@ public class CustomGameService {
   }
 
   private boolean isReplayDownloadable(LolienMatch lolienMatch) {
-    return lolienMatch.getReplay().length > 0;
+    Long gameId = lolienMatch.getGameId();
+    String filePath = gameComponent.getFilePath(gameId);
+    File file = new File(filePath);
+
+    return file.getAbsoluteFile().exists();
   }
 
   /**
@@ -1448,7 +1453,7 @@ public class CustomGameService {
     LolienMatch lolienMatch = gameComponent.getNewLolienMatchForUser();
     AddResultDto addResultDto = gameComponent.getAddResultDto(lolienMatch, matchId, entries);
     gameComponent.setLolienMatch(addResultDto);
-    gameComponent.setReplay(addResultDto, file);
+
     gameComponent.addLolienParticipantSet(addResultDto);
     gameComponent.addLolienTeamStatsSet(addResultDto);
 
@@ -1459,6 +1464,8 @@ public class CustomGameService {
     gameComponent.updateMostChampFromCache(entries);
 
     gameComponent.deleteCustomGameMatchesFromCache();
+
+    gameComponent.uploadReplay(addResultDto, file);
   }
 
   private long getGameId(MultipartFile multipartFile) {
@@ -1500,22 +1507,5 @@ public class CustomGameService {
     summonerName = summonerName.replace("\\", "");
     summonerName = summonerName.replace(":", "");
     return summonerName.replaceAll("\\s+", "");
-  }
-
-  /**
-   * 리플레이 다운로드.
-   * @param matchIndex matchIndex
-   * @return 리플레이 데이터
-   */
-  public HttpEntity<byte[]> getReplay(int matchIndex) {
-    LolienMatch lolienMatch = lolienMatchRepository.findById(matchIndex)
-        .orElseThrow(() -> new IllegalArgumentException("리플레이 정보를 찾을 수 없습니다."));
-
-    byte[] replay = lolienMatch.getReplay();
-
-    long gameId = lolienMatch.getGameId();
-    HttpHeaders replayHeader = gameComponent.getReplayHeader(gameId);
-
-    return new HttpEntity<>(replay, replayHeader);
   }
 }

@@ -1,6 +1,5 @@
 package kr.webgori.lolien.discord.bot.entity;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -10,7 +9,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
@@ -22,7 +20,6 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-@SuppressFBWarnings(justification = "Generated code")
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
@@ -67,11 +64,6 @@ public class LolienMatch {
   @ManyToOne
   @JoinColumn(name = "user_idx")
   private User user;
-
-  @Lob
-  @Column(columnDefinition = "LONGBLOB", nullable = false)
-  @Builder.Default
-  private byte[] replay = new byte[0];
 
   public void addParticipant(LolienParticipant participant) {
     this.participants.add(participant);
