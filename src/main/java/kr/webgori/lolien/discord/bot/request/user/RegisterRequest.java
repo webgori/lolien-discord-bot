@@ -45,6 +45,5 @@ public class RegisterRequest {
 
   @Schema(description = "포지션")
   @Size(min = 1, max = 5)
-  @NotBlank
   private List<String> positions;
 }
