@@ -422,6 +422,11 @@ public class GameComponent {
     }
   }
 
+  /**
+   * 리플레이 업로드
+   * @param addResultDto addResultDto
+   * @param multipartFile multipartFile
+   */
   public void uploadReplay(AddResultDto addResultDto, MultipartFile multipartFile) {
     Long gameId = addResultDto.getLolienMatch().getGameId();
     String filePath = getFilePath(gameId);
