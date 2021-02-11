@@ -423,7 +423,7 @@ public class GameComponent {
   }
 
   /**
-   * 리플레이 업로드
+   * 리플레이 업로드.
    * @param addResultDto addResultDto
    * @param multipartFile multipartFile
    */
