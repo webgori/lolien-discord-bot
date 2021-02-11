@@ -10,6 +10,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -91,8 +92,6 @@ import kr.webgori.lolien.discord.bot.response.league.TeamResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -545,7 +544,11 @@ public class LeagueService {
   }
 
   private boolean isReplayDownloadable(LolienLeagueMatch lolienLeagueMatch) {
-    return lolienLeagueMatch.getReplay().length > 0;
+    Long gameId = lolienLeagueMatch.getGameId();
+    String filePath = gameComponent.getFilePath(gameId);
+    File file = new File(filePath);
+
+    return file.getAbsoluteFile().exists();
   }
 
   /**
@@ -573,7 +576,29 @@ public class LeagueService {
         throw new IllegalArgumentException("게임 참여 인원이 잘못 되었습니다.");
       }
 
-      leagueComponent.addResult(file, leagueIndex, scheduleIdx, gameId, entries);
+      leagueComponent.addResult(leagueIndex, scheduleIdx, gameId, entries);
+      uploadReplay(gameId, file);
+    }
+  }
+
+  /**
+   * 리플레이 업로드.
+   * @param gameId gameId
+   * @param multipartFile multipartFile
+   */
+  private void uploadReplay(long gameId, MultipartFile multipartFile) {
+    String filePath = gameComponent.getFilePath(gameId);
+    File file = new File(filePath);
+
+    try {
+      multipartFile.transferTo(file);
+    } catch (IOException e) {
+      logger.error("", e);
+      boolean delete = file.delete();
+
+      if (!delete) {
+        logger.error("리플레이 업로드 - 파일 삭제 실패");
+      }
     }
   }
 
@@ -1674,22 +1699,5 @@ public class LeagueService {
         }
       }
     }
-  }
-
-  /**
-   * 리플레이 다운로드.
-   * @param matchIndex matchIndex
-   * @return 리플레이 데이터
-   */
-  public HttpEntity<byte[]> getReplay(int matchIndex) {
-    LolienLeagueMatch lolienLeagueMatch = lolienLeagueMatchRepository.findById(matchIndex)
-        .orElseThrow(() -> new IllegalArgumentException("리플레이 정보를 찾을 수 없습니다."));
-
-    byte[] replay = lolienLeagueMatch.getReplay();
-
-    long gameId = lolienLeagueMatch.getGameId();
-    HttpHeaders replayHeader = gameComponent.getReplayHeader(gameId);
-
-    return new HttpEntity<>(replay, replayHeader);
   }
 }

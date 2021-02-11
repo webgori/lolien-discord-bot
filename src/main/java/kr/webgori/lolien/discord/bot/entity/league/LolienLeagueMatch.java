@@ -1,6 +1,5 @@
 package kr.webgori.lolien.discord.bot.entity.league;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -10,7 +9,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
@@ -22,7 +20,6 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-@SuppressFBWarnings(justification = "Generated code")
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
@@ -83,8 +80,4 @@ public class LolienLeagueMatch {
   @ManyToOne
   @JoinColumn(name = "user_idx", nullable = false)
   private User user;
-
-  @Lob
-  @Column(columnDefinition = "LONGBLOB", nullable = false)
-  private byte[] replay;
 }

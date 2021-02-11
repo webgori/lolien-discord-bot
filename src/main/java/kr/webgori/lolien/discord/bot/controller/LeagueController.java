@@ -19,9 +19,7 @@ import kr.webgori.lolien.discord.bot.response.league.TeamResponse;
 import kr.webgori.lolien.discord.bot.service.LeagueService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -228,18 +226,5 @@ public class LeagueController {
   @GetMapping("v1/leagues/{league-idx}/statistics/pick")
   public StatisticsPickResponse getStatisticsPick(@PathVariable("league-idx") int leagueIdx) {
     return leagueService.getStatisticsPick(leagueIdx);
-  }
-
-  @Operation(
-      summary = "리플레이 다운로드")
-  @ApiResponses(
-      value = {
-          @ApiResponse(
-              responseCode = "200",
-              description = "OK")
-      })
-  @GetMapping(value = "v1/leagues/replay", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-  public HttpEntity<byte[]> getReplay(@RequestParam("match-index") int matchIndex) {
-    return leagueService.getReplay(matchIndex);
   }
 }
