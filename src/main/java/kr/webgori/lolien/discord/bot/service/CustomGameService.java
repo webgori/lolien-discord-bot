@@ -79,8 +79,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -215,7 +213,10 @@ public class CustomGameService {
         LolienParticipantStats lolienParticipantStats = lolienParticipant.getStats();
 
         long totalDamageDealtToChampions = lolienParticipantStats.getTotalDamageDealtToChampions();
+        long visionScore = lolienParticipantStats.getVisionScore();
         int wardsPlaced = lolienParticipantStats.getWardsPlaced();
+        int wardsKilled = lolienParticipantStats.getWardsKilled();
+        int visionWardsBoughtInGame = lolienParticipantStats.getVisionWardsBoughtInGame();
 
         int kills = lolienParticipantStats.getKills();
         int deaths = lolienParticipantStats.getDeaths();
@@ -223,6 +224,9 @@ public class CustomGameService {
 
         int champLevel = lolienParticipantStats.getChampLevel();
         int totalMinionsKilled = lolienParticipantStats.getTotalMinionsKilled();
+        int neutralMinionsKilled = lolienParticipantStats.getNeutralMinionsKilled();
+
+        int goldEarned = lolienParticipantStats.getGoldEarned();
 
         JsonObject itemsJsonObject;
 
@@ -334,6 +338,8 @@ public class CustomGameService {
             .assists(assists)
             .champLevel(champLevel)
             .totalMinionsKilled(totalMinionsKilled)
+            .neutralMinionsKilled(neutralMinionsKilled)
+            .goldEarned(goldEarned)
             .item0Url(item0Url)
             .item1Url(item1Url)
             .item2Url(item2Url)
@@ -361,7 +367,10 @@ public class CustomGameService {
             .subRuneUrl(subRuneUrl)
             .subRuneName(subRuneName)
             .subRuneDescription(subRuneDescription)
+            .visionScore(visionScore)
             .wardsPlaced(wardsPlaced)
+            .wardsKilled(wardsKilled)
+            .visionWardsBoughtInGame(visionWardsBoughtInGame)
             .teamId(teamId)
             .win(win)
             .build();

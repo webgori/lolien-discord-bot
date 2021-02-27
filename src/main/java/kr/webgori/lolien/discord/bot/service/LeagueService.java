@@ -303,7 +303,10 @@ public class LeagueService {
         LolienLeagueParticipantStats lolienParticipantStats = lolienParticipant.getStats();
 
         long totalDamageDealtToChampions = lolienParticipantStats.getTotalDamageDealtToChampions();
+        long visionScore = lolienParticipantStats.getVisionScore();
         int wardsPlaced = lolienParticipantStats.getWardsPlaced();
+        int wardsKilled = lolienParticipantStats.getWardsKilled();
+        int visionWardsBoughtInGame = lolienParticipantStats.getVisionWardsBoughtInGame();
 
         int kills = lolienParticipantStats.getKills();
         int deaths = lolienParticipantStats.getDeaths();
@@ -311,6 +314,9 @@ public class LeagueService {
 
         int champLevel = lolienParticipantStats.getChampLevel();
         int totalMinionsKilled = lolienParticipantStats.getTotalMinionsKilled();
+        int neutralMinionsKilled = lolienParticipantStats.getNeutralMinionsKilled();
+
+        int goldEarned = lolienParticipantStats.getGoldEarned();
 
         JsonObject itemsJsonObject;
 
@@ -422,6 +428,8 @@ public class LeagueService {
             .assists(assists)
             .champLevel(champLevel)
             .totalMinionsKilled(totalMinionsKilled)
+            .neutralMinionsKilled(neutralMinionsKilled)
+            .goldEarned(goldEarned)
             .item0Url(item0Url)
             .item1Url(item1Url)
             .item2Url(item2Url)
@@ -449,7 +457,10 @@ public class LeagueService {
             .subRuneUrl(subRuneUrl)
             .subRuneName(subRuneName)
             .subRuneDescription(subRuneDescription)
+            .visionScore(visionScore)
             .wardsPlaced(wardsPlaced)
+            .wardsKilled(wardsKilled)
+            .visionWardsBoughtInGame(visionWardsBoughtInGame)
             .teamId(teamId)
             .win(win)
             .build();
