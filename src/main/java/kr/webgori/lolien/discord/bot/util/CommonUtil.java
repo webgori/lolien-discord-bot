@@ -240,6 +240,14 @@ public class CommonUtil {
   }
 
   /**
+   * getStartDateOfMonth.
+   * @return LocalDate
+   */
+  public static LocalDate getStartDateOfMonth(LocalDate localDate) {
+    return localDate.withDayOfMonth(1);
+  }
+
+  /**
    * getStartDateOfPrevMonth.
    * @return LocalDate
    */
@@ -261,6 +269,14 @@ public class CommonUtil {
    */
   public static LocalDate getEndDateOfMonth() {
     return LocalDate.now().plusMonths(1).withDayOfMonth(1).minusDays(1);
+  }
+
+  /**
+   * getEndDateOfMonth.
+   * @return LocalDate
+   */
+  public static LocalDate getEndDateOfMonth(LocalDate localDate) {
+    return localDate.plusMonths(1).withDayOfMonth(1).minusDays(1);
   }
 
   /**

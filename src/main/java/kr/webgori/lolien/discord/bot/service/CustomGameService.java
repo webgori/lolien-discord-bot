@@ -474,8 +474,15 @@ public class CustomGameService {
    * @return CustomGamesStatisticsResponse
    */
   public StatisticsResponse getStatistics() {
-    LocalDate startDateOfMonth = getStartDateOfMonth();
-    LocalDate endDateOfMonth = getEndDateOfMonth();
+    LolienMatch lolienMatch = lolienMatchRepository
+        .findTopByOrderByIdxDesc()
+        .orElseGet(() -> LolienMatch.builder().idx(0).build());
+
+    LocalDate getGameCreationLocalDate = timestampToLocalDateTime(lolienMatch.getGameCreation())
+        .toLocalDate();
+
+    LocalDate startDateOfMonth = getStartDateOfMonth(getGameCreationLocalDate);
+    LocalDate endDateOfMonth = getEndDateOfMonth(getGameCreationLocalDate);
 
     Optional<StatisticsResponse> statisticsFromCache = getStatisticsFromCache(startDateOfMonth,
         endDateOfMonth);
@@ -490,24 +497,6 @@ public class CustomGameService {
     }
 
     List<LolienMatch> lolienMatches = getLolienMatches(startDateOfMonth, endDateOfMonth);
-
-    if (lolienMatches.isEmpty()) {
-      startDateOfMonth = getStartDateOfPrevMonth();
-      endDateOfMonth = getEndDateOfPrevMonth();
-
-      statisticsFromCache = getStatisticsFromCache(startDateOfMonth, endDateOfMonth);
-
-      statisticsResponse = statisticsFromCache
-          .orElseGet(() -> StatisticsResponse.builder().build());
-
-      matches = statisticsResponse.getMatches();
-
-      if (!matches.isEmpty()) {
-        return statisticsResponse;
-      }
-
-      lolienMatches = getLolienMatches(startDateOfMonth, endDateOfMonth);
-    }
 
     List<ChampDto> championNames = riotComponent.getChampionNames();
     JsonObject championJsonObject = riotComponent.getChampionJsonObject();

@@ -1,6 +1,7 @@
 package kr.webgori.lolien.discord.bot.repository;
 
 import java.util.List;
+import java.util.Optional;
 import kr.webgori.lolien.discord.bot.entity.LolienMatch;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,4 +20,6 @@ public interface LolienMatchRepository extends JpaRepository<LolienMatch, Intege
   List<LolienMatch> findByGameCreationGreaterThanEqual(long startGameCreation);
 
   void deleteByGameId(long gameId);
+
+  Optional<LolienMatch> findTopByOrderByIdxDesc();
 }
