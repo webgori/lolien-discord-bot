@@ -201,9 +201,9 @@ public class RiotComponent {
   }
 
   /**
-   * getChampionNameByChampId.
-   * @param champs champs
-   * @param champId champId
+   * 챔피언 목록 중 챔피언 아이디 에 해당 하는 챔피언 이름 조회.
+   * @param champs 챔피언 목록
+   * @param champId 챔피언 아이디
    * @return 챔피언 이름
    */
   public String getChampionNameByChampId(List<ChampDto> champs, int champId) {

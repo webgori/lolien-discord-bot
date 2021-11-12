@@ -473,6 +473,7 @@ public class TeamGenerateComponent {
     try {
       return Optional.ofNullable(riotApi.getMatch(Platform.KR, matchId));
     } catch (RiotApiException e) {
+      logger.error("", e);
       return Optional.empty();
     }
   }
