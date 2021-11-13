@@ -10,7 +10,6 @@ import com.google.common.collect.Lists;
 import java.awt.Color;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -402,55 +401,64 @@ public class TeamGenerateComponent {
     Set<Object> ids = hashOperations.keys(REDIS_GENERATED_TEAM_MATCHES_INFO_KEY);
 
     for (Object id : ids) {
-      // List<String> startDateTimeAndGameId = Arrays.asList(((String) key).split("/"));
-      // LocalDateTime startDateTime = stringToLocalDateTime(startDateTimeAndGameId.get(0));
-      // long gameId = Long.parseLong(startDateTimeAndGameId.get(1));
-
       long gameId = Long.parseLong((String) id);
+      Match match = getMatchByMatchId(gameId).orElseGet(Match::new);
 
-      Optional<Match> matchOptional = getMatchByMatchId(gameId);
-      matchOptional.flatMap(match -> Optional.ofNullable(hashOperations
-          .get(REDIS_GENERATED_TEAM_MATCHES_INFO_KEY, String.valueOf(gameId)))).ifPresent(a -> {
+      long gameCreation = match.getGameCreation();
 
-            String[] summonersName = ((String) a).split(",");
+      if (gameCreation == 0) {
+        return;
+      }
 
-            if (summonersName.length > 0) {
-              try {
-                addResult(gameId, summonersName);
-              } catch (IllegalArgumentException e) {
-                String message = e.getMessage();
-                if (message.contains("소환사를 찾을 수 없습니다.")) {
-                  logger.error("", e);
-                }
-              } finally {
-                hashOperations
-                    .delete(REDIS_GENERATED_TEAM_MATCHES_INFO_KEY, String.valueOf(gameId));
-              }
-            }
-          });
+      Object summonerName = hashOperations
+          .get(REDIS_GENERATED_TEAM_MATCHES_INFO_KEY, String.valueOf(gameId));
+
+      if (summonerName == null) {
+        return;
+      }
+
+      String[] summonersName = ((String) summonerName).split(",");
+
+      if (summonersName.length == 0) {
+        return;
+      }
+
+      try {
+        addResult(gameId, summonersName);
+      } catch (IllegalArgumentException e) {
+        String message = e.getMessage();
+        if (message.contains("소환사를 찾을 수 없습니다.")) {
+          logger.error("", e);
+        }
+      } finally {
+        hashOperations
+            .delete(REDIS_GENERATED_TEAM_MATCHES_INFO_KEY, String.valueOf(gameId));
+      }
     }
   }
 
   private void addResult(long gameId, String[] entries) {
     boolean existsByGameId = lolienMatchRepository.existsByGameId(gameId);
 
-    if (!existsByGameId) {
-      gameComponent.checkEntriesSummonerName(entries);
-
-      LolienMatch lolienMatch = gameComponent.getNewLolienMatch();
-      AddResultDto addResultDto = gameComponent.getAddResultDto(lolienMatch, gameId, entries);
-      gameComponent.setLolienMatch(addResultDto);
-      gameComponent.addLolienParticipantSet(addResultDto);
-      gameComponent.addLolienTeamStatsSet(addResultDto);
-
-      gameComponent.addResultMmr(addResultDto);
-
-      gameTransactionComponent.addResult(addResultDto);
-
-      gameComponent.updateMostChampFromCache(entries);
-
-      gameComponent.deleteCustomGameMatchesFromCache();
+    if (existsByGameId) {
+      return;
     }
+
+    gameComponent.checkEntriesSummonerName(entries);
+
+    LolienMatch lolienMatch = gameComponent.getNewLolienMatch();
+    AddResultDto addResultDto = gameComponent.getAddResultDto(lolienMatch, gameId, entries);
+    gameComponent.setLolienMatch(addResultDto);
+    gameComponent.addLolienParticipantSet(addResultDto);
+    gameComponent.addLolienTeamStatsSet(addResultDto);
+
+    gameComponent.addResultMmr(addResultDto);
+
+    gameTransactionComponent.addResult(addResultDto);
+
+    gameComponent.updateMostChampFromCache(entries);
+
+    gameComponent.deleteCustomGameMatchesFromCache();
   }
 
   private RiotApi getRiotApi() {
@@ -471,7 +479,7 @@ public class TeamGenerateComponent {
   private Optional<Match> getMatchByMatchId(long matchId) {
     RiotApi riotApi = getRiotApi();
     try {
-      return Optional.ofNullable(riotApi.getMatch(Platform.KR, matchId));
+      return Optional.ofNullable(riotApi.getMatch(Platform.ASIA, matchId));
     } catch (RiotApiException e) {
       logger.error("", e);
       return Optional.empty();

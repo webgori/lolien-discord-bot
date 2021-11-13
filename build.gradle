@@ -80,7 +80,7 @@ dependencies {
     implementation group: 'org.javassist', name: 'javassist', version: '3.27.0-GA'
     implementation group: 'org.mariadb.jdbc', name: 'mariadb-java-client', version: '2.5.3'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    implementation group: 'com.github.webgori', name: 'riot-api-java', version: '4.4.0'
+    implementation group: 'com.github.webgori', name: 'riot-api-java', version: '4.4.1'
     implementation group: 'org.jsoup', name: 'jsoup', version: '1.11.3'
     implementation group: 'org.springdoc', name: 'springdoc-openapi-ui', version: '1.2.30'
     implementation group: 'net.sourceforge.htmlunit', name: 'htmlunit', version: '2.42.0'
