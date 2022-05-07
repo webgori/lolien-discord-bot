@@ -45,7 +45,7 @@ public class RootConfig {
             .allowedOrigins("*")
             .allowedHeaders("*")
             .allowedMethods("*")
-            .allowCredentials(false)
+            .allowCredentials(true)
             .maxAge(3600);
       }
     };
