@@ -93,7 +93,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     http
         .cors()
-        .configurationSource(corsConfigurationSource())
         .and()
         .csrf()
         .disable()
