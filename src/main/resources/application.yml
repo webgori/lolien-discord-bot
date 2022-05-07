@@ -39,7 +39,7 @@ springdoc:
     groups:
       enabled: true
   swagger-ui:
-    path: /swagger-ui.html
+    path: /lolien-swagger-ui.html
     displayRequestDuration: true
     groups-order: DESC
 
